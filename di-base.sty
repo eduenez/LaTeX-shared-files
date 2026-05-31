@@ -1,0 +1,111 @@
+%% di-base.sty — Dueñez–Iovino base preamble
+%%
+%% Loads packages in the correct order, defines theorem environments,
+%% and sets equation numbering.  Suitable for use with any AMS document
+%% class (amsart, amsbook) or memoir.  Does NOT set page geometry or
+%% choose a font — those are document-class-level decisions.
+%%
+%% Usage (from a paper repo with this file as sty/ submodule):
+%%
+%%   % In latexmkrc:  ensure_path('TEXINPUTS', './sty//:');
+%%   \usepackage{di-base}
+%%
+%% Conflict resolutions applied here (documented choices):
+%%   \dd       — \DeclareMathOperator* (starred, limits below in display)
+%%   \claim    — numbered \newtheorem (majority convention)
+%%   \Ulim etc.— \DeclareMathOperator* (starred)
+%%   eucal     — [mathcal] (standardised; euscript not used)
+%%   hyperref  — loaded last, after all math packages
+%%   exercise  — defined via amsthm only; the 'exercise' package is NOT loaded
+%%               (it conflicts with the \newtheorem{exercise} definition)
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-base}[2026/05/31 Duenez-Iovino base preamble]
+
+% ── Encoding and language ────────────────────────────────────────────────────
+
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[english]{babel}
+
+% ── Math packages (order is significant) ────────────────────────────────────
+
+% mathtools loads amsmath; must come before amsthm
+\RequirePackage{mathtools}
+\RequirePackage{amsthm}
+
+% Symbol fonts: amssymb before stix (stix overrides some glyphs)
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{dsfont}          % \mathds{1} for indicator functions
+
+% Calligraphic/script fonts
+\RequirePackage[mathcal]{eucal}  % remaps \mathcal to Euler script
+\RequirePackage{mathrsfs}        % \mathscr (distinct from \mathcal)
+
+% Structural packages
+\RequirePackage{leftindex}       % left sub/superscripts: \leftindex^a_b{M}
+\RequirePackage{accents}         % \underaccent, \accentset
+\RequirePackage{slashed}         % Dirac slash notation
+
+% stix loaded last in the font stack
+\RequirePackage{stix}
+
+% ── Layout and utility packages ──────────────────────────────────────────────
+
+\RequirePackage{calc}
+\RequirePackage{enumitem}
+\RequirePackage{comment}         % \begin{comment}...\end{comment}
+\RequirePackage{microtype}       % character protrusion + expansion
+
+% ── Diagrams ─────────────────────────────────────────────────────────────────
+
+\RequirePackage{tikz-cd}
+\tikzcdset{arrow style=math font}
+
+% ── Cross-referencing — MUST come after all math packages ────────────────────
+
+\RequirePackage[
+  colorlinks,
+  linkcolor  = blue!60!black,
+  citecolor  = blue!60!black,
+  urlcolor   = blue!60!black,
+]{hyperref}
+\RequirePackage[capitalize, nameinlink]{cleveref}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+
+\swapnumbers  % "3.1 Theorem" style
+
+% plain style — statements
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem*{lemma*}{Lemma}
+
+% definition style — definitions, examples, conventions
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{definitions}[theorem]{Definitions}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{examples}[theorem]{Examples}
+\newtheorem{convention}[theorem]{Convention}
+\newtheorem{conventions}[theorem]{Conventions}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{exercises}[theorem]{Exercises}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{question}[theorem]{Question}
+
+% remark style — remarks, claims, caveats
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem*{remark*}{Remark}
+\newtheorem{remarks}[theorem]{Remarks}
+\newtheorem{claim}[theorem]{Claim}  % numbered; see conflict-resolution note
+\newtheorem*{caveat*}{Caveat}
+
+% ── Equation numbering ───────────────────────────────────────────────────────
+
+\numberwithin{equation}{section}
