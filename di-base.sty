@@ -78,11 +78,13 @@
 
 % plain style — statements
 \theoremstyle{plain}
+% NOTE: \specialtheorem is intentionally NOT defined here.  Papers use
+% \newtheorem{specialtheorem}{Theorem} with an independent counter.
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
 \newtheorem*{lemma*}{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
 
 % definition style — definitions, examples, conventions
 \theoremstyle{definition}
@@ -98,12 +100,14 @@
 \newtheorem{fact}[theorem]{Fact}
 \newtheorem{question}[theorem]{Question}
 
-% remark style — remarks, claims, caveats
+% remark style — remarks, caveats
+% NOTE: \claim is intentionally NOT defined here.  Papers disagree on whether
+% it should be numbered (RealRandom/RealStructures group) or unnumbered
+% (ProbabilityModels group).  Each paper defines \claim locally.
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 \newtheorem*{remark*}{Remark}
 \newtheorem{remarks}[theorem]{Remarks}
-\newtheorem{claim}[theorem]{Claim}  % numbered; see conflict-resolution note
 \newtheorem*{caveat*}{Caveat}
 
 % ── Equation numbering ───────────────────────────────────────────────────────

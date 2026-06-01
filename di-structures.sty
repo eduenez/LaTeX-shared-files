@@ -6,14 +6,16 @@
 %%
 %% Requires di-base to be loaded first.
 %%
-%% Macro-conflict resolutions applied here:
-%%   \dd   — \DeclareMathOperator* with upright \mathrm{d} (starred form;
-%%           produces limits below in display math)
-%%   \cE   — \newcommand (not \DeclareMathOperator; calligraphic letters
-%%           have no operator spacing)
-%%   \UU   — \newcommand (same reason)
-%%   \Ulim, \Vlim, \Wlim — \DeclareMathOperator* (starred)
-%%   \claim — see di-base.sty
+%% Conflict resolutions documented here:
+%%   \dd       — \DeclareMathOperator* (starred; non-starred locally if needed)
+%%   \cE, \UU  — \newcommand (letter, not operator; no operator spacing)
+%%   \Ulim etc.— \DeclareMathOperator* (starred)
+%%   \Ftp      — hyphenated form \cF\text{-}\!\tp (subscript form locally if needed)
+%%   \claim    — NOT defined here; conflict between papers; define locally
+%%   \bx,\by,\bz,\bv,\bw,\ba,\bb,\bs
+%%               — NOT defined here; papers use either \bar{x} or \mathbf{x};
+%%                 define locally
+%%   \VStr,\VZStr,\ZStr — reference \VZ and \tZ which are defined below
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{di-structures}[2026/05/31 Duenez-Iovino real-valued logic notation]
@@ -30,7 +32,7 @@
 \newcommand{\PP}{\mathbb{P}}
 \newcommand{\QQ}{\mathbb{Q}}
 \newcommand{\RR}{\mathbb{R}}
-\newcommand{\UU}{\mathbb{U}}
+\newcommand{\UU}{\mathbb{U}}    % \newcommand: letter, not operator
 \newcommand{\WW}{\mathbb{W}}
 \newcommand{\YY}{\mathbb{Y}}
 \newcommand{\ZZ}{\mathbb{Z}}
@@ -41,7 +43,7 @@
 \newcommand{\cB}{\mathcal{B}}
 \newcommand{\cC}{\mathcal{C}}
 \newcommand{\cD}{\mathcal{D}}
-\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cE}{\mathcal{E}}   % \newcommand: letter, not operator
 \newcommand{\cF}{\mathcal{F}}
 \newcommand{\cG}{\mathcal{G}}
 \newcommand{\cH}{\mathcal{H}}
@@ -64,7 +66,7 @@
 \newcommand{\cY}{\mathcal{Y}}
 \newcommand{\cZ}{\mathcal{Z}}
 
-% ── Fraktur letters (\fX = \mathfrak{X}) ────────────────────────────────────
+% ── Fraktur uppercase (\fX = \mathfrak{X}) ───────────────────────────────────
 
 \newcommand{\fA}{\mathfrak{A}}
 \newcommand{\fB}{\mathfrak{B}}
@@ -85,36 +87,45 @@
 \newcommand{\fY}{\mathfrak{Y}}
 \newcommand{\fZ}{\mathfrak{Z}}
 
-% Subscript-Z variants (value-space decorated structures)
-\newcommand{\fCZ}{\mathfrak{C}_{\ZZ}}
-\newcommand{\fMZ}{\mathfrak{M}_{\ZZ}}
-\newcommand{\fNZ}{\mathfrak{N}_{\ZZ}}
-\newcommand{\fMdot}{\dot{\mathfrak{M}}}
-\newcommand{\tM}{\tilde{\mathfrak{M}}}
-\newcommand{\tZ}{\tilde{\mathfrak{Z}}}
+% ── Fraktur lowercase ────────────────────────────────────────────────────────
+% These lowercase fraktur letters are used pervasively as elements/sorts.
 
-% ── Bold italic letters (vectors, random variables) ──────────────────────────
+\newcommand{\ff}{\mathfrak{f}}
+\newcommand{\fm}{\mathfrak{m}}
+\newcommand{\fn}{\mathfrak{n}}
+\newcommand{\fs}{\mathfrak{s}}
+\newcommand{\ft}{\mathfrak{t}}
+\newcommand{\fu}{\mathfrak{u}}
+\newcommand{\fv}{\mathfrak{v}}
+\newcommand{\fx}{\mathfrak{x}}
+\newcommand{\fy}{\mathfrak{y}}
 
-\newcommand{\bfx}{\boldsymbol{x}}
-\newcommand{\bfy}{\boldsymbol{y}}
-\newcommand{\bfs}{\boldsymbol{s}}
-\newcommand{\bft}{\boldsymbol{t}}
-\newcommand{\ba}{\boldsymbol{a}}
-\newcommand{\bb}{\boldsymbol{b}}
-\newcommand{\bk}{\boldsymbol{k}}
-\newcommand{\bl}{\boldsymbol{l}}
-\newcommand{\bp}{\boldsymbol{p}}
-\newcommand{\bq}{\boldsymbol{q}}
-\newcommand{\br}{\boldsymbol{r}}
-\newcommand{\bs}{\boldsymbol{s}}
-\newcommand{\bv}{\boldsymbol{v}}
-\newcommand{\bw}{\boldsymbol{w}}
-\newcommand{\bx}{\boldsymbol{x}}
-\newcommand{\by}{\boldsymbol{y}}
-\newcommand{\bz}{\boldsymbol{z}}
-\newcommand{\btx}{\tilde{\boldsymbol{x}}}
-\newcommand{\bty}{\tilde{\boldsymbol{y}}}
-\newcommand{\btz}{\tilde{\boldsymbol{z}}}
+% Bar-of-fraktur combinations (tuples/sequences of fraktur elements)
+\newcommand{\bfs}{\bar{\fs}}
+\newcommand{\bft}{\bar{\ft}}
+\newcommand{\bfx}{\bar{\fx}}
+\newcommand{\bfy}{\bar{\fy}}
+
+% ── Typewriter letters ───────────────────────────────────────────────────────
+% \tZ is the typewriter Z used as the symbol for the value lattice/space.
+
+\newcommand{\tZ}{\mathtt{Z}}    % value-space symbol; critical dependency below
+\newcommand{\tM}{\mathtt{M}}    % typewriter M (model/sort)
+
+% Bar-of-typewriter (tuples of typewriter-font variables)
+\newcommand{\btx}{\bar{\mathtt{x}}}
+\newcommand{\bty}{\bar{\mathtt{y}}}
+\newcommand{\btz}{\bar{\mathtt{z}}}
+
+% ── Bar letters (common "bar" shorthands safe across all papers) ─────────────
+% Note: \bx, \by, \bz, \bv, \bw, \ba, \bb, \bs are NOT defined here
+% because some papers use \bar{x} while others use \mathbf{x}.  Define locally.
+
+\newcommand{\bk}{\bar{k}}
+\newcommand{\bl}{\bar{\ell}}
+\newcommand{\bp}{\bar{p}}
+\newcommand{\bq}{\bar{q}}
+\newcommand{\br}{\bar{r}}
 
 % ── Math operators ───────────────────────────────────────────────────────────
 
@@ -134,158 +145,207 @@
 \DeclareMathOperator{\osc}{osc}
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\Res}{Res}
+\DeclareMathOperator{\rng}{rng}
 \DeclareMathOperator{\Sg}{Sg}
 \DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\SI}{SI}
 \DeclareMathOperator{\Str}{Str}
 \DeclareMathOperator{\supp}{supp}
 \DeclareMathOperator{\Th}{Th}
 \DeclareMathOperator{\tie}{tie}
+\DeclareMathOperator{\tp}{tp}
 \DeclareMathOperator{\val}{val}
-\DeclareMathOperator{\VStr}{VStr}
-\DeclareMathOperator{\VZStr}{VZStr}
-\DeclareMathOperator{\ZStr}{ZStr}
 
-% Infimum/supremum in normed-lattice sense
+% Infimum/supremum in Hausdorff/lattice sense
 \DeclareMathOperator{\Hinf}{H\!-\!\inf}
 \DeclareMathOperator{\Hsup}{H\!-\!\sup}
 
+% Structure-type operators (depend on \tZ and \VZ defined later)
+\DeclareMathOperator{\VStr}{\textit{V}\!\Str}
+% \VZStr and \ZStr reference \VZ and \tZ; they are defined after those macros.
+
 % Ultralimit operators (starred = limits placed below in display math)
-\DeclareMathOperator*{\Ulim}{U\!-\!\lim}
-\DeclareMathOperator*{\Vlim}{V\!-\!\lim}
-\DeclareMathOperator*{\Wlim}{W\!-\!\lim}
+\DeclareMathOperator*{\Ulim}{U\!\operatorname{-lim}}
+\DeclareMathOperator*{\Vlim}{V\!\operatorname{-lim}}
+\DeclareMathOperator*{\Wlim}{W\!\operatorname{-lim}}
+
+% Semigroup/Ramsey ultralimit (lowercase; used in Ramsey context)
+\DeclareMathOperator*{\ulim}{u\!\operatorname{-lim}}
+\DeclareMathOperator*{\Ilim}{I\!\operatorname{-lim}}
 
 % ── Norm and pairing delimiters ───────────────────────────────────────────────
-%
-% These use \left/\right for automatic sizing.  For a fixed-size version,
-% use \bigl|\cdot\bigr| directly.  mathtools' \DeclarePairedDelimiter is
-% preferred for new code (\nrm*{x} auto-sizes, \nrm{x} is fixed-small)
-% but kept simple here for backward compatibility.
 
 \newcommand{\nrm}[1]{\ensuremath{\left\lvert #1 \right\rvert}}
 \newcommand{\Nrm}[1]{\ensuremath{\left\lVert #1 \right\rVert}}
-\newcommand{\NRM}[1]{\ensuremath{\left\lVert #1 \right\rVert_{\infty}}}
-\newcommand{\Ninf}[1]{\ensuremath{\left\lVert #1 \right\rVert_{\infty}}}
-\newcommand{\None}[1]{\ensuremath{\left\lVert #1 \right\rVert_{1}}}
-\newcommand{\pair}[2]{\ensuremath{\left\langle #1, #2 \right\rangle}}
-\newcommand{\Pair}[2]{\ensuremath{\left\langle #1 \,\middle|\, #2 \right\rangle}}
+\newcommand{\NRM}[1]{{\left\vert\kern-0.25ex\left\vert\kern-0.25ex
+  \left\vert #1 \right\vert\kern-0.25ex\right\vert\kern-0.25ex\right\vert}}
+\newcommand{\Ninf}[1]{\Nrm{#1}_{\infty}}
+\newcommand{\None}[1]{\Nrm{#1}_{1}}
+\newcommand{\Naught}[1]{\Nrm{#1}_{0}}
+\newcommand{\PPabs}{\PP_{\!\nrm{\cdot}}}
+
+\newcommand{\pair}[2]{\ensuremath{\left\langle #1 \mid #2 \right\rangle}}
+\newcommand{\Pair}[2]{\ensuremath{\left\lAngle #1 \mid #2 \right\rAngle}}
 
 % Delimiter families built from stix bracket primitives
-\newcommand{\Angle}[1]{\ensuremath{\left\langle #1 \right\rangle}}
-\newcommand{\Brack}[1]{\ensuremath{\left\lbrack #1 \right\rbrack}}
-\newcommand{\Brace}[1]{\ensuremath{\left\lbrace #1 \right\rbrace}}
+\newcommand{\Angle}[1]{\ensuremath{\left\lAngle #1 \right\rAngle}}
+\newcommand{\Brack}[1]{\ensuremath{\left\lBrack #1 \right\rBrack}}
+\newcommand{\Brace}[1]{\ensuremath{\left\lBrace #1 \right\rBrace}}
 \newcommand{\Paren}[1]{\ensuremath{\left( #1 \right)}}
-\newcommand{\lrAngle}[1]{\ensuremath{\left\langle\!\left\langle
-  #1 \right\rangle\!\right\rangle}}
+\newcommand{\lrAngle}[1]{\ensuremath{%
+  \left\lAngle\!\left\lAngle #1 \right\rAngle\!\right\rAngle}}
 
 % ── Forcing and model-theoretic relations ────────────────────────────────────
 
 \newcommand{\forces}{\Vdash}
 \newcommand{\nforces}{\nVdash}
-\newcommand{\isforcedby}{\Vdash^{-1}}
-\newcommand{\ismodeledby}{\vDash}
+\newcommand{\isforcedby}{\dashV}
+\newcommand{\ismodeledby}{\Dashv}
 \newcommand{\nmodels}{\nvDash}
-\newcommand{\wforces}{\Vdash_w}
-\newcommand{\nwforces}{\nVdash_w}
-\newcommand{\appmod}{\approx_{\mathrm{mod}}}
-\newcommand{\nappmod}{\not\approx_{\mathrm{mod}}}
+\def\appmod{\mathrel|\joinrel\approx}
+\def\wforces{\mathrel\|\joinrel\sim}
+\newcommand{\nwforces}{\not\!\wforces}
+\newcommand{\nappmod}{\not\!\appmod}
 
-% ── Arrow notation ───────────────────────────────────────────────────────────
+% ── Arrow and restriction notation ───────────────────────────────────────────
 
-\newcommand{\ola}{\overleftarrow}
-\newcommand{\ora}{\overrightarrow}
-\newcommand{\olra}{\overleftrightarrow}
-\newcommand{\restrict}{\upharpoonright}
+\newcommand{\ola}[1]{\overleftarrow{#1}}
+\newcommand{\ora}[1]{\overrightarrow{#1}}
+\newcommand{\olra}[1]{\overleftrightarrow{#1}}
+\newcommand{\restrict}{\!\!\restriction\!\!}
 
 % ── Common utilities ─────────────────────────────────────────────────────────
 
 \newcommand{\half}{\tfrac{1}{2}}
-\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
-\newcommand{\dbar}{\bar{\partial}}
+\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}  % requires accents package
+\newcommand{\dbar}{\bar{\partial}}              % d-bar operator (complex analysis)
 \newcommand{\dotge}{\mathrel{\dot{\geq}}}
 \newcommand{\dotle}{\mathrel{\dot{\leq}}}
-\newcommand{\Sdot}{\dot{S}}
+\newcommand{\Cech}{{\v{C}ech}}
+\newcommand{\AEx}{\ensuremath{\forall\exists}}
+\newcommand{\fcofin}{\ensuremath{[\omega]^{<\omega}}}
+
+% Tilde-decorated scalars
+\newcommand{\tm}{\tilde{m}}
+\newcommand{\tn}{\tilde{n}}
 
 % ── Type space notation ───────────────────────────────────────────────────────
 
-\newcommand{\tp}{\mathrm{tp}}
 \newcommand{\Sigmatp}{\Sigma\text{-}\!\tp}
-\newcommand{\Ftp}{\cF\text{-}\!\tp}    % hyphenated form; consistent with Sigmatp
+\newcommand{\Ftp}{\cF\text{-}\!\tp}    % subscript form: \renewcommand locally if preferred
 \newcommand{\Phitp}{\Phi\text{-}\!\tp}
 \newcommand{\Xitp}{\Xi\text{-}\!\tp}
 \newcommand{\hPhi}{\hat{\Phi}}
 \newcommand{\hPhitp}{\hat{\Phi}\text{-}\!\tp}
 
-% Type and signature families
+% Sigma and Xi families indexed by F, V, Z
 \newcommand{\SigmaF}{\Sigma_{\cF}}
-\newcommand{\SigmaFZ}{\Sigma_{\cF,\ZZ}}
-\newcommand{\SigmaV}{\Sigma_{\cV}}
-\newcommand{\SigmaZ}{\Sigma_{\ZZ}}
-\newcommand{\sF}{\sigma_{\cF}}
-\newcommand{\sFZ}{\sigma_{\cF,\ZZ}}
-\newcommand{\HF}{H_{\cF}}
-\newcommand{\HFZ}{H_{\cF,\ZZ}}
-\newcommand{\PhiZ}{\Phi_{\ZZ}}
-\newcommand{\PsiZ}{\Psi_{\ZZ}}
-\newcommand{\XiV}{\Xi_{\cV}}
-\newcommand{\XiZ}{\Xi_{\ZZ}}
-\newcommand{\LV}{L_{\cV}}
-\newcommand{\LZ}{L_{\ZZ}}
-\newcommand{\VZ}{V_{\ZZ}}
+\newcommand{\SigmaFZ}{\Sigma^{\cF}_{\tZ}}
+\newcommand{\SigmaV}{\Sigma_{V}}
+\newcommand{\SigmaZ}{\Sigma_{\tZ}}
+\newcommand{\XiV}{\Xi_{V}}
+\newcommand{\XiZ}{\Xi_{\tZ}}
+\newcommand{\PhiZ}{\Phi^{\tZ}}
+\newcommand{\PsiZ}{\Psi^{\tZ}}
 
-% ── L^p space notation ───────────────────────────────────────────────────────
+% sigma/HF families
+\newcommand{\sF}{{}_{\bfs}\cF}
+\newcommand{\sFZ}{\sF_{\!\!\tZ}}
+\newcommand{\HF}{\mathcal{H}_{\cF}}
+\newcommand{\HFZ}{\mathcal{H}^{\cF}_{\tZ}}
 
-\newcommand{\Lone}{L^{1}}
-\newcommand{\Linf}{L^{\infty}}
-\newcommand{\Loo}{L^{\infty}}     % alias
+% ── Structure notation ────────────────────────────────────────────────────────
+
+% Calligraphic F with value-space decoration
+\newcommand{\cFZ}{\cF_{\!\!\tZ}}
+
+% Fraktur structure families with value-space decoration
+\newcommand{\fCZ}{\fC[\tZ]}
+\newcommand{\fMZ}{\fM_{\tZ}}
+\newcommand{\fMdot}{\fM_{\cdot}}
+\newcommand{\fTT}{\fT_{T}}
+
+% Structure "tensor" variants
+\newcommand{\MPi}{\fM_{\Pi}}
+\newcommand{\Sdot}{\fS^{\cdot}}
+
+% Projection of signature onto sorts
+\newcommand{\Ps}{\cP_{\bfs}}
+
+% The unusual "opposite-map" notation (used in type-space projections)
+\newcommand{\RM}{{}^{{}_{\cdot}M}{\!\cR}}
+
+% ── Parallel-sort projections (T-indexed families) ───────────────────────────
+
+\newcommand{\TK}{{\cT}_{\!\cK}}
+\newcommand{\TMQ}{{\cT}_{\!\cM^{\mathfrak{Q}}}}
+\newcommand{\TR}{{\cT}_{\!\cR}}
+\newcommand{\TRK}{\TR^{\text{K}}}
+\newcommand{\TSigma}{\fT_{\Sigma}}
+\newcommand{\TXi}{\fT_{\Xi}}
+\newcommand{\Tbfs}{{\cT}_{\!\bfs}}
+\newcommand{\Tft}{{\cT}_{\!\ft}}
+
+% ── "Super/sub-script" structure pairs ───────────────────────────────────────
+
+\newcommand{\KCl}{\cK_{\!\mathcal{C}\!{\ell}}}
+\newcommand{\KR}{\cK_{\!\cR}}
+\newcommand{\QF}{\fQ_{\cF}}
+\newcommand{\QFZ}{\fQ^{\cF}_{\tZ}}
+\newcommand{\XfR}{{}^{X}{\!\fR}}
+\newcommand{\XfY}{{}^{X}{\!\fY}}
+\newcommand{\XR}{{}^{X}{\!\cR}}
+\newcommand{\XY}{{}^{X}{\!\cY}}
+\newcommand{\rL}{\mathrm{L}}
+\newcommand{\rU}{\mathrm{U}}
+
+% ── Infinitary logic and L^p spaces ─────────────────────────────────────────
+
+\newcommand{\Loo}{L_{\omega_1\omega}}    % infinitary logic language L_{\omega_1\omega}
+\newcommand{\LV}{L^{\!\!V}}
+\newcommand{\LZ}{L^{\!\tZ}}
+\newcommand{\LooV}{\Loo^{\!V}}
+\newcommand{\LooZ}{\Loo^{\!\tZ}}
+
+% Standard L^p and \ell^p shortcuts
+% Note: \Lone and \Linf use calligraphic \cL throughout these papers
+% (they denote the language-L^p space, not the Banach space L^p).
+% The plain Banach-space L^infty is \Linfty.
+\newcommand{\Lone}{\cL^{1}}
+\newcommand{\Linf}{\cL^{\infty}}
+\newcommand{\Linfty}{L^{\infty}}    % Banach space L^\infty (non-calligraphic)
+\newcommand{\Loi}{L^{1,\infty}}
 \newcommand{\lone}{\ell^{1}}
 \newcommand{\linf}{\ell^{\infty}}
-\newcommand{\Loi}{L^{1}}          % alias used in some manuscripts
 
-% ── Miscellaneous structure notation ─────────────────────────────────────────
+% ── Value-space structures (V-families) ──────────────────────────────────────
 
-\newcommand{\Pfins}{\mathcal{P}_{\mathrm{fin}}}  % finite power set
-\newcommand{\fcofin}{[\omega]^{<\omega}}           % cofinal ideal
-\newcommand{\AEx}{\exists^{\mathrm{ap}}}          % approximate existence
-\newcommand{\Cech}{\v{C}ech}                      % Čech (as in Stone–Čech)
+\newcommand{\VZ}{V_{\!\tZ}}
 
-% Finite and indexed structure families
-\newcommand{\fMfrnd}{\mathfrak{M}^{\mathrm{rnd}}}
-\newcommand{\fNrnd}{\mathfrak{N}^{\mathrm{rnd}}}
+% \VStr etc. require \VZ; defined with \providecommand to allow override
+\DeclareMathOperator{\VZStr}{\VZ\!\Str}
+\DeclareMathOperator{\ZStr}{\tZ\!\Str}
+
+\newcommand{\VPA}{V_{\mathrm{PA}}}
+\newcommand{\VRz}{V_{\!{\mathrm{Riesz}}}}
+\newcommand{\VNRz}{V_{\!{\Nrm{\mathrm{Riesz}}}}}
+\newcommand{\Vmet}{V_{\!{\mathrm{met}}}}
+\newcommand{\Vnrm}{V_{\!{\mathrm{nrm}}}}
+\newcommand{\Vvec}{V_{\!{\mathrm{vec}}}}
+\newcommand{\Vdvec}{\Vvec^{\dd}}
+
+% ── Randomization notation ───────────────────────────────────────────────────
+% (di-random.sty extends this with further randomization-specific macros)
+
+\newcommand{\fMfrnd}{\fM^{\mathrm{rnd}}}
+\newcommand{\fNrnd}{\fN^{\mathrm{rnd}}}
 \newcommand{\Mfrnd}{M^{\mathrm{rnd}}}
 \newcommand{\Nrnd}{N^{\mathrm{rnd}}}
 
-% VPA, VRz etc. — real-valued structure "value" spaces
-\newcommand{\VPA}{V_{\mathrm{PA}}}
-\newcommand{\VRz}{V_{\RR,0}}
-\newcommand{\VNRz}{V_{\neg\RR,0}}
-\newcommand{\Vmet}{V_{\mathrm{met}}}
-\newcommand{\Vnrm}{V_{\mathrm{nrm}}}
-\newcommand{\Vvec}{V_{\mathrm{vec}}}
-\newcommand{\Vdvec}{V_{\mathrm{dvec}}}
+% ── Pfins and cofinal ideal ───────────────────────────────────────────────────
 
-% Range and domain
-\newcommand{\rng}{\mathrm{rng}}
-\newcommand{\dom}{\mathrm{dom}}
+\newcommand{\Pfins}{\mathcal{P}^{*}_{\mathrm{fin}}}
 
-% Paired structure projections
-\newcommand{\TK}{T_{\cK}}
-\newcommand{\TR}{T_{\cR}}
-\newcommand{\TRK}{T_{\cR,\cK}}
-\newcommand{\TSigma}{T_{\Sigma}}
-\newcommand{\TXi}{T_{\Xi}}
-\newcommand{\TMQ}{T_{\cM,\cQ}}
-\newcommand{\Tbfs}{\mathbf{T}_{\mathbf{S}}}
-\newcommand{\Tft}{\mathfrak{T}_{\mathfrak{t}}}
-\newcommand{\KCl}{\cK\text{-}\mathrm{cl}}
-\newcommand{\KR}{\cK_{\cR}}
+% ── Compatibility and restriction ─────────────────────────────────────────────
 
-% Compatibility relation
-\newcommand{\compat}{\frown}
-
-% Kolmogorov quotient and related
-\newcommand{\XR}{X_{\cR}}
-\newcommand{\XY}{X_{\cY}}
-\newcommand{\XfR}{X_{\mathfrak{R}}}
-\newcommand{\XfY}{X_{\mathfrak{Y}}}
-\newcommand{\rL}{r_L}
-\newcommand{\rU}{r_U}
+\newcommand{\compat}[1]{\overset{#1}\sim}

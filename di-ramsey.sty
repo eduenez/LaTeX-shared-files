@@ -1,136 +1,129 @@
 %% di-ramsey.sty — Dueñez–Iovino notation for Ramsey theory and combinatorics
 %%
-%% Notation specific to ultrafilter semigroups, idempotent types, continuous
-%% Ramsey theory, Hindman's theorem, and stable Boolean algebras.
-%% Extends di-structures.sty.
+%% Notation for ultrafilter semigroups, continuous Ramsey theory, Hindman's
+%% theorem, and stable Boolean algebras.  Extends di-structures.sty.
 %%
 %% Requires di-base and di-structures to be loaded first.
+%%
+%% SCOPE NOTE: This file covers only macros that are CONSISTENT across the
+%% Ramsey manuscripts (ProbabilityModels, RandomizedStructures,
+%% Numakuras_Lemma).  Paper-specific macros (phi-variants, probability
+%% interval notation Pgg/Pll, local function families fAC/fSg etc.,
+%% measure families muZ/nuZ) must remain in each paper's local preamble.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{di-ramsey}[2026/05/31 Duenez-Iovino Ramsey and combinatorics notation]
+\ProvidesPackage{di-ramsey}[2026/05/31 Duenez-Iovino Ramsey and combinatorics]
 
-% ── Semigroup and ultrafilter operations ─────────────────────────────────────
+% ── Łukasiewicz identifier ───────────────────────────────────────────────────
 
-% Ultrafilter limits (lower-case: idempotent/semigroup context)
-\DeclareMathOperator*{\ulim}{u\text{-}\!\lim}
-\DeclareMathOperator*{\Ilim}{I\text{-}\!\lim}
+\newcommand{\Luk}{{\L}ukasiewicz}
 
-% Tensor/semigroup product of types
-\newcommand{\Pggd}{\mathrel{\succcurlyeq^{\!\!d}}}
-\newcommand{\Pgm}{\mathrel{\succcurlyeq_m}}
-\newcommand{\Plld}{\mathrel{\preccurlyeq^{\!\!d}}}
-\newcommand{\Plmm}{\mathrel{\preccurlyeq_m}}
-\newcommand{\Pll}{\mathrel{\preccurlyeq}}
-\newcommand{\Pgg}{\mathrel{\succcurlyeq}}
-\newcommand{\Pm}{\mathrel{\succsim}}
-\newcommand{\Pmf}{\mathrel{\succsim_f}}
+% ── Language family notation ─────────────────────────────────────────────────
+%
+% In these papers \cL denotes the Ramsey language (inherited from di-structures
+% as \cL = \mathcal{L}).  The families below are subscript/superscript variants.
 
-% ── Language and structure families for Ramsey context ───────────────────────
+% Basic language variants
+\newcommand{\LOr}{\ensuremath{\cL^{\phi}}}       % ordered language
+\newcommand{\LOB}{\ensuremath{\cL^{\phi}_{\cB}}} % ordered + Boolean
+\newcommand{\pLOr}{\ensuremath{\Sigma\LOr}}
+\newcommand{\LOri}{\ensuremath{\cL^{\phi_i}}}
+\newcommand{\pLone}{\ensuremath{\Sigma\Lone}}     % \Lone from di-structures
 
-% Real-valued logic language families (L-subscript notation)
-\newcommand{\LR}{L_{\RR}}           % real-valued language
-\newcommand{\LOr}{L_{\mathrm{or}}}  % ordered language
-\newcommand{\LAC}{L_{\mathrm{AC}}}  % almost-convergence language
-\newcommand{\LSg}{L_{\Sg}}
-\newcommand{\LSI}{L_{\mathrm{SI}}}
-\newcommand{\LSp}{L_{\mathrm{sp}}}
-\newcommand{\LSgp}{L_{\Sg,\mathrm{p}}}
-\newcommand{\LSIp}{L_{\mathrm{SI,p}}}
-\newcommand{\LACp}{L_{\mathrm{AC,p}}}
-\newcommand{\LNgR}{L_{\neg\RR}}
-\newcommand{\LNgRp}{L_{\neg\RR,\mathrm{p}}}
-\newcommand{\LFS}{L_{\mathrm{FS}}}
-\newcommand{\LFSp}{L_{\mathrm{FS,p}}}
-\newcommand{\LQ}{L_{\cQ}}
-\newcommand{\LQF}{L_{\cQ,\cF}}
-\newcommand{\LPA}{L_{\mathrm{PA}}}
-\newcommand{\LPS}{L_{\mathrm{PS}}}
-\newcommand{\LPr}{L_{\Pr}}
-\newcommand{\Luk}{{\mathcal{L}\mkern-2mu\text{uk}}}  % Łukasiewicz logic
-\newcommand{\Lphi}{L_{\phi}}
-\newcommand{\LM}{L_{\cM}}
-\newcommand{\LMA}{L_{\cM,A}}
-\newcommand{\LO}{L_{\cO}}
-\newcommand{\LR}{L_{\cR}}
+% Subscripted language families
+\newcommand{\LAC}{\ensuremath{\cL_{\mathrm{AC}}}}
+\newcommand{\LSg}{\ensuremath{\cL_{\mathrm{Sg}}}}
+\newcommand{\LSI}{\ensuremath{\cL_{\infty}}}
+\newcommand{\Lb}{\ensuremath{\cL^{<\infty}}}
+\newcommand{\LFS}{\ensuremath{\cL_{\sigma}}}
+\newcommand{\Linff}{\ensuremath{\cL^{\infty}}}  % alias for \Linf in this context
+\newcommand{\Lphi}{\ensuremath{\cL^{\phi}}}
+\newcommand{\LSp}{\ensuremath{\cL^{1}_{\mathrm{Simp}}}}
 
-% Bernstein–Fraktur language families
-\newcommand{\BFS}{\mathfrak{B}_{\mathrm{FS}}}
-\newcommand{\BAC}{\mathfrak{B}_{\mathrm{AC}}}
-\newcommand{\BSg}{\mathfrak{B}_{\Sg}}
-\newcommand{\BSI}{\mathfrak{B}_{\mathrm{SI}}}
-\newcommand{\BSt}{\mathfrak{B}_{\mathrm{st}}}
-\newcommand{\BOr}{\mathfrak{B}_{\mathrm{or}}}
-\newcommand{\BSp}{\mathfrak{B}_{\mathrm{sp}}}
-\newcommand{\BL}{\mathfrak{B}_L}
-\newcommand{\BM}{\mathfrak{B}_{\cM}}
-\newcommand{\BMb}{\mathfrak{B}_{\cM,b}}
-\newcommand{\BcM}{\mathfrak{B}_{\mathcal{M}}}
-\newcommand{\BfM}{\mathfrak{B}_{\mathfrak{M}}}
-\newcommand{\Bw}{\mathfrak{B}_w}
-\newcommand{\Bo}{\mathfrak{B}_0}
-\newcommand{\Bb}{\mathfrak{B}_b}
+% Primed (positive) variants
+\newcommand{\LACp}{\ensuremath{\LAC^{+}}}
+\newcommand{\LSgp}{\ensuremath{\LSg^{+}}}
+\newcommand{\LSIp}{\ensuremath{\LSI^{+}}}
+\newcommand{\Lbp}{\ensuremath{\Lb^{+}}}
+\newcommand{\LFSp}{\ensuremath{\LFS^{+}}}
 
-% Fraktur structure families (Ramsey context)
-\newcommand{\fFS}{\mathfrak{F}_{\mathrm{FS}}}
-\newcommand{\fAC}{\mathfrak{A}_{\mathrm{C}}}
-\newcommand{\fACZ}{\mathfrak{A}_{\mathrm{C},\ZZ}}
-\newcommand{\fFSZ}{\mathfrak{F}_{\mathrm{FS},\ZZ}}
-\newcommand{\fSI}{\mathfrak{S}_{\mathrm{I}}}
-\newcommand{\fSIZ}{\mathfrak{S}_{\mathrm{I},\ZZ}}
-\newcommand{\fSg}{\mathfrak{S}_{\Sg}}
-\newcommand{\fSgZ}{\mathfrak{S}_{\Sg,\ZZ}}
-\newcommand{\fLAC}{\mathfrak{L}_{\mathrm{AC}}}
-\newcommand{\fLU}{\mathfrak{L}_{U}}
-\newcommand{\fAZ}{\mathfrak{A}_{\ZZ}}
-\newcommand{\fNCZ}{\mathfrak{N}_{C,\ZZ}}
-\newcommand{\AZ}{\mathfrak{A}_{\ZZ}}
+% LO-subscripted families (ordered language variants)
+\newcommand{\LOAC}{\ensuremath{\LOr_{\mathrm{AC}}}}
+\newcommand{\LOSg}{\ensuremath{\LOr_{\mathrm{Sg}}}}
+\newcommand{\LOSI}{\ensuremath{\LOr_{\infty}}}
+\newcommand{\LOb}{\ensuremath{\LOr_{<\infty}}}
+\newcommand{\LOFS}{\ensuremath{\LOr_{\sigma}}}
+\newcommand{\LOACp}{\ensuremath{\LOAC^{+}}}
+\newcommand{\LOSgp}{\ensuremath{\LOSg^{+}}}
+\newcommand{\LOSIp}{\ensuremath{\LOSI^{+}}}
+\newcommand{\LObp}{\ensuremath{\LOb^{+}}}
 
-% ── Theorem-name shortcuts for Ramsey manuscripts ────────────────────────────
+% L(structure) variants
+\newcommand{\LOSp}[1]{\ensuremath{\cL^{\phi{#1}}_{\mathrm{Simp}}}}
+\newcommand{\LOS}{\ensuremath{L^{\phi}}}
+\newcommand{\LOBS}{\ensuremath{L^{\phi}_{\cB}}}
+\newcommand{\LBS}{\ensuremath{L^{\cB}}}
+\newcommand{\LOS}{\ensuremath{L^{\phi}}}
+\newcommand{\LMA}{\ensuremath{L_{\mathrm{MA}}}}
+\newcommand{\LPA}{\ensuremath{L_{\mathrm{PA}}}}
+\newcommand{\LMMA}{\ensuremath{L_{\mathrm{mMA}}}}
+\newcommand{\Lint}{\ensuremath{L^{\textstyle\int}}}
+\newcommand{\tLint}{\ensuremath{\tilde{L}^{\textstyle\int}}}
+\newcommand{\LRN}{\ensuremath{L_{\mathrm{RN}}}}
+\newcommand{\LRNs}{\ensuremath{\LRN^{\mathrm{SA}}}}
+\newcommand{\LRV}{\ensuremath{L_{\mathrm{RV}}}}
+\newcommand{\LBM}{\ensuremath{\Brack{L}}}
+\newcommand{\LPr}{\ensuremath{L_{\mathrm{Pr}}}}
+\newcommand{\LPS}{\ensuremath{L_{\mathrm{PS}}}}
 
-\newcommand{\ThBO}{T_{\mathrm{BO}}}   % Bourgain–Olmsted
-\newcommand{\ThInt}{T_{\mathrm{int}}}
-\newcommand{\ThMMA}{T_{\mathrm{MMA}}}
-\newcommand{\ThOr}{T_{\mathrm{or}}}
-\newcommand{\ThRM}{T_{\mathrm{RM}}}
-\newcommand{\ThRN}{T_{\mathrm{RN}}}
-\newcommand{\ThRNs}{T_{\mathrm{RN}}^{*}}
-\newcommand{\Thred}{T_{\mathrm{red}}}
+% ── Boolean algebra families ─────────────────────────────────────────────────
+%
+% \cB-subscripted families arising in Ramsey/Functional Analysis.
 
-% ── Counting and measure operators ───────────────────────────────────────────
+\newcommand{\BAC}{\ensuremath{\cB_{\mathrm{AC}}}}
+\newcommand{\Bb}{\ensuremath{\cB_{<\infty}}}
+\newcommand{\BFS}{\ensuremath{\cB_{\sigma}}}
+\newcommand{\BSp}{\ensuremath{\cB_{\mathrm{Simp}}}}
+\newcommand{\BSg}{\ensuremath{\cB_{\mathrm{Sg}}}}
+\newcommand{\BSI}{\ensuremath{\cB_{\infty}}}
+\newcommand{\BSt}{\ensuremath{\cB_{\mathrm{St}}}}
+\newcommand{\Bo}{\ensuremath{\cB_{0}}}
+% \Bw uses \sinewave from svrsymbols; define only if that package is loaded:
+\providecommand{\Bw}{\ensuremath{\cB_{w}}}
 
-\newcommand{\muZ}{\mu_{\ZZ}}
-\newcommand{\nuZ}{\nu_{\ZZ}}
-\newcommand{\nuACZ}{\nu_{\mathrm{AC},\ZZ}}
-\newcommand{\nuACm}{\nu_{\mathrm{AC},m}}
-\newcommand{\nuSgZ}{\nu_{\Sg,\ZZ}}
-\newcommand{\nuSgm}{\nu_{\Sg,m}}
+% ── Bracket-boxed structure notation ─────────────────────────────────────────
+%
+% Used for the "bracketed language" or "bracketed structure" in Ramsey context.
+
+\newcommand{\BfM}{\Brack{\fM}}
+\newcommand{\BcM}{\Brack{\cM}}
+\newcommand{\BM}{\Brack{M}}
+\newcommand{\BMb}{\Brack{\cM_{\bullet}}}
+\newcommand{\SM}{\Sigma^{\MM}}
+\newcommand{\cMb}{\cM_{\bullet}}
+\newcommand{\Mb}{M_{\bullet}}
+\newcommand{\fMb}{\fM_{\bullet}}
+
+% ── Theorem-name references (Ramsey manuscripts) ─────────────────────────────
+%
+% These use the \mathrm{Th} form consistently across ProbabilityModels and
+% Numakuras_Lemma.  Note: \Th is \DeclareMathOperator in di-structures.sty;
+% for \ThXXX we use \mathrm{Th} directly to avoid operator spacing.
+
+\newcommand{\ThBO}{\ensuremath{\mathrm{Th}_{\cB}^{\phi}}}
+\newcommand{\ThInt}{\ensuremath{\mathrm{Th}^{\textstyle\int}}}
+\newcommand{\ThMMA}{\ensuremath{\mathrm{Th}_{\mathrm{MMA}}}}
+\newcommand{\ThOr}{\ensuremath{\mathrm{Th}^{\phi}}}
+\newcommand{\ThRM}{\ensuremath{\mathrm{Th}_{\cR}(\fM)}}
+\newcommand{\ThRN}{\ensuremath{\mathrm{Th}_{\mathrm{RN}}}}
+\newcommand{\ThRNs}{\ensuremath{\ThRN^{\mathrm{SA}}}}
+
+% ── Measure / norm families arising in Ramsey ─────────────────────────────────
+
+\newcommand{\FM}{\ensuremath{\Phi_{M}}}
+\newcommand{\LM}{\ensuremath{\Lambda_{M}}}
 
 % ── Miscellaneous combinatorics ───────────────────────────────────────────────
 
-\newcommand{\Dtwo}{\mathfrak{D}_2}    % doubling map or Ramsey step
-\newcommand{\medrel}[1]{\mathrel{\phantom{#1}}}  % spacing in alignments
-\newcommand{\aew}{\text{a.e.}}
-\newcommand{\ws}{w^*}                 % weak-star notation
-\newcommand{\ab}{\mathfrak{ab}}       % semigroup product
-\newcommand{\ceq}{\coloneqq}          % definitional equality
-\newcommand{\IN}{\mathbb{N}}          % natural numbers (alias)
-
-% ── IOB / XOr (ordered structures) ───────────────────────────────────────────
-
-\newcommand{\IOB}{\cI_{\mathrm{OB}}}
-\newcommand{\IOr}{\cI_{\mathrm{or}}}
-\newcommand{\XOr}{X_{\mathrm{or}}}
-\newcommand{\NXOr}{N_{X_{\mathrm{or}}}}
-\newcommand{\Xif}{X_{\mathrm{if}}}
-\newcommand{\pLOr}{p_{L_{\mathrm{or}}}}
-\newcommand{\pLone}{p_{L^{1}}}
-\newcommand{\VoiL}{V_{\ell^{1}}}
-\newcommand{\Voi}{\ell^{1}}
-
-% ── Stability and Boolean algebra ────────────────────────────────────────────
-
-\newcommand{\SM}{\mathrm{SM}}         % stable Maharam
-\newcommand{\SI}{\mathrm{SI}}         % strongly injective
-\newcommand{\Sg}{\mathrm{Sg}}         % subgroup (alias)
-\newcommand{\NC}{\mathrm{NC}}         % null completion
-\newcommand{\cnonfork}{\mathop{\smile\!\!\!\!\!\mid}}  % non-forking
+\newcommand{\Dtwo}{\ensuremath{\Delta_{2}}}   % papers use \Delta_2 not \mathfrak{D}_2
+\newcommand{\IN}{\mathbb{N}}                   % alias (used in some papers)
