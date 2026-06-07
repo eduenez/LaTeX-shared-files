@@ -27,7 +27,13 @@
 % handled separately; only user-supplied string IDs need labels).
 \ExplSyntaxOn
 \xsim_addto_hook:nnnn {exercise} {exercise} {begin}
-  { \tl_if_empty:NF \ExerciseID { \label{\ExerciseID} } }
+  {
+    \tl_if_empty:NF \ExerciseID
+      { \typeout{XSIM-LABEL:~ExerciseID='\ExerciseID'}
+        \label{\ExerciseID} }
+    \tl_if_empty:NT \ExerciseID
+      { \typeout{XSIM-LABEL:~ExerciseID=EMPTY} }
+  }
 \ExplSyntaxOff
 
 % Sub-part separator within an exercise.
