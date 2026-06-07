@@ -20,16 +20,22 @@
   solution/print   = false,     % hide solutions by default
 }
 
-% Emit \label{\ExerciseID} inside xsim's begin-code hook so that
-% \ref{<ID>} cross-references resolve to the exercise number.
-% The xsim internal begin hook fires after ExerciseID is set.
-% Guard: skip if the ID is empty (auto-generated numeric IDs are
-% handled separately; only user-supplied string IDs need labels).
+% Auto-label exercises that carry a user-supplied [ID=...].
+% xsim stores the user ID in the "ID" property; auto-generated IDs are
+% pure digits.  We emit \label{ID} only when the ID contains at least one
+% non-digit character, so \ref{discrete-Vec-axioms} etc. resolve normally.
 \ExplSyntaxOn
-\xsim_addto_hook:nnnn {exercise} {exercise} {begin}
+
+\cs_new_protected:Npn \xsim_di_auto_label:
   {
-    \typeout{XSIM-DIAG:~ExerciseID='\ExerciseID'~ID-prop='\GetExerciseProperty{ID}'}
+    \tl_set:Nx \l_tmpa_tl { \GetExerciseProperty{ID} }
+    \regex_match:VnT \l_tmpa_tl { [^0-9] }
+      { \exp_args:NV \label \l_tmpa_tl }
   }
+
+\xsim_addto_hook:nnnn {exercise} {exercise} {begin}
+  { \xsim_di_auto_label: }
+
 \ExplSyntaxOff
 
 % Sub-part separator within an exercise.
