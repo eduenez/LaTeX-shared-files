@@ -16,10 +16,16 @@
 \RequirePackage{xsim}
 
 \xsimsetup{
-  exercise/within        = section,  % number as <section>.<counter>
-  exercise/label-prefix  = {},       % \ref{<ID>} resolves directly
-  solution/print         = false,    % hide solutions by default
+  exercise/within  = section,   % number as <section>.<counter>
+  solution/print   = false,     % hide solutions by default
 }
+
+% Emit \label{\ExerciseID} at the opening of every exercise body so that
+% \ref{<ID>} cross-references resolve to the exercise number.
+% Uses xsim's internal hook mechanism; \ExerciseID is already set at this point.
+\ExplSyntaxOn
+\xsim_addto_hook:nnnn {exercise} {exercise} {begin} { \label{\ExerciseID} }
+\ExplSyntaxOff
 
 % Sub-part separator within an exercise.
 % Optional argument is accepted for compatibility but not printed.
