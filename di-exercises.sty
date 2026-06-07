@@ -16,12 +16,15 @@
 \RequirePackage{xsim}
 
 \xsimsetup{
-  exercise/within       = section,   % number as <section>.<counter>
-  solution/print        = false,     % hide solutions by default
-  % Emit \label{\ExerciseID} at the opening of every exercise so that
-  % \ref{<ID>} cross-references resolve to the exercise number.
-  exercise/exercise/begin-hook = {\label{\ExerciseID}},
+  exercise/within  = section,   % number as <section>.<counter>
+  solution/print   = false,     % hide solutions by default
 }
+
+% Emit \label{\ExerciseID} at the start of every exercise body.
+% \AddToHook{env/exercise/begin} fires after xsim's begin code (so
+% \ExerciseID and \refstepcounter are both already called) but before
+% the body text, making \ref{<ID>} resolve to the exercise number.
+\AddToHook{env/exercise/begin}{\label{\ExerciseID}}
 
 % Sub-part separator within an exercise.
 % Optional argument is accepted for compatibility but not printed.
