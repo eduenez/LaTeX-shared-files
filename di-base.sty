@@ -34,7 +34,7 @@
 \RequirePackage{mathtools}
 \RequirePackage{amsthm}
 
-% Symbol fonts: amssymb before stix (stix overrides some glyphs)
+% Symbol fonts: amssymb before stix2 (stix2 overrides some glyphs)
 \RequirePackage{amssymb}
 \RequirePackage{amsfonts}
 \RequirePackage{dsfont}          % \mathds{1} for indicator functions
@@ -48,8 +48,12 @@
 \RequirePackage{accents}         % \underaccent, \accentset
 \RequirePackage{slashed}         % Dirac slash notation
 
-% stix loaded last in the font stack
-\RequirePackage{stix}
+% stix2 loaded last in the font stack
+% stix2 names the double-bracket delimiters \lBrack/\rBrack; alias to the
+% stmaryrd-conventional names so documents can use \llbracket/\rrbracket.
+\RequirePackage{stix2}
+\let\llbracket\lBrack
+\let\rrbracket\rBrack
 
 % ── Layout and utility packages ──────────────────────────────────────────────
 
