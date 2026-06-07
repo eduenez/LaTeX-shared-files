@@ -16,8 +16,9 @@
 %%   \Ulim etc.— \DeclareMathOperator* (starred)
 %%   eucal     — [mathcal] (standardised; euscript not used)
 %%   hyperref  — loaded last, after all math packages
-%%   exercise  — defined via amsthm only; the 'exercise' package is NOT loaded
-%%               (it conflicts with the \newtheorem{exercise} definition)
+%%   exercise  — individual exercise environments NOT defined here; load
+%%               di-exercises (which uses xsim) for {exercise}/{solution}.
+%%               {exercises} (plural container) is defined below.
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{di-base}[2026/05/31 Duenez-Iovino base preamble]
@@ -95,8 +96,6 @@
 \newtheorem{convention}[theorem]{Convention}
 \newtheorem{conventions}[theorem]{Conventions}
 \newtheorem{notation}[theorem]{Notation}
-\newtheorem{exercise}[theorem]{Exercise}
-\newtheorem{Exercise}[theorem]{Exercise}
 \newtheorem{exercises}[theorem]{Exercises}
 \newtheorem{fact}[theorem]{Fact}
 \newtheorem{question}[theorem]{Question}

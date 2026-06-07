@@ -1,0 +1,26 @@
+%% di-exercises.sty — Exercise environments via xsim
+%%
+%% Provides: {exercise}, {solution}, \ExePart
+%% Requires di-base to be loaded first (for hyperref and cleveref).
+%%
+%% Default: solutions are hidden.
+%% To show solutions in a document: \xsimsetup{solution/print=true}
+%%
+%% Usage:
+%%   \usepackage{di-base}
+%%   \usepackage{di-exercises}
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-exercises}[2026/06/07 Exercise environments via xsim]
+
+\RequirePackage{xsim}
+
+\xsimsetup{
+  exercise/within        = section,  % number as <section>.<counter>
+  exercise/label-prefix  = {},       % \ref{<ID>} resolves directly
+  solution/print         = false,    % hide solutions by default
+}
+
+% Sub-part separator within an exercise.
+% Optional argument is accepted for compatibility but not printed.
+\NewDocumentCommand{\ExePart}{ O{} }{\par\noindent}
