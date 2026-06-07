@@ -80,6 +80,41 @@ git submodule add https://github.com/eduenez/math-bibliography.git bib
 See the [math-bibliography README](https://github.com/eduenez/math-bibliography)
 for bibliography usage and migration instructions.
 
+## Using `di-exercises.sty`
+
+Load **after** `di-base`:
+
+```latex
+\usepackage{di-base}
+\usepackage{di-exercises}   % adds {exercise}, {solution}, \ExePart
+```
+
+Key behaviours:
+
+- Exercises are numbered within sections (`exercise/within = section`).
+- Solutions are **hidden by default**.  To show them: `\xsimsetup{solution/print=true}`.
+- Any exercise with a user-supplied `[ID=label-string]` automatically gets
+  `\label{label-string}`, so `\ref{label-string}` and `\cref{label-string}` work
+  without any manual `\label` inside the body.
+- Exercises without an explicit `[ID=…]` receive a sequential numeric ID and are
+  **not** labeled (to avoid multiply-defined labels when the counter resets at
+  each section).
+
+**xsim internals note** (relevant if you ever need to modify `di-exercises.sty`):
+
+| Symbol | Meaning |
+|---|---|
+| `\ExerciseID` | Auto-generated **sequential counter** ("1", "2", …) |
+| `\GetExerciseProperty{ID}` | User-supplied `[ID=…]` string (or the counter if omitted) |
+
+These are distinct.  The auto-labeling hook compares them with `\tl_if_eq:NNTF`
+to distinguish user-supplied from auto-generated IDs.  The hook is added via
+`\xsim_addto_hook:nnnn {exercise} {exercise} {begin} {…}`, which requires the
+exercise type to be declared first (it is, at the end of `xsim.sty`).
+
+The `\regex_match:VnT` variant of l3regex is **not** pre-generated; use
+`\regex_match:nnT` with explicit expansion or avoid regex entirely (as done here).
+
 ## Design decisions
 
 - `hyperref` is loaded **last** (after all math packages and `amsthm`) to avoid
@@ -90,4 +125,14 @@ for bibliography usage and migration instructions.
 - `\Ulim`, `\Vlim`, `\Wlim` are `\DeclareMathOperator*` (starred).
 - `\cE`, `\UU`, and similar calligraphic/blackboard letters use `\newcommand`,
   not `\DeclareMathOperator` (they are letters, not operators).
-- The `exercise` package is **not** loaded; exercises are defined via `amsthm`.
+- Individual `{exercise}` and `{Exercise}` environments are **not** defined in
+  `di-base` — load `di-exercises` (xsim-backed) instead.  The plural
+  `{exercises}` amsthm container **is** kept in `di-base` for use as a numbered
+  multi-part exercise block.
+- **`stix` vs `stix2`**: `di-base` currently loads the original `stix` package
+  (v1, TeXLive name `stix`).  As of April 2018 `stix` is considered obsolete;
+  its successor is `stix2` (`stix2-type1`/`stix2-otf`).  The `stix` v1 package
+  does **not** define `\llbracket`/`\rrbracket` as LaTeX commands, so documents
+  that need them must load `stmaryrd` as a fallback.  Migrating `di-base` to
+  `\RequirePackage{stix2}` would remove this limitation but changes font metrics
+  for all documents — do this intentionally, not incidentally.
