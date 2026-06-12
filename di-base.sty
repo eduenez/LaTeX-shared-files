@@ -21,11 +21,18 @@
 %%               {exercises} (plural container) is defined below.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{di-base}[2026/05/31 Duenez-Iovino base preamble]
+\ProvidesPackage{di-base}[2026/06/12 Duenez-Iovino base preamble]
+
+% ── Engine detection ─────────────────────────────────────────────────────────
+
+\RequirePackage{iftex}
 
 % ── Encoding and language ────────────────────────────────────────────────────
 
-\RequirePackage[utf8]{inputenc}
+% inputenc is pdfLaTeX-only; XeLaTeX and LuaLaTeX handle UTF-8 natively.
+\ifPDFTeX
+  \RequirePackage[utf8]{inputenc}
+\fi
 \RequirePackage[english]{babel}
 
 % ── Math packages (order is significant) ────────────────────────────────────
@@ -34,7 +41,7 @@
 \RequirePackage{mathtools}
 \RequirePackage{amsthm}
 
-% Symbol fonts: amssymb before stix2 (stix2 overrides some glyphs)
+% Symbol fonts loaded before the math font (which may override some glyphs)
 \RequirePackage{amssymb}
 \RequirePackage{amsfonts}
 \RequirePackage{dsfont}          % \mathds{1} for indicator functions
@@ -48,12 +55,32 @@
 \RequirePackage{accents}         % \underaccent, \accentset
 \RequirePackage{slashed}         % Dirac slash notation
 
-% stix2 loaded last in the font stack
-% stix2 names the double-bracket delimiters \lBrack/\rBrack; alias to the
-% stmaryrd-conventional names so documents can use \llbracket/\rrbracket.
-\RequirePackage{stix2}
-\let\llbracket\lBrack
-\let\rrbracket\rBrack
+% ── Math font (engine-dependent) ─────────────────────────────────────────────
+%
+% pdfLaTeX: stix2 TFM/VF font stack.
+%   stix2 names the double-bracket delimiters \lBrack/\rBrack; alias to the
+%   stmaryrd-conventional names so documents can use \llbracket/\rrbracket.
+%   \lAngle/\rAngle (U+27EA/U+27EB) are defined directly by stix2.
+%
+% XeLaTeX/LuaLaTeX: OpenType font stack via fontspec + unicode-math.
+%   unicode-math provides \llbracket/\rrbracket natively; define \lBrack/\rBrack
+%   as aliases so di-structures.sty is engine-agnostic.
+%   unicode-math names U+27EA/U+27EB as \Langle/\Rangle; alias to \lAngle/\rAngle.
+
+\ifPDFTeX
+  \RequirePackage{stix2}
+  \let\llbracket\lBrack
+  \let\rrbracket\rBrack
+\else
+  \RequirePackage{fontspec}
+  \RequirePackage{unicode-math}
+  \setmainfont{STIX Two Text}
+  \setmathfont{STIX Two Math}
+  \let\lBrack\llbracket
+  \let\rBrack\rrbracket
+  \let\lAngle\Langle
+  \let\rAngle\Rangle
+\fi
 
 % ── Layout and utility packages ──────────────────────────────────────────────
 
