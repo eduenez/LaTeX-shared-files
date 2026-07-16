@@ -33,8 +33,8 @@ warning; migrate consumers to the split at their next re-sync.
 
 > **Note on consumption.** The submodule instructions below are the historical
 > mechanism. Downstream repos are migrating to **vendoring**: pristine copies of
-> the needed `di-*.sty` files are committed into a `packages/` subdir, pinned by
-> commit hash in `packages/vendor.lock`, with `packages/` added to `TEXINPUTS`
+> the needed `di-*.sty` files are committed into a `_packages/` subdir, pinned by
+> commit hash in `_packages/vendor.lock`, with `_packages/` added to `TEXINPUTS`
 > via `latexmkrc`. Same `\usepackage{di-base-article}` etc., no submodule steps.
 
 ## Using this in a paper repo
@@ -138,6 +138,35 @@ exercise type to be declared first (it is, at the end of `xsim.sty`).
 
 The `\regex_match:VnT` variant of l3regex is **not** pre-generated; use
 `\regex_match:nnT` with explicit expansion or avoid regex entirely (as done here).
+
+## Maintainer sync workflow (`_scripts/vendor.py`)
+
+`_scripts/vendor.py` is a **maintainer-only** tool (children never run it) that keeps
+the vendored files in sync across the family, using `vendor-registry.json` to locate
+the child repos. Every mutating command is a **dry run by default**; pass `--apply`
+to write files and commit locally (it never pushes).
+
+Data model per child (created by `init`):
+- `_packages/vendor.lock.json` — one record per vendored file: the parent↔child path
+  mapping, the file's SHA256, and the upstream commit it came from.
+- `_packages/<short-sha>.bib.gz` — a gzipped, **read-only** frozen copy of the master
+  `references.bib` at the pinned commit; the working `references.bib` at the repo
+  root is diffed against it to find local additions.
+
+Phase A commands (read-only unless noted):
+
+```sh
+python3 _scripts/vendor.py status [child]           # new/modified bib entries, .sty drift
+python3 _scripts/vendor.py diff <child>             # the actual new/modified entries + .sty diff
+python3 _scripts/vendor.py validate <child> [--datamodel]  # house-style key + sort checks
+python3 _scripts/vendor.py init [child] [--apply]   # migrate lock + write frozen baseline
+```
+
+Phase B (child→master→children bib flow and `.sty` snapshots: `bib-merge`,
+`bib-propagate`, `sty-snapshot`) is added on top of this core.
+
+**See [`WORKFLOW.md`](WORKFLOW.md)** for the full guide: the mental model, a safe
+first test-drive, the day-to-day routine, and a short "for authors" section.
 
 ## Design decisions
 
