@@ -1,0 +1,143 @@
+%% NFL.sty — project style file for NFL.tex (No Free Lunch paper, amsart)
+%%
+%% This is the SOLE package loaded by NFL.tex. It (1) loads the shared preamble
+%% packages vendored in _packages/ (pristine copies pinned in _packages/vendor.lock
+%% — DO NOT edit them there), then (2) defines everything specific to this paper
+%% in the "Project-specific additions" section.
+%%
+%%   Shared, vendored (edit upstream in LaTeX-shared-files, then re-sync):
+%%     di-base-article — amsart section-scoped numbering; pulls in di-base-core
+%%                        (engine-aware fonts, packages, hyperref/cleveref,
+%%                        theorem family, todonotes)
+%%   Project-specific (EDIT HERE):
+%%     geometry, graphics, NFL macros and extra theorem envs.
+%%
+%% History: this replaces the former `di-base` submodule and the once-inlined,
+%% pin-@73514b4 Section 1; the shared preamble is now vendored per-file in
+%% _packages/ (see CRITICAL-README-Breaking-Changes-2026-07-15.md).
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{NFL}[2026/07/15 No Free Lunch project preamble]
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Vendored shared packages  (pristine copies in _packages/; DO NOT edit there)
+% ═══════════════════════════════════════════════════════════════════════════
+% di-base-article \RequirePackage{di-base-core} internally, so di-base-core.sty
+% must be vendored alongside it (it is; pinned in _packages/vendor.lock).
+
+%%% Vendored: eduenez/LaTeX-shared-files/di-base-article.sty @ af98e4f
+%%%           (pulls in di-base-core.sty @ af98e4f)
+\usepackage{di-base-article}
+
+% Available but not used by this paper (uncomment to activate; copies live in
+% _packages/ and are pinned in _packages/vendor.lock):
+%%% Vendored: eduenez/LaTeX-shared-files/di-structures.sty @ af98e4f
+% \usepackage{di-structures}
+%%% Vendored: eduenez/LaTeX-shared-files/di-ramsey.sty @ af98e4f
+% \usepackage{di-ramsey}
+%%% Vendored: eduenez/LaTeX-shared-files/di-random.sty @ af98e4f
+% \usepackage{di-random}
+%%% Vendored: eduenez/LaTeX-shared-files/di-exercises.sty @ af98e4f
+% \usepackage{di-exercises}
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Project-specific additions  (EDIT MACROS HERE — see STYLE.md)
+% ═══════════════════════════════════════════════════════════════════════════
+
+% ─── Page Layout ─────────────────────────────────────────────────────────────
+\RequirePackage[margin=1in]{geometry}
+
+% ─── Additional packages (beyond tikz-cd/todonotes provided by the core) ─────
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+
+% ─── Theorem environments not in the shared core ─────────────────────────────
+% (conjecture is provided by the core; keyfact(s)/claim use independent counters)
+\theoremstyle{plain}
+\newtheorem{keyfact}{Key Fact}
+\newtheorem{keyfacts}{Key Facts}
+\newtheorem{claim}{Claim}[section]
+
+% ── NFL-specific macros ───────────────────────────────────────────────────────
+
+\newcommand{\ub}{\underline{\bullet}}
+\newcommand{\lub}{{<}\ub}
+\newcommand{\lb}{{<}\bullet}
+
+\newcommand{\subb}[1]{{#1}_{\bullet}}
+\newcommand{\sublb}[1]{{#1}_{\lb}}
+\newcommand{\sublub}[1]{{#1}_{<\bullet}}
+
+\newcommand{\supb}[1]{{#1}^{\bullet}}
+\newcommand{\suplb}[1]{{#1}^{\lb}}
+\newcommand{\supub}[1]{{#1}^{\ub}}
+\newcommand{\suplub}[1]{{#1}^{<\ub}}
+
+% Sets
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cAb}{\cA^{\ub}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cXb}{\cX^{\ub}}
+\newcommand{\cXlb}{\cX^{<\ub}}
+\newcommand{\cY}{\mathcal{Y}}
+\newcommand{\cYb}{\supb{\cY}}
+\newcommand{\cYlb}{\suplb{\cY}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cPb}{\supub{\cP}}
+\newcommand{\cPlb}{\suplub{\cP}}
+\newcommand{\Pib}{\Pi_{\bullet}}
+
+% Function space notation
+\newcommand{\barf}{\bar{f}}           % true labeling
+\newcommand{\hatf}{\hat{f}}           % hypothesis
+\newcommand{\ab}{\subb{\alpha}}
+\newcommand{\alb}{\sublb{\alpha}}
+\newcommand{\recur}{\circlearrowright}
+\newcommand{\rectrnb}[2]{{#1}[\recur; #2]}
+\newcommand{\abrecb}[1]{\rectrnb{\ab}{#1}}
+\newcommand{\rectrnp}[2]{{#1}(\recur; #2)}
+\newcommand{\abrecp}[1]{\rectrnp{\ab}{#1}}
+
+% Number sets
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+
+% Symbols
+\newcommand{\uli}{\underline{i}}
+\newcommand{\ulk}{\underline{k}}
+\newcommand{\ulkp}{\underline{k^+}}
+\newcommand{\ulm}{\underline{m}}
+\newcommand{\ulmp}{\underline{m^+}}
+\newcommand{\Xb}{\subb{X}}
+\newcommand{\Yb}{\subb{Y}}
+\newcommand{\xb}{\subb{x}}
+\newcommand{\xlb}{\sublb{x}}
+\newcommand{\hyb}{\subb{\hat{y}}}
+\newcommand{\hy}{\hat{y}}
+\newcommand{\yb}{\subb{y}}
+\newcommand{\ylb}{\sublb{y}}
+\newcommand{\pb}{\subb{p}}
+\newcommand{\plb}{\sublb{p}}
+
+\newcommand{\chib}{\subb{\chi}}
+\newcommand{\chilb}{\sublb{\chi}}
+\newcommand{\pib}{\subb{\pi}}
+\newcommand{\pilb}{\sublb{\pi}}
+\newcommand{\gamb}{\subb{\gamma}}
+\newcommand{\gamlb}{\sublb{\gamma}}
+
+% Delimiters
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\pair}{\langle}{\rangle}
+\DeclarePairedDelimiter{\set}{\lBrace}{\rBrace}
+\DeclarePairedDelimiter{\Iver}{\lBrack}{\rBrack}
+
+% Operators
+\DeclareMathOperator{\id}{id}
