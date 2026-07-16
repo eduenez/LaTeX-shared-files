@@ -1,0 +1,94 @@
+%% QuantumStructures.sty — project style file for QuantumStructures.tex
+%%
+%% This is the SOLE package loaded by QuantumStructures.tex. It (1) loads the
+%% shared preamble packages vendored in _packages/ (pristine copies pinned in
+%% _packages/vendor.lock — DO NOT edit them there), then (2) defines everything
+%% specific to this paper in the "Project-specific additions" section.
+%%
+%%   Shared, vendored (edit upstream in LaTeX-shared-files, then re-sync):
+%%     di-base-core     — engine-aware fonts, packages, hyperref/cleveref,
+%%                         theorem family (loaded transitively by di-base-article)
+%%     di-base-article  — core + section-scoped numbering (amsart)
+%%     di-structures    — real-valued-logic notation (bb/frak/script/operators/…)
+%%   Project-specific (EDIT HERE — see STYLE.md):
+%%     geometry, mathbbol, local theorem envs, Greek overrides, project macros.
+%%
+%% This paper is pdfLaTeX-only (enshrined below); the vendored core is
+%% engine-aware but QS deliberately refuses Xe/LuaLaTeX.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{QuantumStructures}[2026/07/15 QuantumStructures project preamble]
+
+% Enshrine pdfLaTeX: refuse XeLaTeX/LuaLaTeX rather than silently taking the
+% Unicode-math branch of the vendored core (which would change font metrics).
+\RequirePackage{iftex}
+\RequirePDFTeX
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Vendored shared packages  (pristine copies in _packages/; DO NOT edit there)
+% ═══════════════════════════════════════════════════════════════════════════
+% di-base-article \RequirePackage{di-base-core} internally, so di-base-core.sty
+% must be vendored alongside it (it is; pinned in _packages/vendor.lock).
+
+%%% Vendored: eduenez/LaTeX-shared-files/di-base-article.sty @ af98e4f
+%%%           (pulls in di-base-core.sty @ af98e4f)
+\usepackage{di-base-article}
+
+%%% Vendored: eduenez/LaTeX-shared-files/di-structures.sty @ af98e4f
+\usepackage{di-structures}
+
+% Available but not used by this paper (uncomment to activate; copies live in
+% _packages/ and are pinned in _packages/vendor.lock):
+%%% Vendored: eduenez/LaTeX-shared-files/di-ramsey.sty @ af98e4f
+% \usepackage{di-ramsey}
+%%% Vendored: eduenez/LaTeX-shared-files/di-random.sty @ af98e4f
+% \usepackage{di-random}
+%%% Vendored: eduenez/LaTeX-shared-files/di-exercises.sty @ af98e4f
+% \usepackage{di-exercises}
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Project-specific additions  (EDIT MACROS HERE — see STYLE.md)
+% ═══════════════════════════════════════════════════════════════════════════
+
+% ─── Page Layout ─────────────────────────────────────────────────────────────
+\RequirePackage[margin=1.15in]{geometry}
+
+% ─── Additional packages ─────────────────────────────────────────────────────
+\RequirePackage{mathbbol}
+
+% ─── Greek-letter overrides (project preference; not in the shared core) ─────
+\renewcommand{\phi}{\varphi}
+\renewcommand{\epsilon}{\varepsilon}
+
+% ─── Local theorem environments (not in the shared core) ─────────────────────
+% \claim is intentionally local: papers disagree on numbering, so the shared
+% core omits it.  QuantumStructures uses an UNnumbered claim.
+\theoremstyle{plain}
+\newtheorem*{claim}{Claim}
+
+% ─── Operators not in di-structures ──────────────────────────────────────────
+\DeclareMathOperator{\Av}{Av}
+\DeclareMathOperator{\sub}{sub}
+
+% ─── Logic/relation symbols not in di-structures ─────────────────────────────
+\newcommand{\aore}{\forall \vee \exists}
+\newcommand{\wneg}{\mathrel{\ooalign{\hss$\neg$\hss\cr\kern0.2ex\raise1.0ex\hbox{\scalebox{0.7}{w}}}}}
+\def\Aapp{\mathrel\cA\joinrel\approx}
+\renewcommand{\appto}{\mathrel{\ooalign{\hss$\Leftarrow$\hss\cr\kern0.9ex\raise0.25ex\hbox{\scalebox{0.6}{$\sim$}}}}}
+\newcommand{\appby}{\mathrel{\ooalign{\hss$\Rightarrow$\hss\cr\kern0.3ex\raise0.25ex\hbox{\scalebox{0.6}{$\sim$}}}}}
+
+% ─── Bold capital aliases ─────────────────────────────────────────────────────
+\newcommand{\BH}{\mathbf{H}}
+\newcommand{\BL}{\mathbf{L}}
+\newcommand{\BP}{\mathbf{P}}
+\newcommand{\bU}{\mathbb{U}}
+
+% ─── Fraktur hat-decorated forms ─────────────────────────────────────────────
+\newcommand{\hfM}{\Hat{\fM}}
+\newcommand{\hfN}{\Hat{\fN}}
+
+% ─── Specialized macros ───────────────────────────────────────────────────────
+\renewcommand{\dd}{\ensuremath{\mathrm{d}}}
+\newcommand{\Los}{{\L}o\'s}
+\newcommand{\omp}{\ensuremath{\omega^+}}
+\newcommand{\lixd}{\ensuremath{\ell^\infty(X_\lambda,d_\lambda)_{\Lambda}}}
