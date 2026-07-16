@@ -26,7 +26,10 @@ Phase B — reconciliation (child -> master -> children):
   bib-propagate  push the master bib down: refresh each child's frozen baseline and
                  3-way-merge its working copy (untouched follows master, local edits
                  preserved).                                        (writes with --apply)
-  sty-snapshot   copy a child's <project>.sty up to LaTeX-shared-files/children/. (writes with --apply)
+  sty-snapshot   copy a child's <project>.sty UP to LaTeX-shared-files/children/. (writes with --apply)
+  sty-propagate  push a child's <project>.sty DOWN from LaTeX-shared-files/children/
+                 (3-way vs the last snapshot; local edits preserved, conflicts
+                 guarded unless --force).                          (writes with --apply)
 
 Every mutating command defaults to a DRY RUN; pass --apply to write files and commit
 locally (never pushes).
@@ -641,6 +644,92 @@ def cmd_sty_snapshot(reg: Registry, args) -> int:
     return 0
 
 
+# ── sty-propagate: LaTeX-shared-files/children/<name>/ -> child <project>.sty ─────
+
+def git_merge_file(ours: str, base: str, theirs: str) -> tuple[str, int]:
+    """3-way merge via `git merge-file`. Returns (merged_text, returncode);
+    returncode 0 == clean merge, >0 == that many conflict hunks."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        po, pb, pt = Path(td) / "ours", Path(td) / "base", Path(td) / "theirs"
+        po.write_text(ours)
+        pb.write_text(base)
+        pt.write_text(theirs)
+        res = subprocess.run(["git", "merge-file", "-p", str(po), str(pb), str(pt)],
+                             capture_output=True, text=True)
+        return res.stdout, res.returncode
+
+
+def _sty_diff(a: str, b: str, la: str, lb: str, limit: int = 60) -> None:
+    import difflib
+    d = list(difflib.unified_diff(a.splitlines(), b.splitlines(), la, lb, lineterm=""))
+    for line in d[:limit]:
+        print("    " + (_c(line, C_GRN) if line.startswith("+") else
+                        _c(line, C_RED) if line.startswith("-") else line))
+    if len(d) > limit:
+        print(f"    … ({len(d) - limit} more diff lines)")
+
+
+def cmd_sty_propagate(reg: Registry, args) -> int:
+    child = reg.child_path(args.child)
+    lock = load_lock_json(child)
+    if lock is None:
+        sys.exit(f"{args.child}: not migrated — run: vendor.py init")
+    proj = next(f for f in lock["files"] if f["kind"] == "project-sty")
+    if not proj.get("target_commit") or not proj.get("sha256"):
+        print(f"{_c(args.child, C_GRN)}: no snapshot yet — run `sty-snapshot {args.child}` first")
+        return 0
+    sf_dir = reg.resolve(reg.data["masters"]["shared-files"]["path"])
+    theirs_path = sf_dir / proj["target_path"]
+    ours_path = child / proj["local_path"]
+    if not theirs_path.exists():
+        sys.exit(f"central snapshot not found: {theirs_path}")
+    ours, theirs = ours_path.read_text(), theirs_path.read_text()
+    print(f"{_c(args.child, C_GRN)}: propagate {proj['target_path']} -> {proj['local_path']}")
+    if ours == theirs:
+        print(f"  {_c('already in sync', C_DIM)}")
+        return 0
+    # base = the central version at the last-synced commit (recover from git)
+    try:
+        base = git_show(sf_dir, proj["target_commit"], proj["target_path"]).decode()
+    except RuntimeError:
+        base = None
+    ours_edited = base is None or ours != base
+    theirs_changed = base is None or theirs != base
+    if not ours_edited:
+        result, mode = theirs, "child untouched since last sync -> take the master version"
+    elif not theirs_changed:
+        print(f"  {_c('child has local edits; master unchanged since last sync', C_YEL)}")
+        print(f"  {_c('nothing to propagate down (use sty-snapshot to push the child edits up)', C_DIM)}")
+        return 0
+    else:
+        merged, rc = git_merge_file(ours, base or "", theirs)
+        if base is not None and rc == 0:
+            result, mode = merged, "both sides changed -> 3-way auto-merge (clean)"
+        elif args.force:
+            result, mode = theirs, "both sides changed -> FORCED overwrite with the master version"
+        else:
+            print(f"  {_c('CONFLICT: both the child and the master edited this preamble', C_RED)}")
+            print("  Re-apply the master version with --force (overwrites the child), or")
+            print("  reconcile by hand and sty-snapshot. child (ours) vs master (theirs):")
+            _sty_diff(ours, theirs, "child", "master")
+            return 1
+    print(f"  {mode}")
+    _sty_diff(ours, result, f"{proj['local_path']} (before)", f"{proj['local_path']} (after)")
+    if not args.apply:
+        print(_c("  (dry run — pass --apply to write the child .sty & commit)", C_DIM))
+        return 0
+    ours_path.write_text(result)
+    proj["sha256"] = sha256_bytes(result.encode())
+    proj["target_commit"] = git(sf_dir, "rev-parse", "--short", "HEAD")
+    lockpath = child / pkg_dir(child) / "vendor.lock.json"
+    lockpath.write_text(json.dumps(lock, indent=2) + "\n")
+    _commit(child, [proj["local_path"], str(lockpath.relative_to(child))],
+            f"vendor: propagate {proj['local_path']} from LaTeX-shared-files @ {proj['target_commit']}")
+    print(_c(f"  committed {args.child}", C_GRN))
+    return 0
+
+
 # ── main ────────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -674,11 +763,17 @@ def main() -> int:
     sp.add_argument("child")
     sp.add_argument("--apply", action="store_true", help="copy & commit both repos (default: dry run)")
 
+    sp = sub.add_parser("sty-propagate", help="propagate a child's project .sty DOWN from LaTeX-shared-files/children/")
+    sp.add_argument("child")
+    sp.add_argument("--force", action="store_true", help="on conflict, overwrite the child with the master version")
+    sp.add_argument("--apply", action="store_true", help="write the child .sty and commit (default: dry run)")
+
     args = p.parse_args()
     reg = Registry(find_registry())
     return {"init": cmd_init, "status": cmd_status, "diff": cmd_diff,
             "validate": cmd_validate, "bib-merge": cmd_bib_merge,
-            "bib-propagate": cmd_bib_propagate, "sty-snapshot": cmd_sty_snapshot}[args.cmd](reg, args)
+            "bib-propagate": cmd_bib_propagate, "sty-snapshot": cmd_sty_snapshot,
+            "sty-propagate": cmd_sty_propagate}[args.cmd](reg, args)
 
 
 if __name__ == "__main__":

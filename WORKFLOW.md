@@ -183,10 +183,20 @@ else, they are **dry-run by default**; `--apply` writes files and commits locall
   - *locally edited/added* (working entry ≠ old frozen) → **preserved**;
   - a former local addition that has since been upstreamed → **adopts** the master's
     version (e.g. a hand-cleaned entry replaces the child's older copy).
-- **`sty-snapshot <child>`** — copy a child's `<project>.sty` up to
+- **`sty-snapshot <child>`** — copy a child's `<project>.sty` **up** to
   `LaTeX-shared-files/children/<child>/` so the maintainer can track and harvest
   common preamble patterns (commits both repos and records the snapshot commit in
   the child's `vendor.lock.json`).
+- **`sty-propagate <child>`** — the reverse: push the central
+  `children/<child>/<project>.sty` **down** to the child's working `<project>.sty`,
+  using the same *respect-local-edits* 3-way merge as `bib-propagate` (base = the
+  last snapshot):
+  - child *untouched* since the last snapshot → take the master's version;
+  - master *unchanged*, child edited → nothing to push down (use `sty-snapshot`
+    to send the child's edits up instead);
+  - *both* changed → clean 3-way auto-merge when the edits don't overlap; on an
+    overlapping **conflict** it refuses to write and shows the diff — re-run with
+    `--force` to overwrite the child with the master version, or reconcile by hand.
 
 Worked example — flow a child's new citation up to the master and back to everyone:
 
@@ -206,19 +216,25 @@ until their own `bib-merge`).
 on `math-bibliography`'s main, so the baseline pins the final master commit rather
 than a transient branch commit.
 
-Snapshotting a project preamble upstream:
+Project preambles flow both ways through `children/<child>/<project>.sty`:
 
 ```sh
-python3 _scripts/vendor.py sty-snapshot no-free-lunch          # preview the diff vs the last snapshot
-python3 _scripts/vendor.py sty-snapshot no-free-lunch --apply  # copy up + commit both repos
+# UP — mirror the child's current preamble into the central registry:
+python3 _scripts/vendor.py sty-snapshot no-free-lunch --apply
+
+# DOWN — after editing the central copy, push a maintainer change to the child:
+python3 _scripts/vendor.py sty-propagate no-free-lunch            # preview
+python3 _scripts/vendor.py sty-propagate no-free-lunch --apply    # write the child .sty + commit
 ```
 
-This copies the child's `<project>.sty` to `LaTeX-shared-files/children/<child>/`,
-commits it here, and records the snapshot's commit + SHA256 in the child's
-`vendor.lock.json` (so `status` can later report whether the project `.sty` has
-changed since). It is a one-way, up-only mirror for the maintainer's reference —
-nothing flows back down from `children/`. Re-running when nothing changed is a
-no-op (`already in sync`).
+`sty-snapshot` records the snapshot's commit + SHA256 in the child's
+`vendor.lock.json` (so `status` reports whether the project `.sty` changed since).
+`sty-propagate` reads that pin as the 3-way base: a child that hasn't touched its
+preamble since the last snapshot takes the central edit outright; a child that has
+diverged is either auto-merged (non-overlapping) or reported as a conflict and left
+untouched until you pass `--force` or reconcile by hand. Both are idempotent
+(`already in sync` when there's nothing to do). Commit the central
+`children/<child>/<project>.sty` edit before propagating, so the pin is stable.
 
 ---
 
