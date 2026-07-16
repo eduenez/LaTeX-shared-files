@@ -162,8 +162,14 @@ python3 _scripts/vendor.py validate <child> [--datamodel]  # house-style key + s
 python3 _scripts/vendor.py init [child] [--apply]   # migrate lock + write frozen baseline
 ```
 
-Phase B (child→master→children bib flow and `.sty` snapshots: `bib-merge`,
-`bib-propagate`, `sty-snapshot`) is added on top of this core.
+Phase B — the child→master→children bib flow and `.sty` snapshots — is also
+available (dry-run by default; `--apply` commits locally):
+
+```sh
+python3 _scripts/vendor.py bib-merge <child> [--apply]      # child NEW -> master; MODIFIED -> quarantine
+python3 _scripts/vendor.py bib-propagate [child] [--apply]  # master -> children (refresh baseline + working)
+python3 _scripts/vendor.py sty-snapshot <child> [--apply]   # child <project>.sty -> children/<name>/
+```
 
 **See [`WORKFLOW.md`](WORKFLOW.md)** for the full guide: the mental model, a safe
 first test-drive, the day-to-day routine, and a short "for authors" section.

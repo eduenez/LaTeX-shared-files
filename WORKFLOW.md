@@ -164,10 +164,11 @@ previous branch and `git branch -D chore/vendor-lock-json` — the `.gz` and
 
 ---
 
-## 6. Coming next ("Phase B" — not yet available)
+## 6. Reconciliation flows (Phase B)
 
-The reconciliation flows are built on top of this read-only core and will be
-documented here when they land:
+The child→master→children flows, built on the read-only core. Like everything
+else, they are **dry-run by default**; `--apply` writes files and commits locally
+(never pushes). Merge (up) and propagate (down) are **separate and composable**.
 
 - **`bib-merge <child>`** — take the child's *new* entries, validate their keys
   (a malformed **new** key is blocked; everything else warns), tidy them into the
@@ -178,9 +179,26 @@ documented here when they land:
   child's still-unmerged local additions.
 - **`sty-snapshot <child>`** — copy a child's `<project>.sty` up to
   `LaTeX-shared-files/children/<child>/` so the maintainer can track and harvest
-  common preamble patterns.
+  common preamble patterns (commits both repos and records the snapshot commit in
+  the child's `vendor.lock.json`).
 
-Merge (up) and propagate (down) stay **separate and composable** on purpose.
+Worked example — flow a child's new citation up to the master and back to everyone:
+
+```sh
+python3 _scripts/vendor.py bib-merge no-free-lunch          # preview: 1 new -> master
+python3 _scripts/vendor.py bib-merge no-free-lunch --apply  # commits math-bibliography
+# (merge/push the math-bibliography change so its commit is stable)
+python3 _scripts/vendor.py bib-propagate --apply            # refresh every child to the new master
+```
+
+After `bib-propagate`, `status` reports the child's entry as merged (0 new): what
+was a *local addition* is now part of the master baseline the whole family shares.
+A child that had *un-merged* additions of its own keeps them (they stay as "N new"
+until their own `bib-merge`).
+
+**Ordering note:** run `bib-propagate` only after the `bib-merge` change has landed
+on `math-bibliography`'s main, so the baseline pins the final master commit rather
+than a transient branch commit.
 
 ---
 
