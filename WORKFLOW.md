@@ -206,6 +206,20 @@ until their own `bib-merge`).
 on `math-bibliography`'s main, so the baseline pins the final master commit rather
 than a transient branch commit.
 
+Snapshotting a project preamble upstream:
+
+```sh
+python3 _scripts/vendor.py sty-snapshot no-free-lunch          # preview the diff vs the last snapshot
+python3 _scripts/vendor.py sty-snapshot no-free-lunch --apply  # copy up + commit both repos
+```
+
+This copies the child's `<project>.sty` to `LaTeX-shared-files/children/<child>/`,
+commits it here, and records the snapshot's commit + SHA256 in the child's
+`vendor.lock.json` (so `status` can later report whether the project `.sty` has
+changed since). It is a one-way, up-only mirror for the maintainer's reference —
+nothing flows back down from `children/`. Re-running when nothing changed is a
+no-op (`already in sync`).
+
 ---
 
 ## For authors (the short version — no tools to run)

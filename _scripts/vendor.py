@@ -13,16 +13,23 @@ read-only baseline of the bibliography at packages/<short-sha>.bib.gz. The worki
 references.bib at the child root is freely editable; the frozen baseline is what we
 diff against to find local additions/changes.
 
-Phase A commands (this file):
+Phase A — inspection + migration:
   init      migrate packages/vendor.lock -> vendor.lock.json; write the frozen
             bib baseline; record SHA256s + upstream commits.        (writes with --apply)
   status    per child: bib new/modified-entry counts, .sty drift.   (read-only)
   diff      show the actual new/modified bib entries + project .sty diff. (read-only)
   validate  house-style key check + sort check (+ biber datamodel).  (read-only)
 
+Phase B — reconciliation (child -> master -> children):
+  bib-merge      merge a child's NEW entries into the master bib; route MODIFIED
+                 existing entries to _quarantined_references.bib.   (writes with --apply)
+  bib-propagate  push the master bib down: refresh each child's frozen baseline and
+                 3-way-merge its working copy (untouched follows master, local edits
+                 preserved).                                        (writes with --apply)
+  sty-snapshot   copy a child's <project>.sty up to LaTeX-shared-files/children/. (writes with --apply)
+
 Every mutating command defaults to a DRY RUN; pass --apply to write files and commit
-locally (never pushes). Phase B (bib-merge / bib-propagate / sty-snapshot) is added
-separately.
+locally (never pushes).
 
 Reuses: bibtex-tidy (math-bibliography/.bibtex-tidy-args) for canonical formatting,
 biber --tool --validate-datamodel for structural validation.
