@@ -156,14 +156,17 @@ Data model per child (created by `init`):
 Phase A commands (read-only unless noted):
 
 ```sh
-python3 scripts/vendor.py init [child] [--apply]   # migrate lock + write frozen baseline
 python3 scripts/vendor.py status [child]           # new/modified bib entries, .sty drift
 python3 scripts/vendor.py diff <child>             # the actual new/modified entries + .sty diff
 python3 scripts/vendor.py validate <child> [--datamodel]  # house-style key + sort checks
+python3 scripts/vendor.py init [child] [--apply]   # migrate lock + write frozen baseline
 ```
 
 Phase B (child→master→children bib flow and `.sty` snapshots: `bib-merge`,
 `bib-propagate`, `sty-snapshot`) is added on top of this core.
+
+**See [`WORKFLOW.md`](WORKFLOW.md)** for the full guide: the mental model, a safe
+first test-drive, the day-to-day routine, and a short "for authors" section.
 
 ## Design decisions
 
