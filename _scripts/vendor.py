@@ -403,6 +403,200 @@ def cmd_validate(reg: Registry, args) -> int:
     return 0
 
 
+# ── bib serialization helpers ──────────────────────────────────────────────────
+
+def extract_preamble(text: str) -> str:
+    for e in parse_bib(text):
+        if e.kind == "preamble":
+            return e.raw
+    return ""
+
+
+def serialize_bib(preamble: str, kmap: dict[str, str]) -> str:
+    parts = [preamble] if preamble else []
+    parts += [kmap[k] for k in sorted(kmap, key=str.lower)]
+    return "\n\n".join(parts) + "\n"
+
+
+# ── bib-merge: child NEW entries -> master; child MODIFIED entries -> quarantine ──
+
+def cmd_bib_merge(reg: Registry, args) -> int:
+    child = reg.child_path(args.child)
+    lock = load_lock_json(child)
+    if lock is None:
+        sys.exit(f"{args.child}: not migrated — run: vendor.py init")
+    tidy = reg.tidy_args()
+    baseline, rec = _bib_baseline(child, lock)
+    working_tidied = bibtex_tidy((child / rec["working_path"]).read_bytes(), tidy).decode()
+    new, modified = classify(working_tidied, baseline)
+    if not new and not modified:
+        print(f"{_c(args.child, C_GRN)}: nothing to merge (0 new, 0 modified)")
+        return 0
+
+    master_dir = reg.bib_master()
+    master_path = master_dir / reg.bib_name()
+    master_text = master_path.read_text()
+    master_map = key_map(master_text)
+
+    # House-style gate: block malformed NEW keys from entering the master.
+    bad = sorted(k for k in new if not KEY_RE.match(k))
+    if bad:
+        print(_c(f"BLOCKED: {len(bad)} new key(s) violate house style (Author-Author:YYYY):", C_RED))
+        for k in bad:
+            print(f"  ✗ {k}")
+        print("Fix these keys in the child's references.bib, then re-run.")
+        return 1
+
+    to_add = {k: new[k] for k in new if k not in master_map}
+    already = sorted(k for k in new if k in master_map)
+    quar_path = master_dir / reg.data["masters"]["bibliography"]["quarantine"]
+    quar_map = key_map(quar_path.read_text()) if quar_path.exists() else {}
+    to_quar = {k: modified[k][1] for k in modified if k not in quar_map}
+
+    print(f"{_c(args.child, C_GRN)} -> master ({reg.bib_name()}):")
+    print(f"  new -> merge: {_c(str(len(to_add)), C_GRN if to_add else C_DIM)}"
+          + (f"  ({', '.join(sorted(to_add))})" if to_add else ""))
+    if already:
+        print(f"  new already upstream (skip): {', '.join(already)}")
+    print(f"  modified -> quarantine: {_c(str(len(to_quar)), C_YEL if to_quar else C_DIM)}"
+          + (f"  ({', '.join(sorted(to_quar))})" if to_quar else ""))
+    if modified and not to_quar:
+        print(f"  {_c('(those modifications are already quarantined)', C_DIM)}")
+    if not args.apply:
+        print(_c("  (dry run — pass --apply to write & commit math-bibliography)", C_DIM))
+        return 0
+
+    committed = []
+    if to_add:
+        add_text = "\n\n".join(to_add[k] for k in sorted(to_add))
+        merged = bibtex_tidy((master_text + "\n\n" + add_text).encode(), tidy, ["--sort"])
+        master_path.write_text(merged.decode())
+        committed.append(reg.bib_name())
+    if to_quar:
+        header = ("" if quar_path.exists() else
+                  "% Quarantined bib entries: modifications to EXISTING entries made in child\n"
+                  "% repos. Review each against references.bib, then merge upstream or drop.\n\n")
+        block = "\n\n".join(
+            f"% ── from {args.child} (modified vs baseline @ {rec['source_commit']}) ──\n{to_quar[k]}"
+            for k in sorted(to_quar))
+        with quar_path.open("a") as fh:
+            fh.write(header + block + "\n")
+        committed.append(quar_path.name)
+    if committed:
+        _commit(master_dir, committed,
+                f"vendor: merge {len(to_add)} new entr{'y' if len(to_add) == 1 else 'ies'} "
+                f"from {args.child}" + (f" + quarantine {len(to_quar)} modified" if to_quar else ""))
+        print(_c(f"  committed math-bibliography @ {git(master_dir, 'rev-parse', '--short', 'HEAD')}", C_GRN))
+        print(_c("  next: vendor.py bib-propagate --apply", C_DIM))
+    return 0
+
+
+# ── bib-propagate: master bib -> children (refresh baseline; re-base working) ─────
+
+def cmd_bib_propagate(reg: Registry, args) -> int:
+    names = [args.child] if getattr(args, "child", None) else list(reg.children)
+    tidy = reg.tidy_args()
+    master_dir = reg.bib_master()
+    master_bytes = (master_dir / reg.bib_name()).read_bytes()
+    master_text = master_bytes.decode()
+    master_map = key_map(master_text)
+    preamble = extract_preamble(master_text)
+    new_sha = sha256_bytes(master_bytes)
+    new_commit = git(master_dir, "rev-parse", "--short", "HEAD")
+
+    for name in names:
+        child = reg.child_path(name)
+        lock = load_lock_json(child)
+        print(f"\n{_c(name, C_GRN)}")
+        if lock is None:
+            print(f"  {_c('not migrated; skipping', C_YEL)}")
+            continue
+        rec = next(f for f in lock["files"] if f["kind"] == "bib")
+        if rec["sha256"] == new_sha:
+            print(f"  {_c('baseline already at this master; up to date', C_DIM)}")
+            continue
+        working_tidied = bibtex_tidy((child / rec["working_path"]).read_bytes(), tidy).decode()
+        wmap = key_map(working_tidied)
+        deltas = {k: v for k, v in wmap.items()
+                  if k not in master_map or _norm(v) != _norm(master_map[k])}
+        new_frozen_rel = f"{pkg_dir(child)}/{new_sha[:SHORT]}.bib.gz"
+        old_frozen_rel = rec["frozen_path"]
+        print(f"  baseline @ {rec['source_commit']} ({rec['sha256'][:SHORT]}) "
+              f"-> @ {new_commit} ({new_sha[:SHORT]})")
+        print(f"  local deltas kept in working copy: "
+              f"{_c(str(len(deltas)), C_GRN if deltas else C_DIM)}"
+              + (f"  ({', '.join(sorted(deltas))})" if deltas else ""))
+        if not args.apply:
+            print(_c("  (dry run — pass --apply to rewrite baseline + working & commit)", C_DIM))
+            continue
+        (child / new_frozen_rel).write_bytes(gzip.compress(master_bytes))
+        if old_frozen_rel != new_frozen_rel and (child / old_frozen_rel).exists():
+            (child / old_frozen_rel).unlink()
+        if deltas:
+            merged = dict(master_map)
+            merged.update(deltas)
+            new_working = bibtex_tidy(serialize_bib(preamble, merged).encode(), tidy).decode()
+        else:
+            new_working = master_text  # byte-identical to master when no local additions
+        (child / rec["working_path"]).write_text(new_working)
+        rec["sha256"] = new_sha
+        rec["source_commit"] = new_commit
+        rec["frozen_path"] = new_frozen_rel
+        lockpath = child / pkg_dir(child) / "vendor.lock.json"
+        lockpath.write_text(json.dumps(lock, indent=2) + "\n")
+        _commit(child, [new_frozen_rel, old_frozen_rel, rec["working_path"],
+                        str(lockpath.relative_to(child))],
+                f"vendor: sync references.bib to math-bibliography @ {new_commit}")
+        print(_c(f"  committed {name}", C_GRN))
+    return 0
+
+
+# ── sty-snapshot: child <project>.sty -> LaTeX-shared-files/children/<name>/ ──────
+
+def cmd_sty_snapshot(reg: Registry, args) -> int:
+    import shutil
+    import difflib
+    child = reg.child_path(args.child)
+    lock = load_lock_json(child)
+    if lock is None:
+        sys.exit(f"{args.child}: not migrated — run: vendor.py init")
+    proj = next(f for f in lock["files"] if f["kind"] == "project-sty")
+    src = child / proj["local_path"]
+    if not src.exists():
+        sys.exit(f"{src} not found")
+    cur_sha = sha256_file(src)
+    sf_dir = reg.resolve(reg.data["masters"]["shared-files"]["path"])
+    dest = sf_dir / proj["target_path"]
+    print(f"{_c(args.child, C_GRN)}: snapshot {proj['local_path']} -> {proj['target_path']}")
+    if proj["sha256"] == cur_sha and dest.exists():
+        print(f"  {_c('already in sync', C_DIM)}")
+        return 0
+    if dest.exists():
+        d = list(difflib.unified_diff(dest.read_text().splitlines(),
+                                      src.read_text().splitlines(),
+                                      "snapshot", "current", lineterm=""))
+        print(f"  {_c(str(len(d)) + ' diff lines vs existing snapshot', C_YEL)}" if d
+              else f"  {_c('identical content (sha refresh only)', C_DIM)}")
+    else:
+        print(f"  {_c('new snapshot', C_GRN)}")
+    if not args.apply:
+        print(_c("  (dry run — pass --apply to copy + commit both repos)", C_DIM))
+        return 0
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(src, dest)
+    _commit(sf_dir, [str(dest.relative_to(sf_dir))],
+            f"vendor: snapshot {args.child}/{proj['local_path']}")
+    tgt_commit = git(sf_dir, "rev-parse", "--short", "HEAD")
+    proj["sha256"] = cur_sha
+    proj["target_commit"] = tgt_commit
+    lockpath = child / pkg_dir(child) / "vendor.lock.json"
+    lockpath.write_text(json.dumps(lock, indent=2) + "\n")
+    _commit(child, [str(lockpath.relative_to(child))],
+            f"vendor: record {proj['local_path']} snapshot @ LaTeX-shared-files {tgt_commit}")
+    print(_c(f"  committed LaTeX-shared-files ({tgt_commit}) + {args.child} lock", C_GRN))
+    return 0
+
+
 # ── main ────────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -424,10 +618,23 @@ def main() -> int:
     sp.add_argument("child")
     sp.add_argument("--datamodel", action="store_true", help="also run biber --validate-datamodel")
 
+    sp = sub.add_parser("bib-merge", help="merge a child's NEW entries into the master bib (MODIFIED -> quarantine)")
+    sp.add_argument("child")
+    sp.add_argument("--apply", action="store_true", help="write & commit math-bibliography (default: dry run)")
+
+    sp = sub.add_parser("bib-propagate", help="push the master bib down to children (refresh baseline + working)")
+    sp.add_argument("child", nargs="?", help="child name (default: all)")
+    sp.add_argument("--apply", action="store_true", help="write & commit each child (default: dry run)")
+
+    sp = sub.add_parser("sty-snapshot", help="snapshot a child's project .sty up to LaTeX-shared-files")
+    sp.add_argument("child")
+    sp.add_argument("--apply", action="store_true", help="copy & commit both repos (default: dry run)")
+
     args = p.parse_args()
     reg = Registry(find_registry())
     return {"init": cmd_init, "status": cmd_status, "diff": cmd_diff,
-            "validate": cmd_validate}[args.cmd](reg, args)
+            "validate": cmd_validate, "bib-merge": cmd_bib_merge,
+            "bib-propagate": cmd_bib_propagate, "sty-snapshot": cmd_sty_snapshot}[args.cmd](reg, args)
 
 
 if __name__ == "__main__":
