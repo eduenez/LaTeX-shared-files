@@ -1,0 +1,93 @@
+%% topos-logic.sty — project style file for topos-logic.tex (memoir monograph)
+%%
+%% This is the SOLE package loaded by topos-logic.tex. It (1) loads the shared
+%% preamble packages vendored in _packages/ (pristine copies pinned in
+%% _packages/vendor.lock — DO NOT edit them there), then (2) defines everything
+%% specific to this monograph in the "Project-specific additions" section
+%% (including the memoir page layout, since only \documentclass and semantic
+%% metadata belong in the .tex).
+%%
+%%   Shared, vendored (edit upstream in LaTeX-shared-files, then re-sync):
+%%     di-base-core       — engine-aware fonts, packages, hyperref/cleveref,
+%%                           theorem family (loaded transitively by di-base-monograph)
+%%     di-base-monograph  — core + chapter-scoped numbering + axiom (memoir)
+%%   Project-specific (EDIT HERE):
+%%     memoir layout, graphics packages, topos notation, extra theorem envs.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{topos-logic}[2026/07/15 topos-logic monograph preamble]
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Vendored shared packages  (pristine copies in _packages/; DO NOT edit there)
+% ═══════════════════════════════════════════════════════════════════════════
+% di-base-monograph \RequirePackage{di-base-core} internally, so di-base-core.sty
+% must be vendored alongside it (it is; pinned in _packages/vendor.lock).
+
+%%% Vendored: eduenez/LaTeX-shared-files/di-base-monograph.sty @ af98e4f
+%%%           (pulls in di-base-core.sty @ af98e4f)
+\usepackage{di-base-monograph}
+
+% Available but not used by this monograph (uncomment to activate; copies live
+% in _packages/ and are pinned in _packages/vendor.lock):
+%%% Vendored: eduenez/LaTeX-shared-files/di-structures.sty @ af98e4f
+% \usepackage{di-structures}
+%%% Vendored: eduenez/LaTeX-shared-files/di-ramsey.sty @ af98e4f
+% \usepackage{di-ramsey}
+%%% Vendored: eduenez/LaTeX-shared-files/di-random.sty @ af98e4f
+% \usepackage{di-random}
+%%% Vendored: eduenez/LaTeX-shared-files/di-exercises.sty @ af98e4f
+% \usepackage{di-exercises}
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Project-specific additions  (EDIT HERE)
+% ═══════════════════════════════════════════════════════════════════════════
+
+% ── Page layout (memoir owns its geometry; set here, not in the .tex) ────────
+\setlrmarginsandblock{3.5cm}{2.5cm}{*}
+\setulmarginsandblock{3cm}{3cm}{*}
+\checkandfixthelayout
+\chapterstyle{madsen}
+\nouppercaseheads
+\pagestyle{ruled}
+
+% ── Graphics, tables (not provided by the shared core) ───────────────────────
+% (di-base-core already loads tikz-cd, hence tikz; these add the rest.)
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\RequirePackage{booktabs}
+\RequirePackage{subcaption}
+
+% ── Extra theorem-like environments (independent counters, reset per chapter) ─
+% \claim and \keyfact(s) use their own counters, not the shared `theorem' one.
+\theoremstyle{plain}
+\newtheorem{claim}{Claim}[chapter]
+\newtheorem{keyfact}{Key Fact}[chapter]
+\newtheorem{keyfacts}{Key Facts}[chapter]
+
+% ── Number sets ──────────────────────────────────────────────────────────────
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+
+% ── Category- and topos-theoretic notation ───────────────────────────────────
+\newcommand{\Set}{\mathbf{Set}}        % category of sets
+\newcommand{\Cat}{\mathbf{Cat}}        % category of (small) categories
+\newcommand{\Topos}{\mathcal{E}}       % a generic (elementary) topos
+\newcommand{\Omg}{\Omega}              % subobject classifier
+\newcommand{\Sh}[1]{\mathrm{Sh}(#1)}   % category of sheaves on a site
+\newcommand{\Sub}[1]{\mathrm{Sub}(#1)} % subobject lattice/poset
+\newcommand{\Heyt}{\mathcal{H}}        % a generic Heyting algebra
+\newcommand{\geoto}{\rightleftarrows}  % geometric morphism (f^* \dashv f_*)
+\newcommand{\adj}[2]{#1 \dashv #2}     % adjunction notation
+
+% ── Operators and delimiters ─────────────────────────────────────────────────
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\colim}{colim}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\pair}{\langle}{\rangle}
+\DeclarePairedDelimiter{\set}{\{}{\}}
