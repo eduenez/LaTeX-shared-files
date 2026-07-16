@@ -164,23 +164,61 @@ previous branch and `git branch -D chore/vendor-lock-json` — the `.gz` and
 
 ---
 
-## 6. Coming next ("Phase B" — not yet available)
+## 6. Reconciliation flows (Phase B)
 
-The reconciliation flows are built on top of this read-only core and will be
-documented here when they land:
+The child→master→children flows, built on the read-only core. Like everything
+else, they are **dry-run by default**; `--apply` writes files and commits locally
+(never pushes). Merge (up) and propagate (down) are **separate and composable**.
 
 - **`bib-merge <child>`** — take the child's *new* entries, validate their keys
   (a malformed **new** key is blocked; everything else warns), tidy them into the
   master `math-bibliography/references.bib`, and route any *modified* existing
   entries to `_quarantined_references.bib` for manual review (never auto-merged).
-- **`bib-propagate [child…]`** — push the updated master bib back down: refresh
-  each child's frozen baseline and re-base its working copy = new master + that
-  child's still-unmerged local additions.
+- **`bib-propagate [child…]`** — push the updated master bib back down. Refreshes
+  each child's frozen baseline to the new master, and updates the working copy by a
+  **3-way merge** (base = old frozen, ours = working, theirs = new master), per
+  entry:
+  - *untouched* (working entry == old frozen) → follow the master (update, or drop
+    if removed upstream) — an entry the author never touched stays in sync;
+  - *locally edited/added* (working entry ≠ old frozen) → **preserved**;
+  - a former local addition that has since been upstreamed → **adopts** the master's
+    version (e.g. a hand-cleaned entry replaces the child's older copy).
 - **`sty-snapshot <child>`** — copy a child's `<project>.sty` up to
   `LaTeX-shared-files/children/<child>/` so the maintainer can track and harvest
-  common preamble patterns.
+  common preamble patterns (commits both repos and records the snapshot commit in
+  the child's `vendor.lock.json`).
 
-Merge (up) and propagate (down) stay **separate and composable** on purpose.
+Worked example — flow a child's new citation up to the master and back to everyone:
+
+```sh
+python3 _scripts/vendor.py bib-merge no-free-lunch          # preview: 1 new -> master
+python3 _scripts/vendor.py bib-merge no-free-lunch --apply  # commits math-bibliography
+# (merge/push the math-bibliography change so its commit is stable)
+python3 _scripts/vendor.py bib-propagate --apply            # refresh every child to the new master
+```
+
+After `bib-propagate`, `status` reports the child's entry as merged (0 new): what
+was a *local addition* is now part of the master baseline the whole family shares.
+A child that had *un-merged* additions of its own keeps them (they stay as "N new"
+until their own `bib-merge`).
+
+**Ordering note:** run `bib-propagate` only after the `bib-merge` change has landed
+on `math-bibliography`'s main, so the baseline pins the final master commit rather
+than a transient branch commit.
+
+Snapshotting a project preamble upstream:
+
+```sh
+python3 _scripts/vendor.py sty-snapshot no-free-lunch          # preview the diff vs the last snapshot
+python3 _scripts/vendor.py sty-snapshot no-free-lunch --apply  # copy up + commit both repos
+```
+
+This copies the child's `<project>.sty` to `LaTeX-shared-files/children/<child>/`,
+commits it here, and records the snapshot's commit + SHA256 in the child's
+`vendor.lock.json` (so `status` can later report whether the project `.sty` has
+changed since). It is a one-way, up-only mirror for the maintainer's reference —
+nothing flows back down from `children/`. Re-running when nothing changed is a
+no-op (`already in sync`).
 
 ---
 
