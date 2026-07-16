@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "_comment": "Registry for scripts/vendor.py — the maintainer-run cross-repo vendoring sync tool. Paths are resolved relative to this file's directory (the LaTeX-shared-files repo root). Children never run the tool; it lives and runs here.",
+  "masters": {
+    "shared-files": {
+      "repo": "eduenez/LaTeX-shared-files",
+      "path": ".",
+      "snapshots_dir": "children"
+    },
+    "bibliography": {
+      "repo": "eduenez/math-bibliography",
+      "path": "../math-bibliography",
+      "bib": "references.bib",
+      "tidy_args": ".bibtex-tidy-args",
+      "quarantine": "_quarantined_references.bib"
+    }
+  },
+  "children": {
+    "no-free-lunch": {
+      "path": "../no-free-lunch",
+      "project_sty": "NFL.sty"
+    },
+    "topos-logic": {
+      "path": "../topos-logic",
+      "project_sty": "topos-logic.sty"
+    },
+    "QuantumStructures": {
+      "path": "../QuantumStructures",
+      "project_sty": "QuantumStructures.sty"
+    }
+  }
+}
