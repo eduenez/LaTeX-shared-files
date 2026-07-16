@@ -174,9 +174,15 @@ else, they are **dry-run by default**; `--apply` writes files and commits locall
   (a malformed **new** key is blocked; everything else warns), tidy them into the
   master `math-bibliography/references.bib`, and route any *modified* existing
   entries to `_quarantined_references.bib` for manual review (never auto-merged).
-- **`bib-propagate [child…]`** — push the updated master bib back down: refresh
-  each child's frozen baseline and re-base its working copy = new master + that
-  child's still-unmerged local additions.
+- **`bib-propagate [child…]`** — push the updated master bib back down. Refreshes
+  each child's frozen baseline to the new master, and updates the working copy by a
+  **3-way merge** (base = old frozen, ours = working, theirs = new master), per
+  entry:
+  - *untouched* (working entry == old frozen) → follow the master (update, or drop
+    if removed upstream) — an entry the author never touched stays in sync;
+  - *locally edited/added* (working entry ≠ old frozen) → **preserved**;
+  - a former local addition that has since been upstreamed → **adopts** the master's
+    version (e.g. a hand-cleaned entry replaces the child's older copy).
 - **`sty-snapshot <child>`** — copy a child's `<project>.sty` up to
   `LaTeX-shared-files/children/<child>/` so the maintainer can track and harvest
   common preamble patterns (commits both repos and records the snapshot commit in
