@@ -11,3 +11,4 @@
 *.fls
 *.fdb_latexmk
 build/
+.DS_Store

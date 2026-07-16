@@ -1,7 +1,7 @@
-# Vendoring sync workflow (`scripts/vendor.py`)
+# Vendoring sync workflow (`_scripts/vendor.py`)
 
 How the shared LaTeX files stay in sync across the family without git submodules,
-and how you (the maintainer) drive it with `scripts/vendor.py`.
+and how you (the maintainer) drive it with `_scripts/vendor.py`.
 
 > **Audience: the maintainer.** Collaborators/authors never run this tool. They
 > just edit their paper and its `references.bib` freely (see *For authors* at the
@@ -24,7 +24,7 @@ files — so a collaborator clones and builds with zero submodule steps. The
 trade-off: those copies can drift from the masters, so we track them explicitly
 and use `vendor.py` to reconcile.
 
-Each child's `packages/` directory holds:
+Each child's `_packages/` directory holds:
 
 | file | what it is | who edits it |
 |---|---|---|
@@ -45,11 +45,11 @@ was vendored*, the tool can compute "what has this child added/changed" as
 `working references.bib − frozen baseline`, entirely offline.
 
 ```
-math-bibliography/references.bib ──vendor──▶ child/packages/<sha>.bib.gz  (frozen, read-only)
+math-bibliography/references.bib ──vendor──▶ child/_packages/<sha>.bib.gz  (frozen, read-only)
                                               child/references.bib          (working, editable)
                                                      └── diff = the child's local additions
 
-LaTeX-shared-files/di-*.sty ──────vendor──▶ child/packages/di-*.sty        (pristine, read-only)
+LaTeX-shared-files/di-*.sty ──────vendor──▶ child/_packages/di-*.sty        (pristine, read-only)
 ```
 
 ---
@@ -75,7 +75,7 @@ You must pass `--apply` to actually write files, and even then the tool only
 ## 3. Command reference (what exists today — "Phase A")
 
 ```sh
-python3 scripts/vendor.py <command> [args]
+python3 _scripts/vendor.py <command> [args]
 ```
 
 ### `status [child]` — read-only health check
@@ -86,7 +86,7 @@ Your day-one command. For every child (or just one), it reports:
 - whether the project `.sty` has changed since its last snapshot.
 
 ```
-$ python3 scripts/vendor.py status no-free-lunch
+$ python3 _scripts/vendor.py status no-free-lunch
 
 no-free-lunch  (/Users/you/repos/no-free-lunch)
   shared .sty: 6 vendored, all pristine
@@ -105,22 +105,22 @@ for undated, `a`/`b` suffixes), flags duplicates, and reports whether the file i
 sorted. `--datamodel` additionally runs `biber --tool --validate-datamodel`.
 
 ```
-$ python3 scripts/vendor.py validate topos-logic
+$ python3 _scripts/vendor.py validate topos-logic
 topos-logic: 789 entries
   key format: all conform to Author-Author:YYYY
   sorting: sorted
 ```
 
 ### `init [child] [--apply]` — one-time migration
-Converts a child's old plain-text `packages/vendor.lock` into `vendor.lock.json`
-and writes the frozen `packages/<sha>.bib.gz` baseline (fetched from the
+Converts a child's old plain-text `_packages/vendor.lock` into `vendor.lock.json`
+and writes the frozen `_packages/<sha>.bib.gz` baseline (fetched from the
 `math-bibliography` master at the pinned commit). With `--apply` it writes the
 files, deletes the old `vendor.lock`, and commits that child. Idempotent — it
 skips a child that's already migrated.
 
 ```
-$ python3 scripts/vendor.py init                 # dry run, all children
-$ python3 scripts/vendor.py init no-free-lunch --apply   # migrate one, for real
+$ python3 _scripts/vendor.py init                 # dry run, all children
+$ python3 _scripts/vendor.py init no-free-lunch --apply   # migrate one, for real
 ```
 
 ---
@@ -133,18 +133,18 @@ Nothing here changes anything until step 4.
 cd LaTeX-shared-files
 
 # 1. See the whole family's drift at a glance (read-only):
-python3 scripts/vendor.py status
+python3 _scripts/vendor.py status
 
 # 2. Look at exactly what one child has added (read-only):
-python3 scripts/vendor.py diff no-free-lunch
+python3 _scripts/vendor.py diff no-free-lunch
 
 # 3. Sanity-check house style (read-only):
-python3 scripts/vendor.py validate QuantumStructures
+python3 _scripts/vendor.py validate QuantumStructures
 
 # 4. When ready, migrate a child to the JSON lock + frozen baseline.
 #    Do it on a branch so the commit is easy to review/undo:
 ( cd ../no-free-lunch && git switch -c chore/vendor-lock-json )
-python3 scripts/vendor.py init no-free-lunch --apply
+python3 _scripts/vendor.py init no-free-lunch --apply
 ( cd ../no-free-lunch && git show --stat HEAD )   # review the commit; push/PR when happy
 ```
 
@@ -189,7 +189,7 @@ Merge (up) and propagate (down) stay **separate and composable** on purpose.
 - Edit your paper's `references.bib` and `<project>.sty` freely.
 - Use the house key style for new citations: `AuthorLast:YYYY` or
   `AuthorOne-AuthorTwo:YYYY` (append `a`/`b` to disambiguate; `:0000` if undated).
-- **Never edit anything under `packages/`** — those are vendored, read-only copies
+- **Never edit anything under `_packages/`** — those are vendored, read-only copies
   and your edits will be overwritten on the next sync.
 - The maintainer periodically reconciles your new references back into the shared
   master and syncs everyone.

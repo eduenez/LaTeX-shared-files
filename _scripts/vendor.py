@@ -43,6 +43,18 @@ KEY_RE = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*:\d{4}[a-z]?$")
 
 NON_ENTRY = {"preamble", "string", "comment"}
 SHORT = 12  # hex chars of SHA256 used to name the frozen baseline
+PKG = "_packages"           # infrastructure dir in each child (underscore-hidden)
+_PKG_LEGACY = "packages"    # pre-rename name; still recognised while PRs land
+
+
+def pkg_dir(child_dir: Path) -> str:
+    """The child's vendored-packages dir: prefer `_packages`, fall back to the
+    legacy `packages` during the rename transition."""
+    if (child_dir / PKG).exists():
+        return PKG
+    if (child_dir / _PKG_LEGACY).exists():
+        return _PKG_LEGACY
+    return PKG
 
 C_RED, C_GRN, C_YEL, C_DIM, C_RST = "\033[31m", "\033[32m", "\033[33m", "\033[2m", "\033[0m"
 
@@ -190,7 +202,7 @@ def read_plain_lock(path: Path) -> list[tuple[str, str, str]]:
 
 
 def load_lock_json(child_dir: Path) -> dict | None:
-    p = child_dir / "packages" / "vendor.lock.json"
+    p = child_dir / pkg_dir(child_dir) / "vendor.lock.json"
     return json.loads(p.read_text()) if p.exists() else None
 
 
@@ -202,7 +214,8 @@ def cmd_init(reg: Registry, args) -> int:
     for name in targets:
         meta = reg.children[name]
         child = reg.child_path(name)
-        pkg = child / "packages"
+        pkgname = pkg_dir(child)
+        pkg = child / pkgname
         plain = pkg / "vendor.lock"
         jsonp = pkg / "vendor.lock.json"
         if jsonp.exists():
@@ -219,14 +232,14 @@ def cmd_init(reg: Registry, args) -> int:
             if src_path.endswith(".bib"):
                 frozen_bytes = git_show(bibmaster, commit, reg.bib_name())
                 sha = sha256_bytes(frozen_bytes)
-                frozen_rel = f"packages/{sha[:SHORT]}.bib.gz"
+                frozen_rel = f"{pkgname}/{sha[:SHORT]}.bib.gz"
                 files.append({
                     "kind": "bib", "source_repo": src_repo, "source_path": src_path,
                     "working_path": src_path, "frozen_path": frozen_rel,
                     "sha256": sha, "source_commit": commit,
                 })
             else:
-                local = f"packages/{src_path}"
+                local = f"{pkgname}/{src_path}"
                 files.append({
                     "kind": "shared-sty", "source_repo": src_repo, "source_path": src_path,
                     "local_path": local, "sha256": sha256_file(child / local),
