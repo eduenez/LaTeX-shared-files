@@ -515,29 +515,66 @@ def cmd_bib_propagate(reg: Registry, args) -> int:
         if rec["sha256"] == new_sha:
             print(f"  {_c('baseline already at this master; up to date', C_DIM)}")
             continue
-        working_tidied = bibtex_tidy((child / rec["working_path"]).read_bytes(), tidy).decode()
-        wmap = key_map(working_tidied)
-        deltas = {k: v for k, v in wmap.items()
-                  if k not in master_map or _norm(v) != _norm(master_map[k])}
+        # 3-way merge to compute the new working copy:
+        #   base   = the OLD frozen baseline (what was last vendored)
+        #   ours   = the child's current working references.bib
+        #   theirs = the new master
+        # An entry the author never touched (ours == base) follows the master
+        # (updated, or dropped if removed upstream). An entry the author edited or
+        # added locally (ours != base) is preserved. A former local addition that
+        # has since been upstreamed (not in base, now in master) adopts the master.
+        base_map = key_map(gzip.decompress((child / rec["frozen_path"]).read_bytes()).decode())
+        wmap = key_map(bibtex_tidy((child / rec["working_path"]).read_bytes(), tidy).decode())
+        result = dict(master_map)
+        preserved, adopted, dropped = [], [], []
+        for k, ov in wmap.items():
+            bv, tv = base_map.get(k), master_map.get(k)
+            if bv is not None and _norm(ov) != _norm(bv):
+                # vendored, then edited locally -> keep the author's version
+                if tv is None or _norm(ov) != _norm(tv):
+                    result[k] = ov
+                    preserved.append(k)
+            elif bv is None and tv is None:
+                # pure local addition (never upstreamed) -> keep
+                result[k] = ov
+                preserved.append(k)
+            elif bv is None and tv is not None and _norm(ov) != _norm(tv):
+                # local addition, since upstreamed and changed upstream -> adopt master
+                adopted.append(k)
+            # else: untouched (ov == base) or already == master -> follow the master
+        for k, bv in base_map.items():
+            if k in master_map or k not in wmap:
+                continue
+            if _norm(wmap[k]) == _norm(bv):
+                dropped.append(k)          # untouched & removed upstream -> drop
+            else:
+                result[k] = wmap[k]        # locally edited & removed upstream -> keep
+                preserved.append(k)
         new_frozen_rel = f"{pkg_dir(child)}/{new_sha[:SHORT]}.bib.gz"
         old_frozen_rel = rec["frozen_path"]
         print(f"  baseline @ {rec['source_commit']} ({rec['sha256'][:SHORT]}) "
               f"-> @ {new_commit} ({new_sha[:SHORT]})")
-        print(f"  local deltas kept in working copy: "
-              f"{_c(str(len(deltas)), C_GRN if deltas else C_DIM)}"
-              + (f"  ({', '.join(sorted(deltas))})" if deltas else ""))
+        summary = ("  working: synced to master; "
+                   + _c(f"{len(preserved)} local edit(s) preserved",
+                        C_GRN if preserved else C_DIM))
+        if adopted:
+            summary += "; " + _c(f"{len(adopted)} adopted from upstream "
+                                 f"({', '.join(sorted(adopted))})", C_YEL)
+        if dropped:
+            summary += "; " + _c(f"{len(dropped)} dropped (removed upstream)", C_YEL)
+        print(summary)
+        if preserved:
+            print(f"    preserved: {', '.join(sorted(preserved))}")
         if not args.apply:
             print(_c("  (dry run — pass --apply to rewrite baseline + working & commit)", C_DIM))
             continue
         (child / new_frozen_rel).write_bytes(gzip.compress(master_bytes))
         if old_frozen_rel != new_frozen_rel and (child / old_frozen_rel).exists():
             (child / old_frozen_rel).unlink()
-        if deltas:
-            merged = dict(master_map)
-            merged.update(deltas)
-            new_working = bibtex_tidy(serialize_bib(preamble, merged).encode(), tidy).decode()
+        if preserved:
+            new_working = bibtex_tidy(serialize_bib(preamble, result).encode(), tidy).decode()
         else:
-            new_working = master_text  # byte-identical to master when no local additions
+            new_working = master_text  # byte-identical to master when nothing preserved
         (child / rec["working_path"]).write_text(new_working)
         rec["sha256"] = new_sha
         rec["source_commit"] = new_commit
