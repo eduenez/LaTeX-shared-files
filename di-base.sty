@@ -1,146 +1,21 @@
-%% di-base.sty — Dueñez–Iovino base preamble
+%% di-base.sty — DEPRECATED compatibility shim
 %%
-%% Loads packages in the correct order, defines theorem environments,
-%% and sets equation numbering.  Suitable for use with any AMS document
-%% class (amsart, amsbook) or memoir.  Does NOT set page geometry or
-%% choose a font — those are document-class-level decisions.
+%% di-base has been split into class-tailored bases over a shared core:
+%%   di-base-core.sty      — class-agnostic (fonts, packages, theorem family)
+%%   di-base-article.sty   — amsart/amsbook (section-scoped numbering)
+%%   di-base-monograph.sty — memoir (chapter-scoped numbering)
 %%
-%% Usage (from a paper repo with this file as sty/ submodule):
-%%
-%%   % In latexmkrc:  ensure_path('TEXINPUTS', './sty//:');
-%%   \usepackage{di-base}
-%%
-%% Conflict resolutions applied here (documented choices):
-%%   \dd       — \DeclareMathOperator* (starred, limits below in display)
-%%   \claim    — numbered \newtheorem (majority convention)
-%%   \Ulim etc.— \DeclareMathOperator* (starred)
-%%   eucal     — [mathcal] (standardised; euscript not used)
-%%   hyperref  — loaded last, after all math packages
-%%   exercise  — individual exercise environments NOT defined here; load
-%%               di-exercises (which uses xsim) for {exercise}/{solution}.
-%%               {exercises} (plural container) is defined below.
+%% This shim preserves the OLD behaviour (section-scoped numbering, i.e. the
+%% amsart convention) by loading di-base-article, so existing consumers that
+%% still \usepackage{di-base} keep compiling.  New projects and re-syncs
+%% should vendor di-base-core + di-base-article (or -monograph) directly.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{di-base}[2026/06/12 Duenez-Iovino base preamble]
+\ProvidesPackage{di-base}[2026/07/15 Duenez-Iovino base preamble (DEPRECATED shim)]
 
-% ── Engine detection ─────────────────────────────────────────────────────────
+\PackageWarning{di-base}{%
+  di-base is deprecated: it now just loads di-base-article (section numbering).\MessageBreak
+  Vendor di-base-core + di-base-article (amsart) or di-base-monograph (memoir)\MessageBreak
+  instead.  See the LaTeX-shared-files README}
 
-\RequirePackage{iftex}
-
-% ── Encoding and language ────────────────────────────────────────────────────
-
-% inputenc is pdfLaTeX-only; XeLaTeX and LuaLaTeX handle UTF-8 natively.
-\ifPDFTeX
-  \RequirePackage[utf8]{inputenc}
-\fi
-\RequirePackage[english]{babel}
-
-% ── Math packages (order is significant) ────────────────────────────────────
-
-% mathtools loads amsmath; must come before amsthm
-\RequirePackage{mathtools}
-\RequirePackage{amsthm}
-
-% Symbol fonts loaded before the math font (which may override some glyphs)
-\RequirePackage{amssymb}
-\RequirePackage{amsfonts}
-\RequirePackage{dsfont}          % \mathds{1} for indicator functions
-
-% Calligraphic/script fonts
-\RequirePackage[mathcal]{eucal}  % remaps \mathcal to Euler script
-\RequirePackage{mathrsfs}        % \mathscr (distinct from \mathcal)
-
-% Structural packages
-\RequirePackage{leftindex}       % left sub/superscripts: \leftindex^a_b{M}
-\RequirePackage{accents}         % \underaccent, \accentset
-\RequirePackage{slashed}         % Dirac slash notation
-
-% ── Math font (engine-dependent) ─────────────────────────────────────────────
-%
-% pdfLaTeX: stix2 TFM/VF font stack.
-%   stix2 names the double-bracket delimiters \lBrack/\rBrack; alias to the
-%   stmaryrd-conventional names so documents can use \llbracket/\rrbracket.
-%   \lAngle/\rAngle (U+27EA/U+27EB) are defined directly by stix2.
-%
-% XeLaTeX/LuaLaTeX: OpenType font stack via fontspec + unicode-math.
-%   unicode-math provides \llbracket/\rrbracket natively; define \lBrack/\rBrack
-%   as aliases so di-structures.sty is engine-agnostic.
-%   unicode-math names U+27EA/U+27EB as \Langle/\Rangle; alias to \lAngle/\rAngle.
-
-\ifPDFTeX
-  \RequirePackage{stix2}
-  \let\llbracket\lBrack
-  \let\rrbracket\rBrack
-\else
-  \RequirePackage{fontspec}
-  \RequirePackage{unicode-math}
-  \setmainfont{STIX Two Text}
-  \setmathfont{STIX Two Math}
-  \let\lBrack\llbracket
-  \let\rBrack\rrbracket
-  \let\lAngle\Langle
-  \let\rAngle\Rangle
-\fi
-
-% ── Layout and utility packages ──────────────────────────────────────────────
-
-\RequirePackage{calc}
-\RequirePackage{enumitem}
-\RequirePackage{comment}         % \begin{comment}...\end{comment}
-\RequirePackage{microtype}       % character protrusion + expansion
-
-% ── Diagrams ─────────────────────────────────────────────────────────────────
-
-\RequirePackage{tikz-cd}
-\tikzcdset{arrow style=math font}
-
-% ── Cross-referencing — MUST come after all math packages ────────────────────
-
-\RequirePackage[
-  colorlinks,
-  linkcolor  = blue!60!black,
-  citecolor  = blue!60!black,
-  urlcolor   = blue!60!black,
-]{hyperref}
-\RequirePackage[capitalize, nameinlink]{cleveref}
-
-% ── Theorem environments ─────────────────────────────────────────────────────
-
-\swapnumbers  % "3.1 Theorem" style
-
-% plain style — statements
-\theoremstyle{plain}
-% NOTE: \specialtheorem is intentionally NOT defined here.  Papers use
-% \newtheorem{specialtheorem}{Theorem} with an independent counter.
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem*{lemma*}{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
-
-% definition style — definitions, examples, conventions
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{definitions}[theorem]{Definitions}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{examples}[theorem]{Examples}
-\newtheorem{convention}[theorem]{Convention}
-\newtheorem{conventions}[theorem]{Conventions}
-\newtheorem{notation}[theorem]{Notation}
-\newtheorem{exercises}[theorem]{Exercises}
-\newtheorem{fact}[theorem]{Fact}
-\newtheorem{question}[theorem]{Question}
-
-% remark style — remarks, caveats
-% NOTE: \claim is intentionally NOT defined here.  Papers disagree on whether
-% it should be numbered (RealRandom/RealStructures group) or unnumbered
-% (ProbabilityModels group).  Each paper defines \claim locally.
-\theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
-\newtheorem*{remark*}{Remark}
-\newtheorem{remarks}[theorem]{Remarks}
-\newtheorem*{caveat*}{Caveat}
-
-% ── Equation numbering ───────────────────────────────────────────────────────
-
-\numberwithin{equation}{section}
+\RequirePackage{di-base-article}

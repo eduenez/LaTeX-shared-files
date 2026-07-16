@@ -1,0 +1,149 @@
+%% di-base-core.sty — Dueñez–Iovino base preamble (class-agnostic core)
+%%
+%% Everything shared by ALL document classes: engine-aware font loading,
+%% package loads (in dependency order), cross-referencing, and the full
+%% theorem-environment family.  It does NOT choose a page geometry and does
+%% NOT anchor numbering to a sectioning unit — those are class decisions made
+%% by di-base-article.sty (amsart/amsbook) and di-base-monograph.sty (memoir),
+%% which load this file and then set \numberwithin.  Do NOT \usepackage this
+%% directly from a document; use one of the class bases.
+%%
+%% Conflict resolutions applied here (documented choices):
+%%   \dd       — \DeclareMathOperator* (starred, limits below in display)  [di-structures]
+%%   \claim    — NOT defined here; papers disagree on numbering; define locally
+%%   eucal     — [mathcal] (standardised; euscript not used)
+%%   hyperref  — loaded last, after all math packages; house colour scheme
+%%
+%% The master `theorem' counter is defined WITHOUT a parent here; the class
+%% bases attach it (\numberwithin{theorem}{section|chapter}).
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-base-core}[2026/07/15 Duenez-Iovino base preamble (class-agnostic core)]
+
+% ── Engine detection ─────────────────────────────────────────────────────────
+
+\RequirePackage{iftex}
+
+% ── Encoding and language ────────────────────────────────────────────────────
+
+% inputenc is pdfLaTeX-only; XeLaTeX and LuaLaTeX handle UTF-8 natively.
+% T1 fontenc likewise only applies under pdfLaTeX (Xe/LuaLaTeX use fontspec).
+\ifPDFTeX
+  \RequirePackage[utf8]{inputenc}
+  \RequirePackage[T1]{fontenc}
+\fi
+\RequirePackage[english]{babel}
+
+% ── Math packages (order is significant) ────────────────────────────────────
+
+% mathtools loads amsmath; must come before amsthm
+\RequirePackage{mathtools}
+\RequirePackage{amsthm}
+
+% Symbol fonts loaded before the math font (which may override some glyphs)
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{dsfont}          % \mathds{1} for indicator functions
+
+% Calligraphic/script fonts
+\RequirePackage[mathcal]{eucal}  % remaps \mathcal to Euler script
+\RequirePackage{mathrsfs}        % \mathscr (distinct from \mathcal)
+
+% Structural packages
+\RequirePackage{leftindex}       % left sub/superscripts: \leftindex^a_b{M}
+\RequirePackage{accents}         % \underaccent, \accentset
+\RequirePackage{slashed}         % Dirac slash notation
+
+% ── Math font (engine-dependent) ─────────────────────────────────────────────
+%
+% pdfLaTeX: stix2 TFM/VF font stack.
+%   stix2 names the double-bracket delimiters \lBrack/\rBrack; alias to the
+%   stmaryrd-conventional names so documents can use \llbracket/\rrbracket.
+%   \lAngle/\rAngle (U+27EA/U+27EB) are defined directly by stix2.
+%
+% XeLaTeX/LuaLaTeX: OpenType font stack via fontspec + unicode-math.
+%   unicode-math provides \llbracket/\rrbracket natively; define \lBrack/\rBrack
+%   as aliases so di-structures.sty is engine-agnostic.
+%   unicode-math names U+27EA/U+27EB as \Langle/\Rangle; alias to \lAngle/\rAngle.
+
+\ifPDFTeX
+  \RequirePackage{stix2}
+  \let\llbracket\lBrack
+  \let\rrbracket\rBrack
+\else
+  \RequirePackage{fontspec}
+  \RequirePackage{unicode-math}
+  \setmainfont{STIX Two Text}
+  \setmathfont{STIX Two Math}
+  \let\lBrack\llbracket
+  \let\rBrack\rrbracket
+  \let\lAngle\Langle
+  \let\rAngle\Rangle
+\fi
+
+% ── Layout and utility packages ──────────────────────────────────────────────
+
+\RequirePackage{calc}
+\RequirePackage{enumitem}
+\RequirePackage{comment}         % \begin{comment}...\end{comment}
+\RequirePackage{microtype}       % character protrusion + expansion
+
+% ── Diagrams ─────────────────────────────────────────────────────────────────
+
+\RequirePackage{tikz-cd}
+\tikzcdset{arrow style=math font}
+
+% ── Cross-referencing — MUST come after all math packages ────────────────────
+
+\RequirePackage[
+  colorlinks,
+  linkcolor  = blue!40!black,
+  citecolor  = green!40!black,
+  urlcolor   = magenta!40!black,
+]{hyperref}
+\RequirePackage[capitalize, nameinlink, noabbrev]{cleveref}
+
+% ── Collaboration tools ──────────────────────────────────────────────────────
+
+\RequirePackage[colorinlistoftodos, textsize=small]{todonotes}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+
+\swapnumbers  % "3.1 Theorem" style
+
+% plain style — statements
+\theoremstyle{plain}
+% NOTE: \specialtheorem is intentionally NOT defined here.  Papers use
+% \newtheorem{specialtheorem}{Theorem} with an independent counter.
+% The master `theorem' counter is parentless here; a class base anchors it.
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem*{theorem*}{Theorem}
+\newtheorem*{corollary*}{Corollary}
+
+% definition style — definitions, examples, conventions
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{definitions}[theorem]{Definitions}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{examples}[theorem]{Examples}
+\newtheorem{convention}[theorem]{Convention}
+\newtheorem{conventions}[theorem]{Conventions}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{exercises}[theorem]{Exercises}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{question}[theorem]{Question}
+
+% remark style — remarks, caveats
+% NOTE: \claim is intentionally NOT defined here.  Papers disagree on whether
+% it should be numbered (RealRandom/RealStructures group) or unnumbered
+% (ProbabilityModels group).  Each paper defines \claim locally.
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem*{remark*}{Remark}
+\newtheorem{remarks}[theorem]{Remarks}
+\newtheorem*{caveat*}{Caveat}

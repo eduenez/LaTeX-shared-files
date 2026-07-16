@@ -6,12 +6,36 @@ Shared LaTeX style files for the Dueñez–Iovino research group.
 
 | File | Purpose |
 |---|---|
-| `di-base.sty` | Package loading (correct order) + theorem environments |
+| `di-base-core.sty` | Class-agnostic core: engine-aware fonts, package loads, hyperref/cleveref, full theorem family (master counter left unanchored) |
+| `di-base-article.sty` | Loads core + anchors numbering to `section` — for `amsart`/`amsbook` |
+| `di-base-monograph.sty` | Loads core + anchors numbering to `chapter` + `axiom` env; loads no geometry — for `memoir` |
+| `di-base.sty` | **DEPRECATED** shim → `di-base-article` (kept so old consumers keep compiling) |
 | `di-structures.sty` | Core notation for real-valued logic and structures |
 | `di-random.sty` | Notation for Keisler randomizations and stochastic structures |
 | `di-ramsey.sty` | Notation for Ramsey theory, ultrafilter semigroups, stable Boolean algebras |
+| `di-exercises.sty` | `xsim`-backed `{exercise}`/`{solution}` environments |
 | `latexmkrc` | Template `latexmkrc` for paper repos (copy to repo root) |
 | `Makefile` | `make install` copies `.sty` files to `TEXMFHOME` for local use |
+
+## Package split (2026-07)
+
+`di-base` was split into a shared **core** plus two class-tailored bases, because
+the old monolith hardcoded `section`-scoped numbering (an `amsart` convention)
+that is wrong for `memoir` books:
+
+- **amsart/amsbook** documents load `di-base-article` (section-scoped numbering).
+- **memoir** monographs load `di-base-monograph` (chapter-scoped numbering).
+- Both `\RequirePackage{di-base-core}` internally, so also make the core
+  available (it is a required dependency).
+
+`di-base.sty` remains as a deprecating shim (→ `di-base-article`) and prints a
+warning; migrate consumers to the split at their next re-sync.
+
+> **Note on consumption.** The submodule instructions below are the historical
+> mechanism. Downstream repos are migrating to **vendoring**: pristine copies of
+> the needed `di-*.sty` files are committed into a `packages/` subdir, pinned by
+> commit hash in `packages/vendor.lock`, with `packages/` added to `TEXINPUTS`
+> via `latexmkrc`. Same `\usepackage{di-base-article}` etc., no submodule steps.
 
 ## Using this in a paper repo
 
@@ -129,10 +153,9 @@ The `\regex_match:VnT` variant of l3regex is **not** pre-generated; use
   `di-base` — load `di-exercises` (xsim-backed) instead.  The plural
   `{exercises}` amsthm container **is** kept in `di-base` for use as a numbered
   multi-part exercise block.
-- **`stix` vs `stix2`**: `di-base` currently loads the original `stix` package
-  (v1, TeXLive name `stix`).  As of April 2018 `stix` is considered obsolete;
-  its successor is `stix2` (`stix2-type1`/`stix2-otf`).  The `stix` v1 package
-  does **not** define `\llbracket`/`\rrbracket` as LaTeX commands, so documents
-  that need them must load `stmaryrd` as a fallback.  Migrating `di-base` to
-  `\RequirePackage{stix2}` would remove this limitation but changes font metrics
-  for all documents — do this intentionally, not incidentally.
+- **`stix2` fonts (engine-dependent).** `di-base-core` loads `stix2` under
+  pdfLaTeX (TFM/VF stack) and `fontspec` + `unicode-math` with STIX Two under
+  Xe/LuaLaTeX. `stix2` names the double-bracket delimiters `\lBrack`/`\rBrack`;
+  the core aliases them to the stmaryrd-conventional `\llbracket`/`\rrbracket`
+  (and the reverse under Xe/Lua), so `stmaryrd` is not needed and
+  `di-structures` stays engine-agnostic.

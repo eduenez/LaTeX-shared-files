@@ -1,0 +1,27 @@
+%% di-base-monograph.sty — Dueñez–Iovino base preamble for memoir monographs/books
+%%
+%% Loads the class-agnostic core, then anchors numbering to the `chapter' unit:
+%% theorems and equations are numbered <chapter>.<n> and reset at each
+%% \chapter.  Adds the book-oriented `axiom' environment.  Loads NO page
+%% geometry — memoir owns its own layout (\setlrmarginsandblock etc.), set in
+%% the document/master.  For an amsart article use di-base-article.sty instead.
+%%
+%% Usage (from a repo that vendors this into packages/):
+%%   % In latexmkrc:  ensure_path('TEXINPUTS', './packages//:');
+%%   \usepackage{di-base-monograph}
+%% Note: also vendor di-base-core.sty alongside this file (required dependency).
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-base-monograph}[2026/07/15 Duenez-Iovino base preamble (memoir)]
+
+\RequirePackage{di-base-core}
+
+% ── Numbering — chapter-scoped (book convention) ─────────────────────────────
+
+\numberwithin{theorem}{chapter}
+\numberwithin{equation}{chapter}
+
+% ── Book-oriented theorem environments ───────────────────────────────────────
+
+\theoremstyle{plain}
+\newtheorem{axiom}[theorem]{Axiom}

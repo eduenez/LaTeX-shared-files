@@ -1,0 +1,21 @@
+%% di-base-article.sty — Dueñez–Iovino base preamble for amsart/amsbook articles
+%%
+%% Loads the class-agnostic core, then anchors numbering to the `section' unit
+%% (the AMS-article convention): theorems and equations are numbered
+%% <section>.<n> and reset at each \section.  For a memoir book use
+%% di-base-monograph.sty instead.
+%%
+%% Usage (from a paper repo that vendors this into packages/):
+%%   % In latexmkrc:  ensure_path('TEXINPUTS', './packages//:');
+%%   \usepackage{di-base-article}
+%% Note: also vendor di-base-core.sty alongside this file (required dependency).
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-base-article}[2026/07/15 Duenez-Iovino base preamble (amsart)]
+
+\RequirePackage{di-base-core}
+
+% ── Numbering — section-scoped (amsart convention) ───────────────────────────
+
+\numberwithin{theorem}{section}
+\numberwithin{equation}{section}
