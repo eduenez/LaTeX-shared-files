@@ -1,0 +1,360 @@
+%% di-history-icons.sty -- margin icons, history/provenance paragraphs, timeline and
+%% compile-time stamp shared by the Iovino lecture notes (Quantum_logic, Games, Stability).
+%%
+%% NEW shared package, extracted from the (identical) preamble machinery of those three notes.
+%%
+%%   * the pink-and-purple palette (plum orchid rose lavender blush keyframe keyfill) and the
+%%     icon colours  iconcolor (margin icons)  qedcolor (QED mark);
+%%   * \qedsymbol: tikzsymbols' winking face in qedcolor;
+%%   * \bendicon (Knuth's dangerous bend), the theorem style `rudinbend' and the environments
+%%     `remark' and `remarks' (bend in the margin, shared `theorem' counter);
+%%   * \marginicon{file}, \historypara{title}, \provenancepara{title}  (icon PDFs, e.g.
+%%     icons/icon-history.pdf, icons/icon-provenance.pdf, are found relative to the document);
+%%   * \timestamp and \@twelvehour (compile date and time, Central / Eastern);
+%%   * option [timeline]: the `timeline' environment, \event, \timelineref, \timelineoverview.
+%%
+%% NOT in this package (each document keeps its own): the placement of \timestamp on the title
+%% page, the \paragraph / section heading styles, \historysubsection, the keytheorem boxes.
+%%
+%% Load order: after amsthm (amsart/amsbook) and, if used, AFTER di-theorem-rudin, which defines
+%% the standard theorem family. `remark' is then redefined here with the style `rudinbend' (same
+%% counter, and still a distinct counter name for cleveref); `remarks' is added.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-history-icons}[2026/10/13 Duenez-Iovino margin icons, history paragraphs, timeline]
+
+\newif\ifdi@hi@timeline
+\DeclareOption{timeline}{\di@hi@timelinetrue}
+\ProcessOptions\relax
+
+\RequirePackage{amsthm}
+\RequirePackage{aliascnt}
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{manfnt}        % Knuth's dangerous-bend sign
+\RequirePackage{tikzsymbols}   % \Winkey, the end-of-proof symbol
+
+% Colours, all in one place: a pink-and-purple palette.
+\definecolor{plum}{RGB}{94,42,110}        % deep purple: frames, strong lines
+\definecolor{orchid}{RGB}{142,68,173}     % purple
+\definecolor{rose}{RGB}{196,96,168}       % pink-violet: accents
+\definecolor{lavender}{RGB}{200,180,230}  % pale purple: fills
+\definecolor{blush}{RGB}{248,215,228}     % pale pink: fills
+\colorlet{keyframe}{plum!75}              % main-theorem boxes
+\colorlet{keyfill}{lavender!22!white}
+\definecolor{iconcolor}{RGB}{218,105,160}  % margin icons: soft, muted pink
+\definecolor{qedcolor}{RGB}{186,140,210}   % QED mark: soft orchid
+
+% QED symbol: tikzsymbols' winking face, filled with qedcolor.
+\renewcommand{\qedsymbol}{\Winkey[1][qedcolor]}
+
+% Remarks: Rudin-style upright body, with Knuth's dangerous-bend sign,
+% scaled down, hanging in the left margin.
+\newcommand{\bendicon}{\llap{\scalebox{0.6}{\textcolor{iconcolor}{\dbend}}\hspace{0.9em}}}
+\newtheoremstyle{rudinbend}%
+  {\topsep}{\topsep}%
+  {\upshape}{}%
+  {\bfseries}{.}%
+  { }%
+  {\rlap{\normalfont\bendicon}\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+\@ifundefined{remark}{%
+  % no shared theorem family loaded: plain remark / remarks on the `theorem' counter
+  \theoremstyle{rudinbend}%
+  \newtheorem{remark}[theorem]{Remark}%
+  \newtheorem{remarks}[theorem]{Remarks}%
+}{%
+  % redefine the shared `remark' (di-theorem-rudin) with the bend style, keeping its counter alias
+  \let\di@hi@theremark\theremark
+  \let\remark\@undefined \let\endremark\@undefined
+  \theoremstyle{rudinbend}%
+  \newtheorem{remark}[remark]{Remark}%
+  \let\theremark\di@hi@theremark
+  \newaliascnt{remarks}{theorem}%
+  \newtheorem{remarks}[remarks]{Remarks}%
+  \aliascntresetthe{remarks}%
+}
+
+% Margin icons for historical paragraphs (Font Awesome 5 glyphs, stored as
+% PDFs in icons/ so the file compiles without the fontawesome5 package):
+% hourglass = Historical context, clock with backward arrow = Provenance.
+\DeclareRobustCommand{\marginicon}[1]{%
+  \llap{\raisebox{-0.2ex}{\textcolor{iconcolor}{\includegraphics[height=1.75ex]{#1}}}\hspace{0.9em}}}
+\newcommand{\historypara}[1]{\paragraph{\marginicon{icons/icon-history}#1}}
+\newcommand{\provenancepara}[1]{\paragraph{\marginicon{icons/icon-provenance}#1}}
+
+% Compile date and time (the notes are compiled on US Central time; Eastern is always one hour
+% later: after 11 pm Central it wraps to 12:xx am, the date stays Central).
+% \@twelvehour{h}{m}: h = hour 0..23, m = minutes; prints e.g. "4:32 pm".
+\newcommand{\@twelvehour}[2]{%
+  \ifcase\numexpr#1\relax 12\or 1\or 2\or 3\or 4\or 5\or 6\or 7\or 8\or 9\or 10\or 11%
+  \or 12\or 1\or 2\or 3\or 4\or 5\or 6\or 7\or 8\or 9\or 10\or 11\fi
+  :\two@digits{#2}\ \ifnum\numexpr#1\relax<12 am\else pm\fi}
+% \numexpr rounds, so (\time+30)/60-1 is the hour rounded down (0 at midnight).
+\newcommand{\timestamp}{%
+  \edef\@tshour{\the\numexpr(\time+30)/60-1\relax}%
+  \edef\@tsmin{\the\numexpr\time-60*\@tshour\relax}%
+  Last update: \today, \@twelvehour{\@tshour}{\@tsmin}~CT\,/\,%
+  \@twelvehour{\ifnum\@tshour=23 0\else\numexpr\@tshour+1\relax\fi}{\@tsmin}~ET}
+
+\ifdi@hi@timeline
+% ---------------------------------------------------------------------------
+% Timeline. Entries are typed in any order inside
+%     \begin{timeline} ... \end{timeline}
+% and printed in chronological order (entries with the same starting year
+% keep the order in which they were typed):
+%     \event{1957}{Text ...}
+%     \event{1963--1965}{Text ...}          % a range: from 1963 to 1965
+%     \event{1967}[Kochen--Specker]{Text}   % optional short title
+%     \event[1964]{c.\ 1964}{Text ...}      % optional sort key, if the label
+%                                           % does not start with a year
+% Output:
+%  * an overview strip: a proportional time axis, a dot for a single year and
+%    a bar for a range of years, stacked in rows so that labels never collide
+%    (label = the entry's title if it has one, otherwise its years; a label that
+%    would run past the end of the axis is set flush right);
+%    \begin{timeline}[nooverview] omits it for one timeline, and
+%    \timelineoverview{false} omits it for all of them;
+%  * the list: year badge | spine with a dot (a short bar for a range) | text.
+\RequirePackage{tikz}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\colorlet{tmlaccent}{rose}
+\colorlet{tmlfill}{blush!60!white}
+\colorlet{tmlspine}{lavender}
+\newlength\tmlspine \setlength\tmlspine{6.6em}  % spine, from the left margin
+\newlength\tmltext  \setlength\tmltext{7.7em}   % where the text starts
+\newlength\tmlsep   \setlength\tmlsep{0.9\baselineskip} % space between entries
+\newlength\tmldot                                % marker height below entry top
+\makeatletter
+\newcommand\tml@at[1]{([xshift=\tmlspine,yshift=#1]frame.north west)}
+\newcommand\tml@dot{\filldraw[fill=tmlaccent,draw=white,line width=0.8pt]
+  \tml@at{-\tmldot} circle (2.9pt);}
+\newcommand\tml@bar{%
+  \draw[white,line width=7.4pt,line cap=round]\tml@at{-\tmldot}--\tml@at{-\tmldot-0.9em};
+  \draw[tmlaccent,line width=5.8pt,line cap=round]\tml@at{-\tmldot}--\tml@at{-\tmldot-0.9em};}
+\let\tml@marker\tml@dot
+\newcommand\tml@down{\draw[tmlspine,line width=0.5pt]\tml@at{-\tmldot}--([xshift=\tmlspine]frame.south west);}
+\newcommand\tml@up{\draw[tmlspine,line width=0.5pt]\tml@at{0pt}--\tml@at{-\tmldot};}
+\newcommand\tml@full{\draw[tmlspine,line width=0.5pt]\tml@at{0pt}--([xshift=\tmlspine]frame.south west);}
+\tcbset{
+  tml/base/.style={enhanced, breakable, blanker, left=\tmltext, right=0pt,
+    top=0pt, bottom=\tmlsep, before skip=0pt, after skip=0pt, parbox=false},
+  tml/only/.style={overlay unbroken and first={\tml@marker}, bottom=0pt},
+  tml/first/.style={overlay unbroken and first={\tml@down\tml@marker},
+    overlay middle and last={\tml@full}},
+  tml/middle/.style={overlay unbroken and first={\tml@full\tml@marker},
+    overlay middle and last={\tml@full}},
+  tml/last/.style={overlay unbroken and first={\tml@up\tml@marker}, bottom=0pt},
+}
+% year badges, in the list and (smaller) in the running text
+\tikzset{tmlbadge/.style={fill=tmlfill, draw=tmlaccent, line width=0.4pt}}
+\newcommand\tml@badge[1]{\tikz[baseline=(b.base)]\node(b)[tmlbadge,
+  rounded corners=2pt, inner xsep=3pt, inner ysep=1.6pt, font=\small\bfseries]{#1};}
+% #1 position (only/first/middle/last), #2 dot or bar, #3 years, #4 title, #5 text
+\newcommand\tml@entry[5]{%
+  \expandafter\let\expandafter\tml@marker\csname tml@#2\endcsname
+  \setlength\tmldot{\dimexpr0.72\baselineskip-0.5ex\relax}%
+  \begin{tcolorbox}[tml/base, tml/#1]
+  \noindent\llap{\tml@badge{#3}\hspace{\dimexpr\tmltext-\tmlspine+1em\relax}}%
+  \if\relax\detokenize{#4}\relax\else\textbf{#4\@addpunct{.}}\ \fi#5
+  \end{tcolorbox}}
+% A reference to an entry in the running text, as a small badge:
+% "see the \timelineref{1996} entry".
+\newcommand\timelineref[1]{\tikz[baseline=(b.base)]\node(b)[tmlbadge,
+  rounded corners=1.5pt, inner xsep=2pt, inner ysep=1pt, font=\footnotesize\bfseries]{#1};}
+\makeatother
+\ExplSyntaxOn
+\seq_new:N \g__tml_seq
+\cs_new:Npn \__tml_first:nnnnn #1#2#3#4#5 {#1}
+\cs_new:Npn \__tml_second:nnnnn #1#2#3#4#5 {#2}
+\tl_new:N \l__tml_pos_tl
+\tl_new:N \l__tml_start_tl
+\tl_new:N \l__tml_end_tl
+\seq_new:N \l__tml_match_seq
+\bool_new:N \l__tml_strip_bool
+\bool_new:N \g__tml_overview_bool
+\bool_gset_true:N \g__tml_overview_bool
+\NewDocumentCommand \timelineoverview { m }
+  {
+    \str_if_eq:nnTF {#1} { false }
+      { \bool_gset_false:N \g__tml_overview_bool }
+      { \bool_gset_true:N \g__tml_overview_bool }
+  }
+% Each stored entry is {start}{end}{years}{title}{text}.
+\NewDocumentCommand \event { o m o +m }
+  {
+    \IfNoValueTF {#1}
+      { \tl_set:Nx \l__tml_start_tl { \str_range:nnn {#2} {1} {4} } }
+      { \tl_set:Nn \l__tml_start_tl {#1} }
+    % a range is written YYYY--YYYY (a trailing "s", as in 2020s, is allowed)
+    \regex_extract_once:nnNTF { --([0-9]{4}) } {#2} \l__tml_match_seq
+      {
+        \tl_set:Nx \l__tml_end_tl
+          { \int_max:nn { \l__tml_start_tl } { \seq_item:Nn \l__tml_match_seq {2} } }
+      }
+      { \tl_set_eq:NN \l__tml_end_tl \l__tml_start_tl }
+    \seq_gput_right:Nx \g__tml_seq
+      {
+        { \l__tml_start_tl } { \l__tml_end_tl }
+        \exp_not:n { {#2} }
+        { \IfNoValueTF {#3} { } { \exp_not:n {#3} } }
+        \exp_not:n { {#4} }
+      }
+  }
+\NewDocumentEnvironment { timeline } { O{} }
+  {
+    \par \seq_gclear:N \g__tml_seq
+    \bool_set_eq:NN \l__tml_strip_bool \g__tml_overview_bool
+    \str_if_eq:nnT {#1} { nooverview } { \bool_set_false:N \l__tml_strip_bool }
+  }
+  {
+    \seq_gsort:Nn \g__tml_seq
+      {
+        \int_compare:nNnTF { \__tml_first:nnnnn ##1 } > { \__tml_first:nnnnn ##2 }
+          { \sort_return_swapped: } { \sort_return_same: }
+      }
+    \par\medskip
+    \bool_if:NT \l__tml_strip_bool { \__tml_overview: }
+    \seq_map_indexed_inline:Nn \g__tml_seq
+      {
+        \tl_set:Nx \l__tml_pos_tl
+          {
+            \int_compare:nNnTF { \seq_count:N \g__tml_seq } = { 1 } { only }
+              {
+                \int_compare:nNnTF {##1} = { 1 } { first }
+                  {
+                    \int_compare:nNnTF {##1} = { \seq_count:N \g__tml_seq }
+                      { last } { middle }
+                  }
+              }
+          }
+        \__tml_print:Vnnnnn \l__tml_pos_tl ##2
+      }
+    \par\medskip
+  }
+\cs_new_protected:Npn \__tml_print:nnnnnn #1#2#3#4#5#6
+  {
+    \use:c { tml@entry } {#1}
+      { \int_compare:nNnTF {#3} > {#2} { bar } { dot } } {#4} {#5} {#6}
+  }
+\cs_generate_variant:Nn \__tml_print:nnnnnn { V }
+% ---- overview strip ---------------------------------------------------------
+\int_new:N \l__tml_ya_int
+\int_new:N \l__tml_yb_int
+\int_new:N \l__tml_lane_int
+\int_new:N \l__tml_nlanes_int
+\dim_new:N \l__tml_unit_dim
+\dim_new:N \l__tml_xs_dim
+\dim_new:N \l__tml_xe_dim
+\dim_new:N \l__tml_ext_dim
+\dim_new:N \l__tml_xl_dim
+\dim_new:N \l__tml_axis_dim
+\bool_new:N \l__tml_flip_bool
+\prop_new:N \l__tml_lanes_prop
+\tl_new:N \l__tml_draw_tl
+\box_new:N \l__tml_box
+\dim_const:Nn \c__tml_lanesep_dim { 13pt }
+\cs_new:Npn \__tml_pt:n #1 { \dim_to_decimal:n {#1} pt }
+\cs_generate_variant:Nn \prop_put:Nnn { Nxx }
+\cs_new_protected:Npn \__tml_place:nnnnn #1#2#3#4#5
+  {
+    \dim_set:Nn \l__tml_xs_dim { \l__tml_unit_dim * ( #1 - \l__tml_ya_int ) }
+    \dim_set:Nn \l__tml_xe_dim { \l__tml_unit_dim * ( #2 - \l__tml_ya_int ) }
+    \hbox_set:Nn \l__tml_box { \scriptsize \tl_if_blank:nTF {#4} {#3} {#4} }
+    % a label that would run past the end of the axis is set flush right,
+    % ending at the right end of its mark
+    \bool_set_false:N \l__tml_flip_bool
+    \dim_compare:nNnT
+      { \l__tml_xs_dim - 2pt + \box_wd:N \l__tml_box } > { \l__tml_axis_dim + 1em }
+      { \bool_set_true:N \l__tml_flip_bool }
+    \bool_if:NTF \l__tml_flip_bool
+      {
+        \dim_set:Nn \l__tml_xl_dim { \l__tml_xe_dim + 2pt - \box_wd:N \l__tml_box }
+        \dim_set:Nn \l__tml_ext_dim { \l__tml_xe_dim + 8pt }
+      }
+      {
+        \dim_set:Nn \l__tml_xl_dim { \l__tml_xs_dim }
+        \dim_set:Nn \l__tml_ext_dim
+          { \dim_max:nn { \l__tml_xe_dim } { \l__tml_xs_dim + \box_wd:N \l__tml_box } + 6pt }
+      }
+    % the lowest row whose last occupant ends before this entry starts
+    \int_zero:N \l__tml_lane_int
+    \int_step_inline:nn { \l__tml_nlanes_int }
+      {
+        \int_compare:nNnT { \l__tml_lane_int } = { 0 }
+          {
+            \dim_compare:nNnT { \prop_item:Nn \l__tml_lanes_prop {##1} }
+              < { \dim_min:nn { \l__tml_xs_dim } { \l__tml_xl_dim } - 2pt }
+              { \int_set:Nn \l__tml_lane_int {##1} }
+          }
+      }
+    \int_compare:nNnT { \l__tml_lane_int } = { 0 }
+      {
+        \int_incr:N \l__tml_nlanes_int
+        \int_set_eq:NN \l__tml_lane_int \l__tml_nlanes_int
+      }
+    \prop_put:Nxx \l__tml_lanes_prop
+      { \int_use:N \l__tml_lane_int } { \dim_use:N \l__tml_ext_dim }
+    \tl_put_right:Nx \l__tml_draw_tl
+      {
+        \int_compare:nNnTF {#2} > {#1}
+          {
+            \exp_not:N \draw [ fill=tmlfill, draw=tmlaccent, line~width=0.5pt,
+                               rounded~corners=1.8pt ]
+              ( \__tml_pt:n { \l__tml_xs_dim } ,
+                \__tml_pt:n { \l__tml_lane_int \c__tml_lanesep_dim - 2pt } )
+              rectangle
+              ( \__tml_pt:n { \l__tml_xe_dim } ,
+                \__tml_pt:n { \l__tml_lane_int \c__tml_lanesep_dim + 2pt } ) ;
+          }
+          {
+            \exp_not:N \filldraw [ fill=tmlaccent, draw=white, line~width=0.6pt ]
+              ( \__tml_pt:n { \l__tml_xs_dim } ,
+                \__tml_pt:n { \l__tml_lane_int \c__tml_lanesep_dim } )
+              circle (2.3pt) ;
+          }
+        \exp_not:N \node [ anchor=south~west, inner~sep=0pt,
+                           font=\exp_not:N \scriptsize ]
+          at ( \__tml_pt:n { \bool_if:NTF \l__tml_flip_bool { \l__tml_xl_dim } { \l__tml_xs_dim - 2pt } } ,
+               \__tml_pt:n { \l__tml_lane_int \c__tml_lanesep_dim + 3.5pt } )
+          { \tl_if_blank:nTF {#4} { \exp_not:n {#3} } { \exp_not:n {#4} } } ;
+      }
+  }
+\cs_new_protected:Npn \__tml_overview:
+  {
+    % decades that enclose all the entries
+    \int_set:Nn \l__tml_ya_int { 99999 }
+    \int_set:Nn \l__tml_yb_int { 0 }
+    \seq_map_inline:Nn \g__tml_seq
+      {
+        \int_set:Nn \l__tml_ya_int { \int_min:nn { \l__tml_ya_int } { \__tml_first:nnnnn ##1 } }
+        \int_set:Nn \l__tml_yb_int { \int_max:nn { \l__tml_yb_int } { \__tml_second:nnnnn ##1 } }
+      }
+    \int_set:Nn \l__tml_ya_int { \int_div_truncate:nn { \l__tml_ya_int } { 10 } * 10 }
+    \int_set:Nn \l__tml_yb_int { \int_div_truncate:nn { \l__tml_yb_int + 9 } { 10 } * 10 }
+    \int_compare:nNnT { \l__tml_yb_int } = { \l__tml_ya_int }
+      { \int_add:Nn \l__tml_yb_int { 10 } }
+    \dim_set:Nn \l__tml_unit_dim
+      { ( \linewidth - 4em ) / ( \l__tml_yb_int - \l__tml_ya_int ) }
+    \dim_set:Nn \l__tml_axis_dim { \l__tml_unit_dim * ( \l__tml_yb_int - \l__tml_ya_int ) }
+    \prop_clear:N \l__tml_lanes_prop
+    \int_zero:N \l__tml_nlanes_int
+    \tl_clear:N \l__tml_draw_tl
+    \seq_map_inline:Nn \g__tml_seq { \__tml_place:nnnnn ##1 }
+    \par\noindent\hspace*{1em}
+    \begin{tikzpicture}
+      \draw [ tmlspine, line~width=0.5pt ] ( 0pt , 0pt ) --
+        ( \__tml_pt:n { \l__tml_unit_dim * ( \l__tml_yb_int - \l__tml_ya_int ) } , 0pt ) ;
+      \int_step_inline:nnnn { \l__tml_ya_int } { 10 } { \l__tml_yb_int }
+        {
+          \draw [ tmlspine, line~width=0.5pt ]
+            ( \__tml_pt:n { \l__tml_unit_dim * ( ##1 - \l__tml_ya_int ) } , 0pt )
+            -- ++ ( 0pt , -3pt )
+            node [ below, inner~sep=2pt, font=\scriptsize, text=black!55 ] { ##1 } ;
+        }
+      \tl_use:N \l__tml_draw_tl
+    \end{tikzpicture}
+    \par\bigskip
+  }
+\ExplSyntaxOff
+
+\fi
