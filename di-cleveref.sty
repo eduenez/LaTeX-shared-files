@@ -7,7 +7,7 @@
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{di-cleveref}[2026/10/13 Duenez-Iovino cleveref configuration]
-\RequirePackage{cleveref}
+\RequirePackage[nosort]{cleveref}   % keep the order of the authors list (no sorting/compression)
 
 \newcommand{\di@crefnames}[3]{\crefname{#1}{#2}{#3}\Crefname{#1}{#2}{#3}}
 \di@crefnames{section}{Section}{Sections}
@@ -33,7 +33,10 @@
 \di@crefnames{notation}{Notation}{Notations}
 \di@crefnames{exercise}{Exercise}{Exercises}
 
-\crefpairconjunction{ and }
-\crefmiddleconjunction{, }
-\creflastconjunction{ and }
-\crefrangeconjunction{--}
+% cleveref defines the conjunction macros only when the language is set up (begin of document).
+\AtBeginDocument{%
+  \renewcommand{\crefpairconjunction}{ and\nobreakspace}%
+  \renewcommand{\crefmiddleconjunction}{, }%
+  \renewcommand{\creflastconjunction}{ and\nobreakspace}% no Oxford comma
+  \renewcommand{\crefrangeconjunction}{--}%
+}

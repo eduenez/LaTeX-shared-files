@@ -10,6 +10,7 @@
 %% Options:  [section] (default)  number theorems within sections
 %%           [chapter]            number within chapters (books)
 %%           [nonumber]           one flat counter
+%% Paper-specific environments sharing the counter: \theoremstyle{rudin}\DiSharedTheorem{keytheorem}{Theorem}.
 %% Standard environments (theorem, proposition, corollary, lemma, fact,
 %% definition, example, remark, question) share one counter, as in the papers.
 %% Paper-specific environments (e.g. keytheorem, keyed boxes) stay in the paper's .sty.
@@ -17,6 +18,7 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{di-theorem-rudin}[2026/10/12 Duenez-Iovino Rudin theorem styles]
 \RequirePackage{amsthm}
+\RequirePackage{aliascnt}   % one counter, but a distinct counter NAME per environment (lets \cref print Lemma/Proposition/...)
 
 \def\di@rudin@parent{section}
 \DeclareOption{section}{\def\di@rudin@parent{section}}
@@ -37,12 +39,19 @@
 \else
   \newtheorem{theorem}{Theorem}[\di@rudin@parent]
 \fi
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{fact}[theorem]{Fact}
+% \DiSharedTheorem{env}{Name}: environment numbered with the `theorem' counter, but with its own
+% counter name (aliascnt), so that cleveref's \cref reports the right type.
+\newcommand{\DiSharedTheorem}[2]{%
+  \newaliascnt{#1}{theorem}%
+  \newtheorem{#1}[#1]{#2}%
+  \aliascntresetthe{#1}%
+}
+\DiSharedTheorem{proposition}{Proposition}
+\DiSharedTheorem{corollary}{Corollary}
+\DiSharedTheorem{lemma}{Lemma}
+\DiSharedTheorem{fact}{Fact}
 \theoremstyle{rudindef}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{remark}[theorem]{Remark}
-\newtheorem{question}[theorem]{Question}
+\DiSharedTheorem{definition}{Definition}
+\DiSharedTheorem{example}{Example}
+\DiSharedTheorem{remark}{Remark}
+\DiSharedTheorem{question}{Question}
