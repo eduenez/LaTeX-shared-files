@@ -23,8 +23,8 @@
 % slightly different drawings in the survey, simple_unstable, Quantum_stability).
 \makeatletter
 \def\di@Ind#1#2{#1\setbox0=\hbox{$#1x$}\kern\wd0\hbox to 0pt{\hss$#1\mid$\hss}%
-  \lower.9\ht0\hbox to 0pt{\hss$#1\smile$\hss}\kern\wd0}
-\newcommand{\ind}{\mathop{\mathpalette\di@Ind{}}\nolimits}
+  \smash{\lower.9\ht0\hbox to 0pt{\hss$#1\smile$\hss}}\kern\wd0}
+\newcommand{\ind}{\mathrel{\mathpalette\di@Ind{}}}
 \makeatother
 \newcommand{\nind}{\mathrel{\not\ind}}
 \newcommand{\indt}{\ind^{\mathrm{t}}}   % trivial independence, A\cap B\subseteq C
