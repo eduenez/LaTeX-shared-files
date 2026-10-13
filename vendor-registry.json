@@ -90,46 +90,37 @@
       "name": "ProbabilityModels",
       "repo": "eduenez/ProbabilityModels",
       "path": "../ProbabilityModels",
-      "model": "submodule",
+      "model": "vendored-simple",
       "vendors": [
         "sty",
         "bib"
       ],
-      "submodules": {
-        "sty": "LaTeX-shared-files",
-        "bib": "math-bibliography"
-      },
-      "notes": "old model: git submodules sty/ and bib/ pinned to old commits; bumping requires key/preamble retrofit; candidate for conversion to vendoring"
+      "notes": "converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
+      "tool": "make update-shared (python3 _scripts/update_shared.py)"
     },
     {
       "name": "RealRandom",
       "repo": "eduenez/RealRandom",
       "path": "../RealRandom",
-      "model": "submodule",
+      "model": "vendored-simple",
       "vendors": [
         "sty",
         "bib"
       ],
-      "submodules": {
-        "sty": "LaTeX-shared-files",
-        "bib": "math-bibliography"
-      },
-      "notes": "old model (submodules); see ProbabilityModels"
+      "notes": "converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
+      "tool": "make update-shared (python3 _scripts/update_shared.py)"
     },
     {
       "name": "RealStructures",
       "repo": "eduenez/RealStructures",
       "path": "../RealStructures",
-      "model": "submodule",
+      "model": "vendored-simple",
       "vendors": [
         "sty",
         "bib"
       ],
-      "submodules": {
-        "sty": "LaTeX-shared-files",
-        "bib": "math-bibliography"
-      },
-      "notes": "old model (submodules); see ProbabilityModels"
+      "notes": "converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
+      "tool": "make update-shared (python3 _scripts/update_shared.py)"
     },
     {
       "name": "DImanuscripts",
@@ -142,7 +133,7 @@
       "submodules": {
         "bib": "math-bibliography"
       },
-      "notes": "bibliography submodule only"
+      "notes": "bibliography submodule only; private/solo or legacy: submodule kept deliberately"
     },
     {
       "name": "eduenez.github.io",
@@ -155,7 +146,7 @@
       "submodules": {
         "math-bibliography": "math-bibliography"
       },
-      "notes": "bibliography submodule only (path math-bibliography/)"
+      "notes": "bibliography submodule only (path math-bibliography/); private/solo or legacy: submodule kept deliberately"
     },
     {
       "name": "talks",
@@ -168,7 +159,7 @@
       "submodules": {
         "math-bibliography": "math-bibliography"
       },
-      "notes": "bibliography submodule only (path math-bibliography/)"
+      "notes": "bibliography submodule only (path math-bibliography/); private/solo or legacy: submodule kept deliberately"
     },
     {
       "name": "grants",
@@ -178,7 +169,7 @@
       "vendors": [
         "bib"
       ],
-      "notes": "NOT on the master: uses legacy biblioteca.bib / iovino.bib (and ../../DImanuscripts/iovino); candidate for migration to the master bibliography with math-bibliography/migrate.py --map rekey.json"
+      "notes": "NOT on the master: uses legacy biblioteca.bib / iovino.bib (and ../../DImanuscripts/iovino); candidate for migration to the master bibliography with math-bibliography/migrate.py --map rekey.json; PLANNED (deferred): convert each of the 6 subdirectories to a grants_* paper directory in QuantumDI (see QuantumDI/docs/plans/grants-conversion.md)"
     }
   ],
   "retired": [

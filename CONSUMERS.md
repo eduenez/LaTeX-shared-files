@@ -12,9 +12,9 @@ the repositories to update (`python3 _scripts/consumers.py` shows who is behind)
 | [`eduenez/LaTeX-codespace-template`](https://github.com/eduenez/LaTeX-codespace-template) | vendored-simple | `dfca875` | template for new multi-paper repositories; ships the full set of di-* packages |
 | [`eduenez/QuantumDI`](https://github.com/eduenez/QuantumDI) | vendored-simple | `dfca875` | multi-paper repository (Dueñez-Iovino); private |
 | [`eduenez/QuantumTeam`](https://github.com/eduenez/QuantumTeam) | vendored-simple | `dfca875` | multi-paper repository (team papers and books); private |
-| [`eduenez/ProbabilityModels`](https://github.com/eduenez/ProbabilityModels) | submodule | `73514b4` | old model: git submodules sty/ and bib/ pinned to old commits; bumping requires key/preamble retrofit; candidate for conversion to vendoring |
-| [`eduenez/RealRandom`](https://github.com/eduenez/RealRandom) | submodule | `73514b4` | old model (submodules); see ProbabilityModels |
-| [`eduenez/RealStructures`](https://github.com/eduenez/RealStructures) | submodule | `73514b4` | old model (submodules); see ProbabilityModels |
+| [`eduenez/ProbabilityModels`](https://github.com/eduenez/ProbabilityModels) | vendored-simple | `55b7b0a` | converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later |
+| [`eduenez/RealRandom`](https://github.com/eduenez/RealRandom) | vendored-simple | `55b7b0a` | converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later |
+| [`eduenez/RealStructures`](https://github.com/eduenez/RealStructures) | vendored-simple | `55b7b0a` | converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later |
 
 **Models.** *vendored-json*: copies in `_packages/` with `vendor.lock.json` and a frozen bibliography baseline; maintained with
 `vendor.py` and `vendor_sty.py` run from LaTeX-shared-files. *vendored-simple*: copies in `_packages/` with `vendor.lock` (SHA-256 per file);
