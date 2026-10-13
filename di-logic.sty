@@ -1,14 +1,17 @@
 %% di-logic.sty — small logic/model-theory operators shared by the logic papers
 %% PROPOSED. \Av \dom \sub \aore (LogicTextbookUTSA, Soler_axioms) and the
-%% operators \Aut \Mod \Th \tp (moved from di-structures), and the
+%% operators \Aut \Mod \Th \tp (guarded; see below) and the
 %% independence symbol \ind (Qbipartite series, survey, Stability).
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{di-logic}[2026/10/12 Duenez-Iovino logic operators]
 \RequirePackage{amsmath}
-\DeclareMathOperator{\Aut}{Aut}
-\DeclareMathOperator{\Mod}{Mod}
-\DeclareMathOperator{\Th}{Th}
-\DeclareMathOperator{\tp}{tp}
+% \Aut \Mod \Th \tp are also defined by di-structures.sty (\DeclareMathOperator);
+% define them here only if still undefined, so di-logic may be loaded AFTER di-structures
+% (if loaded before, di-structures would report "already defined": load order matters).
+\providecommand{\Aut}{\operatorname{Aut}}
+\providecommand{\Mod}{\operatorname{Mod}}
+\providecommand{\Th}{\operatorname{Th}}
+\providecommand{\tp}{\operatorname{tp}}
 \DeclareMathOperator{\Av}{Av}
 \DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\sub}{sub}
