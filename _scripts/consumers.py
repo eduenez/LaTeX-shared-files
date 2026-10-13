@@ -25,10 +25,11 @@ def head(path):
     return git(path, 'rev-parse', '--short', 'HEAD')
 
 
-def behind(path, pinned, master_path):
+def behind(path, pinned, master_path, *paths):
+    """Commits in the master since `pinned` that touch the vendored files (documentation-only commits do not count)."""
     if not pinned or not master_path:
         return '?'
-    n = git(master_path, 'rev-list', '--count', f'{pinned}..HEAD')
+    n = git(master_path, 'rev-list', '--count', f'{pinned}..HEAD', '--', *paths)
     return n if n != '' else '?'
 
 
@@ -95,8 +96,8 @@ def main():
     print(f'{"consumer":<26}{"model":<17}{"sty pin":<10}{"sty":<9}{"bib pin":<10}{"behind":<8} status')
     for c, sty, bib, st in rows:
         sl = stale(c)
-        bs = ('ok' if not sl else f'{len(sl)} stale') if sl is not None else (behind(here, sty, here) if 'sty' in c['vendors'] else '-')
-        bb = behind(bib_repo, bib, bib_repo) if 'bib' in c['vendors'] else '-'
+        bs = ('ok' if not sl else f'{len(sl)} stale') if sl is not None else (behind(here, sty, here, ':(glob)di-*.sty', ':(glob)di-*.bst') if 'sty' in c['vendors'] else '-')
+        bb = behind(bib_repo, bib, bib_repo, 'references.bib') if 'bib' in c['vendors'] else '-'
         print(f'{c["name"]:<26}{c["model"]:<17}{(sty or "-"):<10}{bs:<9}{(bib or "-"):<10}{bb:<8} {st}')
         if sl:
             print(f'    stale shared files: {", ".join(sl)}')
