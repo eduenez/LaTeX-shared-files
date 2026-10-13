@@ -1,0 +1,26 @@
+%% di-quantum.sty — notation shared by the quantum-information papers
+%% (Qbipartite_* series, survey; reusable by any paper on operator algebras / quantum logic).
+%%
+%% PROPOSED new shared package. Loads only math packages; does NOT change fonts
+%% or theorem styles. Pair with di-alphabets for \NN \RR \cH \fD ...
+%%
+%% Conflict resolutions (see macro-map):
+%%   \Tr   = trace (operator). The "tree" macro of the logic books is \tr.
+%%   \one  = \mathbf{1}.
+%%   \ind  = lives in di-logic.sty now (one independence symbol for all papers).
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-quantum}[2026/10/12 Duenez-Iovino quantum notation]
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+
+\DeclareMathOperator{\Tr}{Tr}      % trace
+\DeclareMathOperator{\spn}{span}   % linear span
+\newcommand{\one}{\mathbf{1}}      % identity / constant-one element
+\newcommand{\ee}{\mathrm{e}}       % Euler's number
+\newcommand{\oA}{\otimes_{\mathsf{A}}}   % tensor over party A
+\newcommand{\oB}{\otimes_{\mathsf{B}}}   % tensor over party B
+
+% Hilbert space: calligraphic H (requires di-alphabets for \cH).
+\providecommand{\cH}{\mathcal{H}}
+\newcommand{\Hil}{\cH}

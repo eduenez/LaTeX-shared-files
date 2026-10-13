@@ -1,0 +1,48 @@
+%% di-theorem-rudin.sty — the "Rudin" theorem styles used by the group's papers
+%%
+%% PROPOSED new shared package, extracted verbatim from the preambles of the
+%% Quantum_* papers, the survey, Games, Quantum_logic and Stability (they are
+%% identical). Independent of di-base-*: use it when a paper keeps its own fonts.
+%%
+%%   rudin     — italic body, bold head, "Theorem 1.2 (note)."
+%%   rudindef  — upright body (definitions, examples, remarks)
+%%
+%% Options:  [section] (default)  number theorems within sections
+%%           [chapter]            number within chapters (books)
+%%           [nonumber]           one flat counter
+%% Standard environments (theorem, proposition, corollary, lemma, fact,
+%% definition, example, remark, question) share one counter, as in the papers.
+%% Paper-specific environments (e.g. keytheorem, keyed boxes) stay in the paper's .sty.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-theorem-rudin}[2026/10/12 Duenez-Iovino Rudin theorem styles]
+\RequirePackage{amsthm}
+
+\def\di@rudin@parent{section}
+\DeclareOption{section}{\def\di@rudin@parent{section}}
+\DeclareOption{chapter}{\def\di@rudin@parent{chapter}}
+\DeclareOption{nonumber}{\def\di@rudin@parent{}}
+\ProcessOptions\relax
+
+\newtheoremstyle{rudin}%
+  {\topsep}{\topsep}{\itshape}{}{\bfseries}{.}{ }%
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+\newtheoremstyle{rudindef}%
+  {\topsep}{\topsep}{\upshape}{}{\bfseries}{.}{ }%
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+
+\theoremstyle{rudin}
+\ifx\di@rudin@parent\@empty
+  \newtheorem{theorem}{Theorem}
+\else
+  \newtheorem{theorem}{Theorem}[\di@rudin@parent]
+\fi
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{fact}[theorem]{Fact}
+\theoremstyle{rudindef}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}

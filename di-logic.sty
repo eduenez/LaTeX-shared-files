@@ -1,0 +1,24 @@
+%% di-logic.sty — small logic/model-theory operators shared by the logic papers
+%% PROPOSED. \Av \dom \sub \aore (LogicTextbookUTSA, Soler_axioms) and the
+%% independence symbol \ind (Qbipartite series, survey, Stability).
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-logic}[2026/10/12 Duenez-Iovino logic operators]
+\RequirePackage{amsmath}
+\DeclareMathOperator{\Av}{Av}
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\sub}{sub}
+\newcommand{\aore}{\forall \vee \exists}   % quantifier pattern "for all or exists"
+
+% Independence relation (nonforking / abstract independence, Makkai's anchor symbol):
+% a bar over a smile. mathpalette version (from Stability) so that it scales in
+% subscripts, e.g. A \ind_C B. ONE definition for all papers (replaces the three
+% slightly different drawings in the survey, simple_unstable, Quantum_stability).
+\makeatletter
+\def\di@Ind#1#2{#1\setbox0=\hbox{$#1x$}\kern\wd0\hbox to 0pt{\hss$#1\mid$\hss}%
+  \lower.9\ht0\hbox to 0pt{\hss$#1\smile$\hss}\kern\wd0}
+\newcommand{\ind}{\mathop{\mathpalette\di@Ind{}}\nolimits}
+\makeatother
+\newcommand{\nind}{\mathrel{\not\ind}}
+\newcommand{\indt}{\ind^{\mathrm{t}}}   % trivial independence, A\cap B\subseteq C
+\newcommand{\indh}{\ind^{\mathrm{h}}}   % heir independence (stable theories)
+\newcommand{\indd}{\ind^{\mathrm{d}}}   % nondividing independence
