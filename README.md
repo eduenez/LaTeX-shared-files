@@ -194,3 +194,7 @@ first test-drive, the day-to-day routine, and a short "for authors" section.
   the core aliases them to the stmaryrd-conventional `\llbracket`/`\rrbracket`
   (and the reverse under Xe/Lua), so `stmaryrd` is not needed and
   `di-structures` stays engine-agnostic.
+
+## Consumers
+
+The repositories that vendor or link these files are listed in [`CONSUMERS.md`](CONSUMERS.md) (generated from `vendor-registry.json`; check with `python3 _scripts/consumers.py`).

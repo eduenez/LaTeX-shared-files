@@ -176,8 +176,12 @@ def parse_bib(text: str) -> list[BibEntry]:
 
 
 def _norm(raw: str) -> str:
-    """Whitespace-normalize an entry for content comparison."""
-    return "\n".join(line.rstrip() for line in raw.strip().splitlines())
+    """Whitespace-normalize an entry for content comparison.
+
+    Also treats `year = {0000}` and `year = 0000` (braced vs bare digits, which bibtex-tidy may switch
+    between) as equal, so formatting alone never counts as a local edit."""
+    lines = "\n".join(line.rstrip() for line in raw.strip().splitlines())
+    return re.sub(r"=\s*\{(\d+)\}", r"= \1", lines)
 
 
 def key_map(text: str) -> dict[str, str]:

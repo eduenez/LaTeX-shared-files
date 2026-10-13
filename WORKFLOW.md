@@ -9,6 +9,13 @@ and how you (the maintainer) drive it with `_scripts/vendor.py`.
 
 ---
 
+> **Who consumes what?** See [`CONSUMERS.md`](CONSUMERS.md) (generated from `vendor-registry.json`). After ANY change to a shared file
+> run `python3 _scripts/consumers.py`: it shows which consumers are stale, and lists repositories that vendor shared files but are not in
+> the registry yet. Keep the registry current (new consumer → add it; consolidated repository → move it to `retired`).
+> Refreshing a consumer: *vendored-json* children → `vendor.py bib-propagate <child> --apply` and
+> `vendor_sty.py <child> [--add NEWFILE] --apply`; *vendored-simple* repositories (template, QuantumDI, QuantumTeam) → `make update-shared`
+> inside them. After refreshing, apply key renames (`math-bibliography/rekey-*.json`) to the consumer's TeX sources and build.
+
 ## 1. The mental model
 
 **Masters** (sources of truth):

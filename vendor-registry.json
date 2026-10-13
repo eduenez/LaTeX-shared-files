@@ -23,10 +23,181 @@
     "topos-logic": {
       "path": "../topos-logic",
       "project_sty": "topos-logic.sty"
-    },
-    "QuantumStructures": {
-      "path": "../QuantumStructures",
-      "project_sty": "QuantumStructures.sty"
     }
-  }
+  },
+  "consumers": [
+    {
+      "name": "no-free-lunch",
+      "repo": "eduenez/no-free-lunch",
+      "path": "../no-free-lunch",
+      "model": "vendored-json",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "tool": "vendor.py + vendor_sty.py",
+      "notes": "project .sty NFL.sty snapshot in children/; branch revendor-2026-10 pending merge"
+    },
+    {
+      "name": "topos-logic",
+      "repo": "eduenez/topos-logic",
+      "path": "../topos-logic",
+      "model": "vendored-json",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "tool": "vendor.py + vendor_sty.py",
+      "notes": "has references-local.bib for entries not in the master; PR workflow (collaborators); branch revendor-2026-10 pending merge"
+    },
+    {
+      "name": "LaTeX-codespace-template",
+      "repo": "eduenez/LaTeX-codespace-template",
+      "path": "../LaTeX-codespace-template",
+      "model": "vendored-simple",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "tool": "make update-shared (_scripts/update_shared.py)",
+      "notes": "template for new multi-paper repositories; ships the full set of di-* packages"
+    },
+    {
+      "name": "QuantumDI",
+      "repo": "eduenez/QuantumDI",
+      "path": "../QuantumDI",
+      "model": "vendored-simple",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "tool": "make update-shared (_scripts/update_shared.py)",
+      "notes": "multi-paper repository (Dueñez-Iovino); private"
+    },
+    {
+      "name": "QuantumTeam",
+      "repo": "eduenez/QuantumTeam",
+      "path": "../QuantumTeam",
+      "model": "vendored-simple",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "tool": "make update-shared (_scripts/update_shared.py)",
+      "notes": "multi-paper repository (team papers and books); private"
+    },
+    {
+      "name": "ProbabilityModels",
+      "repo": "eduenez/ProbabilityModels",
+      "path": "../ProbabilityModels",
+      "model": "submodule",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "submodules": {
+        "sty": "LaTeX-shared-files",
+        "bib": "math-bibliography"
+      },
+      "notes": "old model: git submodules sty/ and bib/ pinned to old commits; bumping requires key/preamble retrofit; candidate for conversion to vendoring"
+    },
+    {
+      "name": "RealRandom",
+      "repo": "eduenez/RealRandom",
+      "path": "../RealRandom",
+      "model": "submodule",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "submodules": {
+        "sty": "LaTeX-shared-files",
+        "bib": "math-bibliography"
+      },
+      "notes": "old model (submodules); see ProbabilityModels"
+    },
+    {
+      "name": "RealStructures",
+      "repo": "eduenez/RealStructures",
+      "path": "../RealStructures",
+      "model": "submodule",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "submodules": {
+        "sty": "LaTeX-shared-files",
+        "bib": "math-bibliography"
+      },
+      "notes": "old model (submodules); see ProbabilityModels"
+    },
+    {
+      "name": "DImanuscripts",
+      "repo": "eduenez/DImanuscripts",
+      "path": "../DImanuscripts",
+      "model": "submodule",
+      "vendors": [
+        "bib"
+      ],
+      "submodules": {
+        "bib": "math-bibliography"
+      },
+      "notes": "bibliography submodule only"
+    },
+    {
+      "name": "eduenez.github.io",
+      "repo": "eduenez/eduenez.github.io",
+      "path": "../eduenez.github.io",
+      "model": "submodule",
+      "vendors": [
+        "bib"
+      ],
+      "submodules": {
+        "math-bibliography": "math-bibliography"
+      },
+      "notes": "bibliography submodule only (path math-bibliography/)"
+    },
+    {
+      "name": "talks",
+      "repo": "eduenez/talks",
+      "path": "../talks",
+      "model": "submodule",
+      "vendors": [
+        "bib"
+      ],
+      "submodules": {
+        "math-bibliography": "math-bibliography"
+      },
+      "notes": "bibliography submodule only (path math-bibliography/)"
+    },
+    {
+      "name": "grants",
+      "repo": "eduenez/grants",
+      "path": "../grants",
+      "model": "legacy-bib",
+      "vendors": [
+        "bib"
+      ],
+      "notes": "NOT on the master: uses legacy biblioteca.bib / iovino.bib (and ../../DImanuscripts/iovino); candidate for migration to the master bibliography with math-bibliography/migrate.py --map rekey.json"
+    }
+  ],
+  "retired": [
+    {
+      "name": "QuantumStructures / Soler_axioms",
+      "repo": "j-iovino/Soler_axioms",
+      "successor": "QuantumTeam/quantum_structures_Soler",
+      "notes": "same GitHub repository (renamed); obsolete notice pushed"
+    },
+    {
+      "name": "Quantum_stability, Quantum_NIP, Quantum_simple_unstable, Bipartite_observables_survey",
+      "successor": "QuantumDI/Qbipartite_*",
+      "notes": "obsolete notices pushed"
+    },
+    {
+      "name": "Quantum_logic, Stability, Games, LogicTextbookUTSA, DiscreteMathTextbookUTSA",
+      "successor": "QuantumTeam/*",
+      "notes": "obsolete notices pushed"
+    }
+  ],
+  "_consumers_comment": "Master list of every repository that carries or links shared files (di-*.sty) and/or the master bibliography. Keep it current: add a consumer when a repository starts vendoring, mark it retired when it is consolidated. `python3 _scripts/consumers.py` checks the list against reality (pins vs upstream HEAD; unlisted repositories that vendor) and `--write` regenerates CONSUMERS.md here and in math-bibliography."
 }
