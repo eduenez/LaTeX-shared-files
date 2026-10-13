@@ -73,6 +73,11 @@
   \aliascntresetthe{remarks}%
 }
 
+% cleveref names for `remarks' (di-cleveref knows `remark'); only if cleveref is loaded.
+\@ifpackageloaded{cleveref}{%
+  \crefname{remarks}{Remarks}{Remarks}\Crefname{remarks}{Remarks}{Remarks}%
+}{}
+
 % Margin icons for historical paragraphs (Font Awesome 5 glyphs, stored as
 % PDFs in icons/ so the file compiles without the fontawesome5 package):
 % hourglass = Historical context, clock with backward arrow = Provenance.
