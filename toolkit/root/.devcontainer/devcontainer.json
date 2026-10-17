@@ -1,0 +1,33 @@
+{
+    "name": "LaTeX Codespace Template",
+    "dockerComposeFile": ["docker-compose.yml"],
+    "service": "vscode",
+    "runServices": ["vscode"],
+    "shutdownAction": "stopCompose",
+    "workspaceFolder": "/workspace",
+    "postCreateCommand": "bash /workspace/_scripts/setup-hooks.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                // LaTeX
+                "james-yu.latex-workshop",
+                "tecosaur.latex-utilities",
+                // Git
+                "eamodio.gitlens",
+                // GitHub
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "GitHub.vscode-pull-request-github",
+                // Editing helpers
+                "shardulm94.trailing-spaces",
+                "stkb.rewrap",
+                "streetsidesoftware.code-spell-checker",
+                // Markdown
+                "yzhang.markdown-all-in-one",
+                // YAML (for config files)
+                "redhat.vscode-yaml"
+            ]
+            // Editor/LaTeX settings come from .vscode/settings.json (single source of truth).
+        }
+    }
+}

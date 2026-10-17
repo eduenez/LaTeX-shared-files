@@ -1,0 +1,244 @@
+% PAPER.tex — Main file for a book/monograph project (memoir class)
+%
+% Compile: latexmk (shared config: ../latexmkrc); or manually
+%          pdflatex PAPER; bibtex PAPER; pdflatex PAPER; pdflatex PAPER
+% Engine:  pdfLaTeX
+%
+% SINGLE-FILE BOOK: all chapters live in this file, separated by the %# banners (navigate with outline
+% folding / imenu / RefTeX; `make sep` keeps the banners tidy). A whole-book find-and-replace is one
+% operation. To split a chapter out later, move it to PAPER-N-name.tex and \input it.
+
+\documentclass[letterpaper,12pt,oneside,openany]{memoir}
+
+% ═════════════════════════════════════════════════════════════════════════════
+% ┃ ALL \usepackage, macro, and environment declarations — including the memoir ┃
+% ┃ page layout (\setlrmarginsandblock, \chapterstyle, …) — live in             ┃
+% ┃ PAPER.sty (loaded below), which loads the vendored shared      ┃
+% ┃ packages from ../_packages/ and then this project's additions. Do NOT add       ┃
+% ┃ \usepackage / \newcommand / \newtheorem / layout commands here. This        ┃
+% ┃ preamble carries ONLY the document class, that one style package, and       ┃
+% ┃ semantic metadata (title / author / date). See STYLE.md.                    ┃
+% ═════════════════════════════════════════════════════════════════════════════
+% Where the vendored shared .sty files live (one level up). This makes plain
+% pdflatex work with no TEXINPUTS and no symlinks; latexmk also sets it up.
+\makeatletter\def\input@path{{../_packages/}{_packages/}}\makeatother
+\usepackage{PAPER}
+
+% ─── Document Metadata ──────────────────────────────────────────────────────
+\title{%
+  \Huge\bfseries Title of the Monograph\\[0.5cm]
+  \Large\itshape Subtitle or Series Information%
+}
+\author{Author One \and Author Two}
+\date{\today}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+
+%#
+%# DOCUMENT: % \Huge\bfseries Title of the Monograph\\[0.5cm] \Large\itshape Subtitle or Series Information%
+%#
+\begin{document}
+
+\frontmatter
+
+% Title page
+\begin{titlingpage}
+  \centering
+  \vspace*{4cm}
+  {\Huge\bfseries Title of the Monograph\par}
+  \vspace{1cm}
+  {\Large\itshape Subtitle or Series Information\par}
+  \vspace{3cm}
+  {\large Author One \quad Author Two\par}
+  \vfill
+  {\large \today\par}
+\end{titlingpage}
+
+\tableofcontents*
+\clearpage
+
+\mainmatter
+
+% ─── Content Chapters ────────────────────────────────────────────────────────
+% The chapters follow, in order, in this file.
+%#
+%## CHAPTER: Introduction
+%#
+\chapter{Introduction}\label{cha:introduction}
+
+This is the introductory chapter of the monograph.
+It provides an overview of the main topics and motivates the central questions.
+
+%#
+%### SECTION: Background and Motivation
+%#
+\section{Background and Motivation}\label{sec:background-motivation}
+
+The study of \ldots{} has a long history in mathematics.
+We begin by recalling the fundamental definitions.
+
+\begin{definition}\label{def:fundamental-concept}
+  A \emph{widget} is a pair $(X, \tau)$ where $X$ is a set and
+  $\tau \subseteq \mathcal{P}(X)$ satisfies the following axioms:
+  \begin{enumerate}
+  \item
+    $\emptyset, X \in \tau$;
+  \item
+    $\tau$ is closed under arbitrary unions;
+  \item
+    $\tau$ is closed under finite intersections.
+  \end{enumerate}
+\end{definition}
+
+%#
+%### SECTION: Overview of Results
+%#
+\section{Overview of Results}\label{sec:overview-results}
+
+The main result of this monograph is the following.
+
+\begin{theorem}\label{thm:main-result}
+  Every compact widget is sequentially compact.
+\end{theorem}
+
+The proof of \cref{thm:main-result} occupies \cref{cha:main-results}.
+
+%#
+%### SECTION: Organization
+%#
+\section{Organization}\label{sec:organization}
+
+The monograph is organized as follows.
+\Cref{cha:background} reviews the necessary prerequisites.
+\Cref{cha:main-results} contains the proof of the main theorem.
+\Cref{cha:conclusion} discusses open problems and future directions.
+%#
+%## CHAPTER: Background
+%#
+\chapter{Background}\label{cha:background}
+
+This chapter collects the background material needed in subsequent chapters.
+
+%#
+%### SECTION: Notation and Conventions
+%#
+\section{Notation and Conventions}\label{sec:notation}
+
+Throughout this monograph, we write $\NN$, $\ZZ$, $\QQ$, $\RR$, and $\CC$
+for the natural numbers, integers, rationals, reals, and complex numbers,
+respectively.
+
+\begin{notation}\label{notn:sequences}
+  A sequence in a set $X$ is a function $x \colon \NN \to X$.
+  We write $(x_n)_{n \in \NN}$ or simply $(x_n)$ when the index set is clear.
+\end{notation}
+
+%#
+%### SECTION: Prerequisites from Analysis
+%#
+\section{Prerequisites from Analysis}\label{sec:prerequisites-analysis}
+
+We recall the basic definitions and results from analysis that will be used later.
+
+\begin{definition}\label{def:metric-space}
+  A \emph{metric space} is a pair $(X, d)$ where $X$ is a set and
+  $d \colon X \times X \to [0, \infty)$ is a function satisfying:
+  \begin{enumerate}
+  \item
+    $d(x, y) = 0$ if and only if $x = y$;
+  \item
+    $d(x, y) = d(y, x)$ for all $x, y \in X$;
+  \item
+    $d(x, z) \le d(x, y) + d(y, z)$ for all $x, y, z \in X$.
+  \end{enumerate}
+\end{definition}
+
+\begin{example}\label{exa:euclidean-metric}
+  The real line $\RR$ with the absolute value metric $d(x, y) = \abs{x - y}$
+  is a metric space.
+\end{example}
+
+\begin{lemma}\label{lem:triangle-inequality}
+  In any metric space $(X, d)$, for all $x_1, \ldots, x_n \in X$,
+  \begin{equation}\label{eq:generalized-triangle}
+  d(x_1, x_n) \le \sum_{i=1}^{n-1} d(x_i, x_{i+1}).
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  By induction on $n$, using the triangle inequality.
+\end{proof}
+%#
+%## CHAPTER: Main Results
+%#
+\chapter{Main Results}\label{cha:main-results}
+
+In this chapter, we prove the main theorem stated in the introduction.
+
+%#
+%### SECTION: Key Lemma
+%#
+\section{Key Lemma}\label{sec:key-lemma}
+
+The proof of the main theorem relies on the following key lemma.
+
+\begin{lemma}\label{lem:key-lemma}
+  Let $(X, \tau)$ be a compact widget and let $(x_n)$ be a sequence in $X$.
+  Then there exists a convergent subsequence.
+\end{lemma}
+
+\begin{proof}
+  \todo{Complete the proof.}
+  The argument proceeds by contradiction.
+  Suppose no subsequence of $(x_n)$ converges.
+  Then for each $x \in X$, there exists an open neighborhood $U_x \in \tau$
+  such that $U_x$ contains at most finitely many terms of the sequence.
+  The collection $\{U_x : x \in X\}$ is an open cover of $X$.
+  By compactness, there is a finite subcover, which leads to a contradiction.
+\end{proof}
+
+%#
+%### SECTION: Proof of the Main Theorem
+%#
+\section{Proof of the Main Theorem}\label{sec:proof-main-theorem}
+
+We now prove \cref{thm:main-result}.
+
+\begin{proof}[Proof of \cref{thm:main-result}]
+  This follows directly from \cref{lem:key-lemma}.
+\end{proof}
+%#
+%## CHAPTER: Conclusion and Open Problems
+%#
+\chapter{Conclusion and Open Problems}\label{cha:conclusion}
+
+We have established that every compact widget is sequentially compact
+(\cref{thm:main-result}).
+Several natural questions remain open.
+
+\begin{conjecture}\label{conj:converse}
+  Every sequentially compact widget is compact.
+\end{conjecture}
+
+\begin{remark}\label{rem:counterexample}
+  \Cref{conj:converse} is known to hold under additional set-theoretic
+  hypotheses;
+  see~\cite{placeholder2025} for details.
+\end{remark}
+
+\backmatter
+
+% ─── Bibliography ────────────────────────────────────────────────────────────
+% alpha style = [Doe25]-style labels, matching the group's other repositories.
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}
+\bibliographystyle{alpha}
+\bibliography{../references}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:

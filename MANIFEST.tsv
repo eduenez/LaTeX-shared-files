@@ -1,0 +1,7 @@
+# mode	source (in toolkit/)	destination (in a consuming repository)
+# managed = vendored pristine and checksummed in _scripts/vendor.lock; refreshed by `make update-shared`; never edited in the consumer
+# seed    = copied once when missing; the consumer owns it afterwards
+managed	docs/STYLE.md	STYLE.md
+managed	docs/ONBOARDING.md	ONBOARDING.md
+managed	docs/CONVERTING.md	CONVERTING.md
+seed	docs/AGENTS.md	AGENTS.md

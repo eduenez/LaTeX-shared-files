@@ -1,0 +1,78 @@
+%% PAPER.sty — project style file for PAPER.tex (memoir)
+%%
+%% This is the SOLE package loaded by PAPER.tex. It (1) loads the
+%% shared preamble packages vendored in _packages/ (pristine copies pinned in
+%% _packages/vendor.lock — DO NOT edit them there), then (2) defines everything
+%% specific to this monograph in the "Project-specific additions" section
+%% (including the memoir page layout — only \documentclass and semantic
+%% metadata belong in the .tex).
+%%
+%% When you start a real book from this template, rename this file to match
+%% your master and \usepackage{...} it there.
+%%
+%%   Shared, vendored:  di-base-monograph (memoir, chapter-scoped numbering +
+%%                       axiom), which pulls in di-base-core (fonts, packages,
+%%                       hyperref/cleveref, theorem family).
+%%   Project-specific:  memoir layout, graphics, project macros — EDIT here.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{PAPER}[2026/07/15 PAPER project preamble]
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Vendored shared packages  (pristine copies in _packages/; DO NOT edit there)
+% ═══════════════════════════════════════════════════════════════════════════
+% di-base-monograph \RequirePackage{di-base-core} internally, so di-base-core.sty
+% must be vendored alongside it (it is; pinned in _packages/vendor.lock).
+
+%%% Vendored: eduenez/LaTeX-shared-files/di-base-monograph.sty @ af98e4f
+%%%           (pulls in di-base-core.sty @ af98e4f)
+\usepackage{di-base-monograph}
+
+% Available but not used by this template (uncomment to activate; copies live
+% in _packages/ and are pinned in _packages/vendor.lock):
+%%% Vendored: eduenez/LaTeX-shared-files/di-structures.sty @ af98e4f
+% \usepackage{di-structures}   % real-valued-logic notation
+%%% Vendored: eduenez/LaTeX-shared-files/di-ramsey.sty @ af98e4f
+% \usepackage{di-ramsey}
+%%% Vendored: eduenez/LaTeX-shared-files/di-random.sty @ af98e4f
+% \usepackage{di-random}
+%%% Vendored: eduenez/LaTeX-shared-files/di-exercises.sty @ af98e4f
+% \usepackage{di-exercises}     % xsim-backed {exercise}/{solution}
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Project-specific additions  (EDIT HERE)
+% ═══════════════════════════════════════════════════════════════════════════
+
+% ─── Page layout (memoir owns its geometry; set here, not in the .tex) ───────
+\setlrmarginsandblock{3.5cm}{2.5cm}{*}
+\setulmarginsandblock{3cm}{3cm}{*}
+\checkandfixthelayout
+\chapterstyle{madsen}
+\nouppercaseheads
+\pagestyle{ruled}
+
+% ─── Graphics, Diagrams, and Colors (beyond tikz-cd, loaded by the core) ─────
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+
+% ─── Extra theorem-like environment (amsthm {exercise}; or vendor di-exercises)
+\theoremstyle{definition}
+\newtheorem{exercise}[theorem]{Exercise}
+
+% ─── Custom Macros ───────────────────────────────────────────────────────────
+
+% Number sets (blackboard bold)
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+
+% Delimiters
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\inner}{\langle}{\rangle}
+
+% Operators
+\DeclareMathOperator{\id}{id}

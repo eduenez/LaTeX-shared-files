@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  vscode:
+    build: .
+    image: latex-codespace-template
+    volumes:
+      - ../:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.ssh:/root/.ssh
+      - ~/.zsh_history:/root/.zsh_history:z
+    environment:
+      - TZ=America/Chicago
+    entrypoint: ["zsh", "-c", "while sleep 1000; do :; done"]

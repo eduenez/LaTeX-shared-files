@@ -1,0 +1,164 @@
+% PAPER.tex — Template for a research paper (amsart class)
+%
+% Compile: latexmk (shared config: ../latexmkrc); or manually
+%          pdflatex PAPER; bibtex PAPER; pdflatex PAPER; pdflatex PAPER
+% Engine:  pdfLaTeX
+
+\documentclass[12pt]{amsart}
+
+% ═════════════════════════════════════════════════════════════════════════════
+% ┃ ALL \usepackage, macro, and environment declarations live in                ┃
+% ┃ PAPER.sty (loaded below), which loads the vendored shared        ┃
+% ┃ packages from ../_packages/ and then this project's additions. Do NOT add       ┃
+% ┃ \usepackage / \newcommand / \newtheorem here. This preamble carries ONLY    ┃
+% ┃ the document class, that one style package, and semantic metadata           ┃
+% ┃ (title / author / date / subjclass / keywords). See STYLE.md.               ┃
+% ═════════════════════════════════════════════════════════════════════════════
+% Where the vendored shared .sty files live (one level up). This makes plain
+% pdflatex work with no TEXINPUTS and no symlinks; latexmk also sets it up.
+\makeatletter\def\input@path{{../_packages/}{_packages/}}\makeatother
+\usepackage{PAPER}
+
+% ─── Document Metadata ──────────────────────────────────────────────────────
+\title{Title of the Paper}
+
+\author{Author One}
+\address{Department of Mathematics, University of Example, City, State, ZIP}
+\email{author.one@example.edu}
+
+\author{Author Two}
+\address{Department of Mathematics, Another University, City, State, ZIP}
+\email{author.two@example.edu}
+
+\date{\today}
+
+\subjclass[2020]{Primary XXXXX; Secondary YYYYY}
+\keywords{keyword one, keyword two, keyword three}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+
+%#
+%# DOCUMENT: Title of the Paper
+%#
+\begin{document}
+
+\begin{abstract}
+  This paper investigates the properties of widgets
+  and establishes a characterization of compact widgets
+  in terms of sequential compactness.
+  We prove that every compact widget is sequentially compact
+  and discuss the converse under additional hypotheses.
+\end{abstract}
+
+\maketitle
+
+% ─── Introduction ────────────────────────────────────────────────────────────
+
+%#
+%## SECTION: Introduction
+%#
+\section{Introduction}\label{sec:introduction}
+
+The study of widgets was initiated by Doe and Smith~\cite{placeholder2025}.
+In this paper, we establish the following result.
+
+\begin{theorem}\label{thm:main}
+  Every compact widget is sequentially compact.
+\end{theorem}
+
+The proof of \cref{thm:main} is given in \cref{sec:proof}.
+
+%#
+%### SUBSECTION: Organization
+%#
+\subsection*{Organization}
+
+In \cref{sec:preliminaries}, we recall the necessary definitions.
+\Cref{sec:proof} contains the proof of \cref{thm:main}.
+We conclude in \cref{sec:remarks} with open questions.
+
+%#
+%### SUBSECTION: Acknowledgements
+%#
+\subsection*{Acknowledgements}
+
+\todo{Add acknowledgements.}
+
+% ─── Preliminaries ──────────────────────────────────────────────────────────
+
+%#
+%## SECTION: Preliminaries
+%#
+\section{Preliminaries}\label{sec:preliminaries}
+
+We fix notation and recall the basic definitions.
+
+\begin{definition}\label{def:widget}
+  A \emph{widget} is a pair $(X, \tau)$ where $X$ is a set and
+  $\tau \subseteq \mathcal{P}(X)$ satisfies:
+  \begin{enumerate}
+  \item
+    $\emptyset, X \in \tau$;
+  \item
+    $\tau$ is closed under arbitrary unions;
+  \item
+    $\tau$ is closed under finite intersections.
+  \end{enumerate}
+\end{definition}
+
+\begin{definition}\label{def:compact}
+  A widget $(X, \tau)$ is \emph{compact} if every open cover of $X$ has a
+  finite subcover.
+\end{definition}
+
+% ─── Main Proof ──────────────────────────────────────────────────────────────
+
+%#
+%## SECTION: Proof of the Main Theorem
+%#
+\section{Proof of the Main Theorem}\label{sec:proof}
+
+The key ingredient is the following lemma.
+
+\begin{lemma}\label{lem:subsequence}
+  Let $(X, \tau)$ be a compact widget and let $(x_n)$ be a sequence in $X$.
+  Then $(x_n)$ has a convergent subsequence.
+\end{lemma}
+
+\begin{proof}
+  Suppose for contradiction that no subsequence converges.
+  For each $x \in X$, choose an open neighborhood $U_x$ containing
+  only finitely many terms of the sequence.
+  Then $\{U_x\}_{x \in X}$ is an open cover with no finite subcover,
+  contradicting compactness.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:main}]
+  This follows immediately from \cref{lem:subsequence}.
+\end{proof}
+
+% ─── Concluding Remarks ─────────────────────────────────────────────────────
+
+%#
+%## SECTION: Concluding Remarks
+%#
+\section{Concluding Remarks}\label{sec:remarks}
+
+\begin{conjecture}\label{conj:converse}
+  Every sequentially compact widget is compact.
+\end{conjecture}
+
+\Cref{conj:converse} is known to hold under additional set-theoretic
+hypotheses;
+see~\cite{example2024}.
+
+% ─── Bibliography ────────────────────────────────────────────────────────────
+\bibliographystyle{alpha}
+\bibliography{../references}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:

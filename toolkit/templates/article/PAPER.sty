@@ -1,0 +1,69 @@
+%% PAPER.sty — project style file for PAPER.tex (amsart)
+%%
+%% This is the SOLE package loaded by PAPER.tex. It (1) loads the
+%% shared preamble packages vendored in _packages/ (pristine copies pinned in
+%% _packages/vendor.lock — DO NOT edit them there), then (2) defines everything
+%% specific to this paper in the "Project-specific additions" section.
+%%
+%% When you start a real paper from this template, rename this file to match
+%% your master (e.g. myproject.sty) and \usepackage{myproject} in the master.
+%%
+%%   Shared, vendored:  di-base-article (amsart, section-scoped numbering),
+%%                       which pulls in di-base-core (fonts, packages,
+%%                       hyperref/cleveref, theorem family).
+%%   Project-specific:  geometry, graphics, project macros — EDIT those here.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{PAPER}[2026/07/15 PAPER project preamble]
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Vendored shared packages  (pristine copies in _packages/; DO NOT edit there)
+% ═══════════════════════════════════════════════════════════════════════════
+% di-base-article \RequirePackage{di-base-core} internally, so di-base-core.sty
+% must be vendored alongside it (it is; pinned in _packages/vendor.lock).
+
+%%% Vendored: eduenez/LaTeX-shared-files/di-base-article.sty @ af98e4f
+%%%           (pulls in di-base-core.sty @ af98e4f)
+\usepackage{di-base-article}
+
+% Available but not used by this template (uncomment to activate; copies live
+% in _packages/ and are pinned in _packages/vendor.lock). This is the pattern for
+% a real project: vendor the shared files you want, comment out the rest.
+%%% Vendored: eduenez/LaTeX-shared-files/di-structures.sty @ af98e4f
+% \usepackage{di-structures}   % real-valued-logic notation
+%%% Vendored: eduenez/LaTeX-shared-files/di-ramsey.sty @ af98e4f
+% \usepackage{di-ramsey}
+%%% Vendored: eduenez/LaTeX-shared-files/di-random.sty @ af98e4f
+% \usepackage{di-random}
+%%% Vendored: eduenez/LaTeX-shared-files/di-exercises.sty @ af98e4f
+% \usepackage{di-exercises}
+
+% ═══════════════════════════════════════════════════════════════════════════
+%% Project-specific additions  (EDIT HERE)
+% ═══════════════════════════════════════════════════════════════════════════
+
+% ─── Page Layout ─────────────────────────────────────────────────────────────
+\RequirePackage{geometry}
+\geometry{margin=1in}
+
+% ─── Graphics, Diagrams, and Colors (beyond tikz-cd, loaded by the core) ─────
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+
+% ─── Custom Macros ───────────────────────────────────────────────────────────
+
+% Number sets
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+
+% Delimiters
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\inner}{\langle}{\rangle}
+
+% Operators
+\DeclareMathOperator{\id}{id}

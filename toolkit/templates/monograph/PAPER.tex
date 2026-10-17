@@ -1,0 +1,88 @@
+% PAPER.tex — Main file for a book/monograph project (memoir class)
+%
+% Compile: latexmk (shared config: ../latexmkrc); or manually
+%          pdflatex PAPER; bibtex PAPER; pdflatex PAPER; pdflatex PAPER
+% Engine:  pdfLaTeX
+%
+% To compile only specific chapters, uncomment and edit the \includeonly line.
+% Do NOT remove or reorder the \include lines below.
+
+\documentclass[letterpaper,12pt,oneside,openany]{memoir}
+
+% ═════════════════════════════════════════════════════════════════════════════
+% ┃ ALL \usepackage, macro, and environment declarations — including the memoir ┃
+% ┃ page layout (\setlrmarginsandblock, \chapterstyle, …) — live in             ┃
+% ┃ PAPER.sty (loaded below), which loads the vendored shared      ┃
+% ┃ packages from ../_packages/ and then this project's additions. Do NOT add       ┃
+% ┃ \usepackage / \newcommand / \newtheorem / layout commands here. This        ┃
+% ┃ preamble carries ONLY the document class, that one style package, and       ┃
+% ┃ semantic metadata (title / author / date). See STYLE.md.                    ┃
+% ═════════════════════════════════════════════════════════════════════════════
+% Where the vendored shared .sty files live (one level up). This makes plain
+% pdflatex work with no TEXINPUTS and no symlinks; latexmk also sets it up.
+\makeatletter\def\input@path{{../_packages/}{_packages/}}\makeatother
+\usepackage{PAPER}
+
+% ─── Compilation Control ────────────────────────────────────────────────────
+% Uncomment the next line and list only the chapters you want to compile:
+% \includeonly{PAPER-1-introduction,PAPER-2-background,PAPER-3-main-results,PAPER-4-conclusion}
+
+% ─── Document Metadata ──────────────────────────────────────────────────────
+\title{%
+  \Huge\bfseries Title of the Monograph\\[0.5cm]
+  \Large\itshape Subtitle or Series Information%
+}
+\author{Author One \and Author Two}
+\date{\today}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+
+%#
+%# DOCUMENT: % \Huge\bfseries Title of the Monograph\\[0.5cm] \Large\itshape Subtitle or Series Information%
+%#
+\begin{document}
+
+\frontmatter
+
+% Title page
+\begin{titlingpage}
+  \centering
+  \vspace*{4cm}
+  {\Huge\bfseries Title of the Monograph\par}
+  \vspace{1cm}
+  {\Large\itshape Subtitle or Series Information\par}
+  \vspace{3cm}
+  {\large Author One \quad Author Two\par}
+  \vfill
+  {\large \today\par}
+\end{titlingpage}
+
+\tableofcontents*
+\clearpage
+
+\mainmatter
+
+% ─── Content Chapters ────────────────────────────────────────────────────────
+% Each chapter lives in its own file in this directory.
+% Use \include (not \input) so that \includeonly works.
+\include{PAPER-1-introduction}
+\include{PAPER-2-background}
+\include{PAPER-3-main-results}
+\include{PAPER-4-conclusion}
+
+\backmatter
+
+% ─── Bibliography ────────────────────────────────────────────────────────────
+% alpha style = [Doe25]-style labels, matching the group's other repositories.
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}
+\bibliographystyle{alpha}
+\bibliography{../references}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:

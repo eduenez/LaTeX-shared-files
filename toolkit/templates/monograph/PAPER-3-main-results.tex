@@ -1,0 +1,46 @@
+% ch-main-results.tex — Main results
+
+%#
+%## CHAPTER: Main Results
+%#
+\chapter{Main Results}\label{cha:main-results}
+
+In this chapter, we prove the main theorem stated in the introduction.
+
+%#
+%### SECTION: Key Lemma
+%#
+\section{Key Lemma}\label{sec:key-lemma}
+
+The proof of the main theorem relies on the following key lemma.
+
+\begin{lemma}\label{lem:key-lemma}
+  Let $(X, \tau)$ be a compact widget and let $(x_n)$ be a sequence in $X$.
+  Then there exists a convergent subsequence.
+\end{lemma}
+
+\begin{proof}
+  \todo{Complete the proof.}
+  The argument proceeds by contradiction.
+  Suppose no subsequence of $(x_n)$ converges.
+  Then for each $x \in X$, there exists an open neighborhood $U_x \in \tau$
+  such that $U_x$ contains at most finitely many terms of the sequence.
+  The collection $\{U_x : x \in X\}$ is an open cover of $X$.
+  By compactness, there is a finite subcover, which leads to a contradiction.
+\end{proof}
+
+%#
+%### SECTION: Proof of the Main Theorem
+%#
+\section{Proof of the Main Theorem}\label{sec:proof-main-theorem}
+
+We now prove \cref{thm:main-result}.
+
+\begin{proof}[Proof of \cref{thm:main-result}]
+  This follows directly from \cref{lem:key-lemma}.
+\end{proof}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "PAPER"
+%%% End:

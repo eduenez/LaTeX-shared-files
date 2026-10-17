@@ -12,3 +12,7 @@
 *.fdb_latexmk
 build/
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc

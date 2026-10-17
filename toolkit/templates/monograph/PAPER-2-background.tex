@@ -1,0 +1,63 @@
+% ch-background.tex — Background and prerequisites
+
+%#
+%## CHAPTER: Background
+%#
+\chapter{Background}\label{cha:background}
+
+This chapter collects the background material needed in subsequent chapters.
+
+%#
+%### SECTION: Notation and Conventions
+%#
+\section{Notation and Conventions}\label{sec:notation}
+
+Throughout this monograph, we write $\NN$, $\ZZ$, $\QQ$, $\RR$, and $\CC$
+for the natural numbers, integers, rationals, reals, and complex numbers,
+respectively.
+
+\begin{notation}\label{notn:sequences}
+  A sequence in a set $X$ is a function $x \colon \NN \to X$.
+  We write $(x_n)_{n \in \NN}$ or simply $(x_n)$ when the index set is clear.
+\end{notation}
+
+%#
+%### SECTION: Prerequisites from Analysis
+%#
+\section{Prerequisites from Analysis}\label{sec:prerequisites-analysis}
+
+We recall the basic definitions and results from analysis that will be used later.
+
+\begin{definition}\label{def:metric-space}
+  A \emph{metric space} is a pair $(X, d)$ where $X$ is a set and
+  $d \colon X \times X \to [0, \infty)$ is a function satisfying:
+  \begin{enumerate}
+  \item
+    $d(x, y) = 0$ if and only if $x = y$;
+  \item
+    $d(x, y) = d(y, x)$ for all $x, y \in X$;
+  \item
+    $d(x, z) \le d(x, y) + d(y, z)$ for all $x, y, z \in X$.
+  \end{enumerate}
+\end{definition}
+
+\begin{example}\label{exa:euclidean-metric}
+  The real line $\RR$ with the absolute value metric $d(x, y) = \abs{x - y}$
+  is a metric space.
+\end{example}
+
+\begin{lemma}\label{lem:triangle-inequality}
+  In any metric space $(X, d)$, for all $x_1, \ldots, x_n \in X$,
+  \begin{equation}\label{eq:generalized-triangle}
+  d(x_1, x_n) \le \sum_{i=1}^{n-1} d(x_i, x_{i+1}).
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  By induction on $n$, using the triangle inequality.
+\end{proof}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "PAPER"
+%%% End:
