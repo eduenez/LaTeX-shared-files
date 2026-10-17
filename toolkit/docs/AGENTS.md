@@ -75,7 +75,8 @@ in a child. Keep them when editing; `python3 _scripts/tex_vars.py [--apply] <pap
   `make update-shared` (dry run; `APPLY=1` applies) refreshes them; `make vendor-check` detects edits.
 * **Submodule** (single-author repositories): `_packages/` *is* the repository `LaTeX-shared-files` and `math-bibliography/` the
   bibliography, so nothing is copied: the toolkit is at `_packages/toolkit/` and wherever this document says `_scripts/…` or
-  `_templates/…` read `_packages/toolkit/scripts/…` or `_packages/toolkit/templates/…`. The root `Makefile` and `latexmkrc` are
+  `_templates/…` read `_packages/toolkit/scripts/…` or `_packages/toolkit/templates/…`, and the house documents `STYLE.md`,
+  `ONBOARDING.md`, `CONVERTING.md` are read in `_packages/toolkit/docs/`. The root `Makefile` and `latexmkrc` are
   two-line stubs that include the toolkit's. `make update-shared` moves the submodule pointers; papers cite
   `\bibliography{../math-bibliography/references}`. The submodule directories are ordinary git repositories: a fix is committed and
   pushed *inside* them (still: shared material is changed in `LaTeX-shared-files` itself, never worked around locally), then the
