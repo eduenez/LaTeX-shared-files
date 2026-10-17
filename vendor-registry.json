@@ -57,10 +57,11 @@
       "model": "vendored-simple",
       "vendors": [
         "sty",
-        "bib"
+        "bib",
+        "toolkit"
       ],
       "tool": "make update-shared (_scripts/update_shared.py)",
-      "notes": "template for new multi-paper repositories; ships the full set of di-* packages"
+      "notes": "template for new multi-paper repositories; ships the full set of di-* packages Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock."
     },
     {
       "name": "QuantumDI",
@@ -69,10 +70,11 @@
       "model": "vendored-simple",
       "vendors": [
         "sty",
-        "bib"
+        "bib",
+        "toolkit"
       ],
       "tool": "make update-shared (_scripts/update_shared.py)",
-      "notes": "multi-paper repository (Dueñez-Iovino); private"
+      "notes": "multi-paper repository (Dueñez-Iovino); private Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock."
     },
     {
       "name": "QuantumTeam",
@@ -81,10 +83,11 @@
       "model": "vendored-simple",
       "vendors": [
         "sty",
-        "bib"
+        "bib",
+        "toolkit"
       ],
       "tool": "make update-shared (_scripts/update_shared.py)",
-      "notes": "multi-paper repository (team papers and books); private"
+      "notes": "multi-paper repository (team papers and books); private Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock."
     },
     {
       "name": "ProbabilityModels",
@@ -170,6 +173,21 @@
         "bib"
       ],
       "notes": "NOT on the master: uses legacy biblioteca.bib / iovino.bib (and ../../DImanuscripts/iovino); candidate for migration to the master bibliography with math-bibliography/migrate.py --map rekey.json; PLANNED (deferred): convert each of the 6 subdirectories to a grants_* paper directory in QuantumDI (see QuantumDI/docs/plans/grants-conversion.md)"
+    },
+    {
+      "name": "research",
+      "repo": "eduenez/research",
+      "path": "../research",
+      "model": "submodule",
+      "vendors": [
+        "sty",
+        "bib"
+      ],
+      "submodules": {
+        "_packages": "LaTeX-shared-files",
+        "math-bibliography": "math-bibliography"
+      },
+      "notes": "solo repository; both masters as submodules (_packages = LaTeX-shared-files). Still carries COPIES of the toolkit scripts in _scripts/ (to be replaced by _packages/toolkit/, see toolkit/README.md)"
     }
   ],
   "retired": [

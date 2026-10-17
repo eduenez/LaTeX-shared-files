@@ -47,6 +47,18 @@ def stale(c):
                 out.append(f + '(gone upstream)')
             elif open(up, 'rb').read() != open(os.path.join(d, f), 'rb').read():
                 out.append(f)
+    # the vendored toolkit (toolkit/MANIFEST.tsv): managed files whose content differs from toolkit/ here
+    mf = os.path.join(here, 'toolkit', 'MANIFEST.tsv')
+    if os.path.exists(os.path.join(p, '_scripts', 'vendor.lock')) and os.path.exists(mf):
+        for line in open(mf, encoding='utf-8'):
+            if line.startswith('#') or not line.strip():
+                continue
+            mode, src, dest = line.rstrip('\n').split('\t')
+            if mode != 'managed':
+                continue
+            cp = os.path.join(p, dest)
+            if not os.path.exists(cp) or open(os.path.join(here, 'toolkit', src), 'rb').read() != open(cp, 'rb').read():
+                out.append('toolkit:' + dest)
     return out
 
 
