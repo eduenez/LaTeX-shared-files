@@ -33,7 +33,18 @@ Regenerating the manifest after adding or removing files: from `toolkit/`, run t
 
 ## Two ways to consume it
 
-* **Vendored** (collaborators who do not know submodules): files are copied into the repository and locked by checksum
-  (`_scripts/vendor.lock`, `_packages/vendor.lock`). `make update-shared` refreshes them from this repository.
-* **Submodule** (single-author repositories): this repository is a submodule (`_packages/`), so the toolkit is simply there at
-  `_packages/toolkit/`. See the "Submodule variant" note of `docs/AGENTS.md`.
+The two modes have **the same layout and the same commands**; only the provisioning differs. The scripts find the repository root
+themselves (`scripts/houseroot.py`), so they run from `_scripts/` (vendored) or from `_packages/toolkit/scripts/` (submodule).
+
+* **Vendored** (collaborators who do not know submodules): the managed files are copied into the repository and locked by checksum
+  (`_scripts/vendor.lock`, `_packages/vendor.lock`). `make update-shared` (dry run; `APPLY=1` applies) refreshes them from this
+  repository; `make vendor-check` detects edits. The vendoring tool writes a `_DO_NOT_EDIT_FILES_IN_THIS_DIRECTORY.md` into every
+  vendored directory (`_packages/`, `_scripts/`, `_templates/`) — **that note is deliberately not part of this repository**, so
+  that where this repository is used as a submodule its files can be edited like those of any other repository.
+* **Submodule** (single-author repositories): this repository is the submodule `_packages/` (and `math-bibliography` the other one),
+  so the toolkit is simply there at `_packages/toolkit/`; the root `Makefile` and `latexmkrc` are two-line stubs
+  (`toolkit/submodule-stubs/`), the editor/lint settings and the seed documents are copied once, the scripts, templates and house
+  documents are used in place. `make update-shared` moves the submodule pointers.
+
+**Starting a repository:** `python3 toolkit/scripts/init_repo.py TARGET --mode vendored|submodule` creates either kind from nothing
+(no template repository needed). `scripts/gen_manifest.py` regenerates `MANIFEST.tsv` after files are added or removed here.
