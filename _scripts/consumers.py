@@ -53,7 +53,7 @@ def stale(c):
         for line in open(mf, encoding='utf-8'):
             if line.startswith('#') or not line.strip():
                 continue
-            mode, src, dest = line.rstrip('\n').split('\t')
+            mode, src, dest = line.rstrip('\n').split('\t')[:3]
             if mode != 'managed':
                 continue
             cp = os.path.join(p, dest)
