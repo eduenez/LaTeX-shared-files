@@ -15,7 +15,9 @@ import sys, os, re, subprocess, tempfile, shutil, hashlib, importlib.util
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import toolkit_lock  # noqa: E402
 
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from houseroot import repo_root  # noqa: E402
+root = repo_root()
+SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 apply_, force, add_new = '--apply' in sys.argv, '--force-upstream' in sys.argv, '--add-new' in sys.argv
 lock = os.path.join(root, '_packages', 'vendor.lock')
 text = open(lock).read()
@@ -58,9 +60,9 @@ try:
                     shutil.copy2(os.path.join(d, x), os.path.join(root, '_packages', x))
                     new = new.rstrip('\n') + f'\n{x:<22} {repo:<28} {head}\n'
         if any(f == 'references.bib' for f, _ in files):
-            spec = importlib.util.spec_from_file_location('bd', os.path.join(root, '_scripts', 'bib_diff.py'))
-            src = open(os.path.join(root, '_scripts', 'bib_diff.py')).read().replace('\nmain()\n', '\n')
-            ns = {'__file__': os.path.join(root, '_scripts', 'bib_diff.py')}
+            spec = importlib.util.spec_from_file_location('bd', os.path.join(SCRIPTS, 'bib_diff.py'))
+            src = open(os.path.join(SCRIPTS, 'bib_diff.py')).read().replace('\nmain()\n', '\n')
+            ns = {'__file__': os.path.join(SCRIPTS, 'bib_diff.py')}
             exec(compile(src, 'bib_diff', 'exec'), ns)
             loc = ns['parse'](open(os.path.join(root, 'references.bib'), errors='replace').read())
             upe = ns['parse'](open(os.path.join(d, 'references.bib'), errors='replace').read())
@@ -87,7 +89,7 @@ try:
                 print('  references.bib updated (local-only entries appended at the end; re-sort with the upstream hook if you like)')
     if apply_:
         open(lock, 'w').write(new)
-        subprocess.run([sys.executable, os.path.join(root, '_scripts', 'vendor_check.py'), '--stamp'])
+        subprocess.run([sys.executable, os.path.join(SCRIPTS, 'vendor_check.py'), '--stamp'])
         print('done. Now build every paper (make build) and commit "Update shared files".')
     else:
         print('\n(dry run — nothing changed; add --apply to update)')

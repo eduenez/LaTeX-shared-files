@@ -1,6 +1,8 @@
 # paper.mk — make targets for ONE paper directory.  Included by <paper>/Makefile, whose whole content is:
 #
-#     include ../_scripts/paper.mk
+#     include $(firstword $(wildcard ../_scripts/paper.mk ../_packages/toolkit/scripts/paper.mk))
+#
+# (the toolkit is at _scripts/ in a repository that vendors it, at _packages/toolkit/scripts/ where LaTeX-shared-files is a submodule)
 #
 # Run `make` from inside the paper's directory.  Nothing here is required: plain `latexmk` in the same
 # directory does the same job (it reads ./latexmkrc); `make` is a convenience layered on top.
@@ -15,7 +17,7 @@
 # Optional per-paper settings, written BEFORE the include line:  EXCLUDE = figure1.tex   (masters `make all` skips)
 
 HERE    := $(dir $(lastword $(MAKEFILE_LIST)))
-ROOT    := $(abspath $(HERE)..)
+ROOT    := $(abspath $(CURDIR)/..)
 PAPER   := $(notdir $(CURDIR))
 MASTERS := $(filter-out $(EXCLUDE),$(shell grep -l '^[^%]*\\documentclass' *.tex 2>/dev/null | xargs grep -L '^[^%]*\\documentclass.*{standalone}' 2>/dev/null))
 # A paper without its own latexmkrc still gets the shared configuration.
@@ -44,12 +46,12 @@ FORCE:
 ## arxiv: one-file submission bundle <paper>/arxiv/<main>-arxiv-vN.zip (.tex + .bbl; verified).
 ## `make arxiv` takes the next free version; `make arxiv V=2` names one; add FORCE=1 to overwrite it. (Not -V2: make reads that as an option.)
 arxiv:
-	@python3 $(ROOT)/_scripts/arxiv_bundle.py $(PAPER) $(if $(V),--version $(V)) $(if $(FORCE),--force) $(ARXIV_ARGS)
+	@python3 $(HERE)arxiv_bundle.py $(PAPER) $(if $(V),--version $(V)) $(if $(FORCE),--force) $(ARXIV_ARGS)
 
 ## flat: single-file view of the whole document (all \input/\include inlined) in _build/<main>-flat.tex, for reading,
-## searching and global replace; see _scripts/flatten.py
+## searching and global replace; see flatten.py
 flat:
-	@python3 $(ROOT)/_scripts/flatten.py $(PAPER) $(if $(MAIN),--main $(MAIN))
+	@python3 $(HERE)flatten.py $(PAPER) $(if $(MAIN),--main $(MAIN))
 
 ## watch: rebuild the default document whenever a source changes
 watch:

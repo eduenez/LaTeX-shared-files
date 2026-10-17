@@ -20,7 +20,8 @@ use Cwd qw(abs_path);
 
 # Absolute path of the repo root (the directory containing THIS file), so the
 # configuration is independent of which paper directory latexmk runs in.
-$_repo_root = abs_path(dirname(__FILE__));
+# (a repository that uses LaTeX-shared-files as a submodule has a stub latexmkrc that sets $_repo_root, then loads this file)
+$_repo_root = abs_path(dirname(__FILE__)) unless defined $_repo_root;
 
 # Vendored shared packages (di-base-*, …) and the shared bibliography.
 ensure_path('TEXINPUTS', "$_repo_root/_packages//");

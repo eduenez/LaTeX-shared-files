@@ -25,14 +25,53 @@ def sha(path):
     return hashlib.sha256(open(path, 'rb').read()).hexdigest()
 
 
+DONOTEDIT = """# DO NOT EDIT THE FILES IN THIS DIRECTORY
+
+The files here are **vendored copies** of files that are written and maintained in the repository
+`eduenez/LaTeX-shared-files` (the shared style packages in `_packages/`, the toolkit in `toolkit/`, which is delivered to
+`_scripts/` and `_templates/`). Their checksums are recorded in `vendor.lock`; `make vendor-check` reports any file that was edited.
+
+* Do not edit, rename or delete them here: the next `make update-shared` would overwrite your change.
+* To fix or improve one, change it in `LaTeX-shared-files` first (tests, commit, push), then run `make update-shared`
+  here (add `APPLY=1` to apply). If you are not the maintainer, describe the problem to Eduardo.
+
+(This note is written by the vendoring tool into every vendored directory. It is not part of `LaTeX-shared-files` itself: where that
+repository is used as a git submodule, its files may be edited like those of any other repository.)
+"""
+DONOTEDIT_NAME = '_DO_NOT_EDIT_FILES_IN_THIS_DIRECTORY.md'
+
+
+def write_donotedit(root, dirs=('_packages', '_scripts', '_templates')):
+    for d in dirs:
+        p = os.path.join(root, d)
+        if os.path.isdir(p) and not os.path.exists(os.path.join(p, DONOTEDIT_NAME)):
+            open(os.path.join(p, DONOTEDIT_NAME), 'w').write(DONOTEDIT)
+
+
 def manifest(upstream):
+    """Rows (mode, src, dest, sub). mode: managed (vendored pristine) | seed (copied once).
+    sub = what a repository that uses LaTeX-shared-files as a SUBMODULE does with it: use (read in place, nothing copied),
+    seed (copied once), stub (a small file is written that includes the toolkit's)."""
     rows = []
     for line in open(os.path.join(upstream, 'toolkit', 'MANIFEST.tsv'), encoding='utf-8'):
         if line.startswith('#') or not line.strip():
             continue
-        mode, src, dest = line.rstrip('\n').split('\t')
-        rows.append((mode, src, dest))
+        f = line.rstrip('\n').split('\t')
+        rows.append((f[0], f[1], f[2], f[3] if len(f) > 3 else 'use'))
     return rows
+
+
+def seeds_report(root, toolkit_dir, log=print):
+    """Submodule mode: seed files that were copied once and now differ from the toolkit's current version (information only)."""
+    n = 0
+    for mode, src, dest, sub in manifest(os.path.dirname(toolkit_dir)):
+        if sub != 'seed' and mode != 'seed':
+            continue
+        a, b = os.path.join(toolkit_dir, src), os.path.join(root, dest)
+        if os.path.exists(a) and os.path.exists(b) and open(a, 'rb').read() != open(b, 'rb').read():
+            log(f'  seed {dest} differs from the toolkit version (yours to keep, or compare: diff {os.path.relpath(a, root)} {dest})')
+            n += 1
+    log(f'  {n} seed file(s) differ from the toolkit' if n else '  seed files: no differences')
 
 
 def read_lock(root):
@@ -48,7 +87,7 @@ def read_lock(root):
 
 def sync(upstream, head, root, apply_, add_new=False, log=print):
     """Compare (and with apply_ refresh) the managed toolkit files of `root` against the upstream clone `upstream`."""
-    rows = manifest(upstream)
+    rows = [(m, s_, d_) for m, s_, d_, _ in manifest(upstream)]
     lock = read_lock(root)
     new_lock, n_up, n_same, n_new = {}, 0, 0, 0
     for mode, src, dest in rows:
@@ -84,6 +123,7 @@ def sync(upstream, head, root, apply_, add_new=False, log=print):
     if apply_:
         body = HEADER + '\n' + ''.join(f'{d:<44} {REPO:<28} {c:<8} sha256:{h}\n' for d, (c, h) in sorted(new_lock.items()))
         open(os.path.join(root, LOCK), 'w').write(body)
+        write_donotedit(root)
 
 
 def check(root):
@@ -101,7 +141,9 @@ def check(root):
 
 
 if __name__ == '__main__':
-    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from houseroot import repo_root
+    here = repo_root()
     if sys.argv[1:] == ['check']:
         bad = check(here)
         if bad is None:
@@ -113,5 +155,7 @@ if __name__ == '__main__':
             sys.exit(1)
         else:
             print(f'toolkit-check: all {len(read_lock(here))} vendored toolkit files are pristine')
+    elif sys.argv[1:] == ['seeds']:
+        seeds_report(here, os.path.join(here, '_packages', 'toolkit'))
     else:
         sys.exit(__doc__)

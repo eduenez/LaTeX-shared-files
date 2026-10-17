@@ -62,7 +62,9 @@ def main():
     ap.add_argument('--main')
     ap.add_argument('-o', '--output')
     a = ap.parse_args()
-    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from houseroot import repo_root
+    root = repo_root()
     pdir = a.paper if os.path.isdir(a.paper) else os.path.join(root, a.paper)
     pdir = os.path.abspath(pdir)
     main_tex = a.main or default_main(pdir)

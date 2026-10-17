@@ -2,7 +2,7 @@
 # export-paper.sh — make a self-contained copy of one paper (for arXiv /
 # journal submission or to start a standalone repository).
 #
-# Usage:  bash _scripts/export-paper.sh <paper> [outdir]     (default: _export/<paper>)
+# Usage:  bash export-paper.sh <paper> [outdir]     (default: _export/<paper>)
 #   (or:  make export P=<paper>)
 #
 # Copies the paper's sources, bundles ONLY the vendored di-*.sty files it uses
@@ -11,8 +11,8 @@
 set -euo pipefail
 
 paper="${1:-}"
-[ -n "$paper" ] || { echo "usage: bash _scripts/export-paper.sh <paper> [outdir]" >&2; exit 2; }
-repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+[ -n "$paper" ] || { echo "usage: bash export-paper.sh <paper> [outdir]" >&2; exit 2; }
+repo="$(python3 "$(dirname "${BASH_SOURCE[0]}")/houseroot.py")"
 src="$repo/$paper"
 out="${2:-$repo/_export/$paper}"
 [ -d "$src" ] || { echo "error: no such paper directory: $paper/" >&2; exit 1; }

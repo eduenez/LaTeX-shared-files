@@ -6,7 +6,8 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(git -C "$(dirname "$0")/.." rev-parse --show-toplevel 2>/dev/null || echo "$(cd "$(dirname "$0")/.." && pwd)")"
+REPO_ROOT="$(python3 "$(dirname "$0")/houseroot.py")"
+SCRIPTS_REL="$(python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$(cd "$(dirname "$0")" && pwd)" "$REPO_ROOT")"   # _scripts or _packages/toolkit/scripts
 HOOKS_DIR="$REPO_ROOT/.git/hooks"
 
 # Ensure we are in a git repository
@@ -31,7 +32,7 @@ cat > "$HOOKS_DIR/pre-commit" << 'HOOK'
 # The project's line convention is *semantic wrapping*: one sentence or
 # semicolon/colon-delimited clause per source line, produced by `make wrap`.
 # It keeps git diffs small and reviewable. The width (--cols) only governs the
-# last-resort hard-break of an over-long single sentence; see _scripts/texwrap.py
+# last-resort hard-break of an over-long single sentence; see texwrap.py
 # for the full rule set; see README.md and STYLE.md for conventions.
 #
 # Checks (all advisory):
@@ -55,9 +56,9 @@ WARN=0
 note() { WARN=1; echo "$@"; }
 
 # ── Check 1: Semantic wrapping via texwrap.py ────────────────────────────────
-if [ -f "$REPO_ROOT/_scripts/texwrap.py" ]; then
+if [ -f "$REPO_ROOT/@SCRIPTS@/texwrap.py" ]; then
   # shellcheck disable=SC2086
-  if ! python3 "$REPO_ROOT/_scripts/texwrap.py" --check --cols 256 $STAGED_TEX >/dev/null 2>&1; then
+  if ! python3 "$REPO_ROOT/@SCRIPTS@/texwrap.py" --check --cols 256 $STAGED_TEX >/dev/null 2>&1; then
     note "pre-commit [advisory]: staged .tex is not semantically wrapped."
     note "            Run 'make wrap' to normalize (one sentence/clause per line)."
   fi
@@ -96,5 +97,6 @@ fi
 exit 0
 HOOK
 
+sed -i.bak "s#@SCRIPTS@#$SCRIPTS_REL#g" "$HOOKS_DIR/pre-commit" && rm -f "$HOOKS_DIR/pre-commit.bak"
 chmod +x "$HOOKS_DIR/pre-commit"
 echo "setup-hooks: installed pre-commit hook (advisory — never blocks)"

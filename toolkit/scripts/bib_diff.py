@@ -9,7 +9,9 @@ Exit status 1 if any entry was changed locally; additions alone are fine. --upst
 """
 import sys, os, re, subprocess, tempfile, shutil
 
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from houseroot import repo_root  # noqa: E402
+root = repo_root()
 IGNORE = {'mrclass', 'mrnumber', 'mrreviewer', 'fjournal', 'issn', 'timestamp', 'owner', 'date-added', 'date-modified', 'abstract', 'keywords', 'coden'}
 
 

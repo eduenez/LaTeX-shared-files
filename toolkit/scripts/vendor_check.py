@@ -7,7 +7,9 @@ SHA-256 of every listed file with the recorded one and exits 1 on any mismatch (
 """
 import sys, os, re, hashlib
 
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from houseroot import repo_root  # noqa: E402
+root = repo_root()
 pk = os.path.join(root, '_packages')
 lock = os.path.join(pk, 'vendor.lock')
 stamp = '--stamp' in sys.argv

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # doctor.sh — read-only check of the local setup; prints how to fix what is missing.
-# Usage: bash _scripts/doctor.sh      (or: make doctor)
-cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 2
+# Usage: bash doctor.sh      (or: make doctor)
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$(python3 "$here/houseroot.py")" || exit 2
+if [ -f _scripts/paper.mk ]; then mode=vendored; else mode=submodule; fi
 os="$(uname -s 2>/dev/null)"
 miss=0; warn=0
 ok()   { printf '  \033[32mok\033[0m       %s\n' "$1"; }
@@ -38,12 +40,13 @@ branch=$(git branch --show-current 2>/dev/null); up=$(git rev-parse --abbrev-ref
 if [ -n "$up" ]; then behind=$(git rev-list --count HEAD..$up 2>/dev/null); [ "${behind:-0}" -gt 0 ] && note "$branch is $behind commit(s) behind $up (as of the last fetch)" "git pull"; fi
 echo "Repository"
 [ -f latexmkrc ] && ok "latexmkrc" || bad "latexmkrc" "this does not look like the repository root"
-[ -f _packages/vendor.lock ] && { python3 _scripts/vendor_check.py >/tmp/vc.$$ 2>&1 && ok "_packages/ pristine (vendor.lock checksums)" || { note "_packages/ differs from vendor.lock" "$(head -3 /tmp/vc.$$ | tail -2 | tr -s ' ' | cut -c1-110)"; }; rm -f /tmp/vc.$$; }
-[ -f references.bib ] && ok "references.bib" || bad "references.bib" "restore it from Git (git checkout -- references.bib)"
+[ "$mode" = submodule ] && { [ -f _packages/di-base.sty ] && ok "_packages/ (submodule LaTeX-shared-files; toolkit at _packages/toolkit/)" || bad "_packages/ is empty" "git submodule update --init"; }
+[ -f _packages/vendor.lock ] && { python3 "$here/vendor_check.py" >/tmp/vc.$$ 2>&1 && ok "_packages/ pristine (vendor.lock checksums)" || { note "_packages/ differs from vendor.lock" "$(head -3 /tmp/vc.$$ | tail -2 | tr -s ' ' | cut -c1-110)"; }; rm -f /tmp/vc.$$; }
+if [ "$mode" = submodule ]; then [ -f math-bibliography/references.bib ] && ok "math-bibliography/references.bib (submodule)" || bad "math-bibliography/ is empty" "git submodule update --init"; else [ -f references.bib ] && ok "references.bib" || bad "references.bib" "restore it from Git (git checkout -- references.bib)"; fi
 papers=$(for f in [!_.]*/*.tex; do [ -f "$f" ] && grep -l '\\documentclass' "$f" 2>/dev/null; done | xargs -n1 dirname 2>/dev/null | sort -u | tr '\n' ' ')
 [ -n "$papers" ] && ok "papers: $papers" || note "no papers found" "make new P=<name> TYPE=article"
 nomk=$(for d in $papers; do [ -f "$d/Makefile" ] || printf "%s " "$d"; done)
-[ -z "$nomk" ] || note "papers without a Makefile: $nomk" "bash _scripts/add-paper-makefiles.sh   (adds the one-line Makefile; 'make' then works inside each paper)"
+[ -z "$nomk" ] || note "papers without a Makefile: $nomk" "bash $here/add-paper-makefiles.sh   (adds the one-line Makefile; 'make' then works inside each paper)"
 [ -f .vscode/settings.json ] && ok "VS Code settings (soft-wrap on)" || note "no .vscode/settings.json" "restore it from Git"
 echo
 if [ $miss -eq 0 ]; then if [ $warn -gt 0 ]; then echo "All required tools are present ($warn optional item(s) noted)."; else echo "All required tools are present."; fi; else echo "$miss required item(s) missing — see 'fix:' hints above, then re-run: make doctor"; fi

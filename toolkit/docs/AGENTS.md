@@ -68,6 +68,21 @@ Never run `latexmk` at the repository root.
 **Emacs file variables.** Every `.tex` ends with a `%%% Local Variables:` block: `TeX-master: t` in a master, `TeX-master: "<master>"`
 in a child. Keep them when editing; `python3 _scripts/tex_vars.py [--apply] <paper>` adds missing blocks (never alters existing ones). Built PDFs and `_build/` are git-ignored: never commit them.
 
+## Two ways the shared material arrives (vendored or submodule)
+
+* **Vendored** (collaboration repositories): `_packages/` (shared `.sty`, bibliography pin), `_scripts/`, `_templates/` and the root files
+  hold pristine, checksummed copies (`vendor.lock` files; each such directory carries a `_DO_NOT_EDIT_FILES_IN_THIS_DIRECTORY.md`).
+  `make update-shared` (dry run; `APPLY=1` applies) refreshes them; `make vendor-check` detects edits.
+* **Submodule** (single-author repositories): `_packages/` *is* the repository `LaTeX-shared-files` and `math-bibliography/` the
+  bibliography, so nothing is copied: the toolkit is at `_packages/toolkit/` and wherever this document says `_scripts/…` or
+  `_templates/…` read `_packages/toolkit/scripts/…` or `_packages/toolkit/templates/…`. The root `Makefile` and `latexmkrc` are
+  two-line stubs that include the toolkit's. `make update-shared` moves the submodule pointers; papers cite
+  `\bibliography{../math-bibliography/references}`. The submodule directories are ordinary git repositories: a fix is committed and
+  pushed *inside* them (still: shared material is changed in `LaTeX-shared-files` itself, never worked around locally), then the
+  new pointer is committed here.
+
+The commands below work the same in both modes.
+
 ## Where changes belong
 
 The workflow files listed under *Vendored toolkit* are **not authored in this repository**. Their source of truth is the

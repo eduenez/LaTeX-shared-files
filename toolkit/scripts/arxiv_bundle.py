@@ -19,7 +19,9 @@ reproducible (fixed timestamps), so committing it records exactly what was submi
 """
 import argparse, os, re, shutil, subprocess, sys, tempfile, zipfile
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from houseroot import repo_root  # noqa: E402
+ROOT = repo_root()
 VERBATIM = ('verbatim', 'verbatim*', 'lstlisting', 'minted', 'Verbatim', 'comment')
 BEGIN_V = re.compile(r'\\begin\{(%s)\}' % '|'.join(re.escape(v) for v in VERBATIM))
 USEPKG = re.compile(r'^(\s*)\\(usepackage|RequirePackage)\s*(\[[^\]]*\])?\s*\{([^}]*)\}\s*$')

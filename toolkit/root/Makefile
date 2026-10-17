@@ -20,6 +20,9 @@
 #   make help            – show this help
 
 COLS := 256
+# Where the toolkit lives: _scripts/ (vendored copy) or _packages/toolkit/scripts/ (LaTeX-shared-files as a git submodule).
+SCRIPTS := $(patsubst %/paper.mk,%,$(firstword $(wildcard _scripts/paper.mk _packages/toolkit/scripts/paper.mk)))
+MODE    := $(if $(wildcard _scripts/paper.mk),vendored,submodule)
 .DEFAULT_GOAL := help
 # Main documents: <dir>/<file>.tex containing \documentclass, dir not starting with _ or .
 ALL_TEX  := $(wildcard [!_.]*/*.tex)
@@ -44,21 +47,47 @@ endef
 
 ## test: regression tests of the formatting scripts
 test:
-	@python3 _scripts/test_scripts.py && python3 _scripts/test_texfashion.py
+	@python3 $(SCRIPTS)/test_scripts.py && python3 $(SCRIPTS)/test_texfashion.py
 
 doctor:
-	@bash _scripts/doctor.sh
+	@bash $(SCRIPTS)/doctor.sh
 
+# Shared files come in two ways. VENDORED (collaborator repositories): pristine copies, checked by checksum, refreshed by
+# update-shared. SUBMODULE (single-author repositories): _packages/ is LaTeX-shared-files and math-bibliography/ the bibliography,
+# so there is nothing to check and update-shared just moves the submodule pointers.
 vendor-check:
-	@python3 _scripts/vendor_check.py
+ifeq ($(MODE),vendored)
+	@python3 $(SCRIPTS)/vendor_check.py
+else
+	@echo "vendor-check: nothing is vendored here (_packages/ and math-bibliography/ are git submodules)."
+endif
 
 bib-diff:
-	@python3 _scripts/bib_diff.py
+ifeq ($(MODE),vendored)
+	@python3 $(SCRIPTS)/bib_diff.py
+else
+	@echo "bib-diff: the bibliography is a submodule: edit math-bibliography/references.bib in place, commit and push there, then commit the new pointer here."
+endif
 
+## update-shared: vendored: dry run of what changed upstream (APPLY=1 applies); submodule: move _packages and math-bibliography to
+## their newest upstream commits and say what to commit
 update-shared:
-	@python3 _scripts/update_shared.py
+ifeq ($(MODE),vendored)
+	@python3 $(SCRIPTS)/update_shared.py $(if $(APPLY),--apply)
+else
+	@git submodule update --init --remote --merge
+	@git status --short _packages math-bibliography
+	@python3 $(SCRIPTS)/toolkit_lock.py seeds
+	@echo "If the pointers changed: build a paper or two, then  git add _packages math-bibliography && git commit -m 'Update shared files and bibliography'"
+endif
 
-.PHONY: test vendor-check bib-diff update-shared doctor all help new export build build-all article pdf PDF compile format reflow fashion wrap indent sep check lint clean install-hooks $(PAPERS)
+update-submodules: update-shared
+
+## submodules: fetch the submodules of a fresh clone (no-op where nothing is a submodule)
+submodules:
+	@git submodule update --init
+
+.PHONY: test submodules update-submodules vendor-check bib-diff update-shared doctor all help new export build build-all article pdf PDF compile format reflow fashion wrap indent sep check lint clean install-hooks $(PAPERS)
 
 all: help
 
@@ -68,9 +97,10 @@ help:
 	@echo ""
 	@echo "  Setup:"
 	@echo "    make doctor          Check tools and setup; says how to fix what is missing"
-	@echo "    make vendor-check    Verify that _packages/ files are pristine (checksums in vendor.lock)"
-	@echo "    make bib-diff        Compare references.bib with the upstream master (additions / edits)"
-	@echo "    make update-shared   Show (dry run) what changed upstream; add --apply via: python3 _scripts/update_shared.py --apply"
+	@echo "    make update-shared   Shared files ($(MODE) mode): vendored = dry run of what changed upstream (APPLY=1 applies); submodule = move the pointers"
+	@echo "    make vendor-check    Vendored mode: verify that _packages/ and the toolkit files are pristine (checksums)"
+	@echo "    make bib-diff        Vendored mode: compare references.bib with the upstream master (additions / edits)"
+	@echo "    make submodules      Fetch the submodules after a fresh clone"
 	@echo ""
 	@echo "  Papers:"
 	@echo "    make new P=name TYPE=article|monograph|book-single   Create a new paper from a template"
@@ -98,12 +128,12 @@ help:
 ## new: Create a paper:  make new P=my-paper TYPE=article|monograph
 new:
 	@test -n "$(P)" || { echo "usage: make new P=<name> TYPE=article|monograph|book-single"; exit 2; }
-	@bash _scripts/new-paper.sh "$(P)" "$(TYPE)"
+	@bash $(SCRIPTS)/new-paper.sh "$(P)" "$(TYPE)"
 
 ## export: Self-contained copy of one paper in _export/<P>/
 export:
 	@test -n "$(P)" || { echo "usage: make export P=<paper>"; exit 2; }
-	@bash _scripts/export-paper.sh "$(P)"
+	@bash $(SCRIPTS)/export-paper.sh "$(P)"
 
 ## build-all: Build every paper (guarded).  Old names build, article, pdf, PDF, compile behave the same
 build-all build article pdf PDF compile:
@@ -136,12 +166,12 @@ reflow:
 ## fashion: Modernize typography (accents -> Unicode, curly quotes, tabs -> spaces)
 fashion:
 	$(need_force)
-	python3 _scripts/texfashion.py $(TEX_SRC)
+	python3 $(SCRIPTS)/texfashion.py $(TEX_SRC)
 
 ## wrap: Semantic line-wrapping (break positions only; whitespace-preserving)
 wrap:
 	$(need_force)
-	python3 _scripts/texwrap.py --cols $(COLS) $(TEX_SRC)
+	python3 $(SCRIPTS)/texwrap.py --cols $(COLS) $(TEX_SRC)
 
 ## indent: Whitespace normalization (latexindent). -m enables blank-line
 ## condensing; with this config it makes no other line-break changes.
@@ -155,13 +185,13 @@ indent:
 ## sep: Normalize sectioning banners (STYLE.md; advisory, comment-only)
 sep:
 	$(need_force)
-	python3 _scripts/texsep.py $(TEX_SRC)
+	python3 $(SCRIPTS)/texsep.py $(TEX_SRC)
 
 ## check: Report .tex needing fashion/wrapping (no changes; latexindent has no dry-run)
 check:
 	@rc=0; \
-	python3 _scripts/texfashion.py --check $(TEX_SRC) || rc=1; \
-	python3 _scripts/texwrap.py --check --cols $(COLS) $(TEX_SRC) || rc=1; \
+	python3 $(SCRIPTS)/texfashion.py --check $(TEX_SRC) || rc=1; \
+	python3 $(SCRIPTS)/texwrap.py --check --cols $(COLS) $(TEX_SRC) || rc=1; \
 	exit $$rc
 
 ## lint: Run chktex on all .tex
@@ -184,4 +214,4 @@ clean:
 
 ## install-hooks: Install the advisory git pre-commit hook
 install-hooks:
-	bash _scripts/setup-hooks.sh
+	bash $(SCRIPTS)/setup-hooks.sh

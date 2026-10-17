@@ -1,0 +1,5 @@
+# latexmkrc — this repository uses LaTeX-shared-files as a git submodule (_packages/); the shared configuration lives there.
+use File::Basename qw(dirname);
+use Cwd qw(abs_path);
+$_repo_root = abs_path(dirname(__FILE__));
+do "$_repo_root/_packages/toolkit/root/latexmkrc";
