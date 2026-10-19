@@ -36,7 +36,7 @@
         "bib"
       ],
       "tool": "vendor.py + vendor_sty.py",
-      "notes": "project .sty NFL.sty snapshot in children/; branch revendor-2026-10 pending merge"
+      "notes": "project .sty NFL.sty snapshot in children/"
     },
     {
       "name": "topos-logic",
@@ -48,7 +48,7 @@
         "bib"
       ],
       "tool": "vendor.py + vendor_sty.py",
-      "notes": "has references-local.bib for entries not in the master; PR workflow (collaborators); branch revendor-2026-10 pending merge"
+      "notes": "uses the shared references.bib only (references-local.bib adopted into the master); PR workflow (collaborators)"
     },
     {
       "name": "LaTeX-codespace-template",
