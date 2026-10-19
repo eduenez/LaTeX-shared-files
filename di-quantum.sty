@@ -10,9 +10,10 @@
 %%   \ind  = lives in di-logic.sty now (one independence symbol for all papers).
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{di-quantum}[2026/10/12 Duenez-Iovino quantum notation]
+\ProvidesPackage{di-quantum}[2026/10/19 Duenez-Iovino quantum notation]
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
+\RequirePackage{mathtools}  % \DeclarePairedDelimiter
 
 \DeclareMathOperator{\Tr}{Tr}      % trace
 \DeclareMathOperator{\spn}{span}   % linear span
@@ -24,3 +25,8 @@
 % Hilbert space: calligraphic H (requires di-alphabets for \cH).
 \providecommand{\cH}{\mathcal{H}}
 \newcommand{\Hil}{\cH}
+
+% Dirac notation: \ket{u} = |u>, \bra{u} = <u|; the starred forms (\ket*{...}) size the delimiters
+% automatically, and an optional size argument (\ket[\big]{...}) fixes them.
+\DeclarePairedDelimiter{\ket}{\lvert}{\rangle}
+\DeclarePairedDelimiter{\bra}{\langle}{\rvert}
