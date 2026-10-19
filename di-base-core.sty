@@ -18,7 +18,7 @@
 %% bases attach it (\numberwithin{theorem}{section|chapter}).
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{di-base-core}[2026/07/15 Duenez-Iovino base preamble (class-agnostic core)]
+\ProvidesPackage{di-base-core}[2026/10/19 Duenez-Iovino base preamble (class-agnostic core)]
 
 % ── Engine detection ─────────────────────────────────────────────────────────
 
@@ -111,39 +111,72 @@
 
 \swapnumbers  % "3.1 Theorem" style
 
+% All numbered environments below share the `theorem' counter.  So that cleveref's \cref prints
+% "Lemma 2.3", "Definition 2.4", ... rather than calling everything "Theorem", each environment
+% re-labels the counter's cleveref type locally (\crefalias) while it is open.
+% \DiSharedTheorem{env}{Name} has the same meaning as in di-theorem-rudin; papers use it for their
+% own environments on the shared counter.  (An aliascnt-based version, as in di-theorem-rudin, does
+% not work here: the class bases redefine \thetheorem afterwards with \numberwithin, and an alias
+% counter would either keep the old numbering or, without \aliascntresetthe, loop forever.)
+\RequirePackage{etoolbox}
+\newcommand{\DiSharedTheorem}[2]{%
+  \newtheorem{#1}[theorem]{#2}%
+  \AtBeginEnvironment{#1}{\crefalias{theorem}{#1}}%
+}
+
 % plain style — statements
 \theoremstyle{plain}
 % NOTE: \specialtheorem is intentionally NOT defined here.  Papers use
 % \newtheorem{specialtheorem}{Theorem} with an independent counter.
 % The master `theorem' counter is parentless here; a class base anchors it.
 \newtheorem{theorem}{Theorem}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{lemma}[theorem]{Lemma}
+\DiSharedTheorem{proposition}{Proposition}
+\DiSharedTheorem{lemma}{Lemma}
 \newtheorem*{lemma*}{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{conjecture}[theorem]{Conjecture}
+\DiSharedTheorem{corollary}{Corollary}
+\DiSharedTheorem{conjecture}{Conjecture}
 \newtheorem*{theorem*}{Theorem}
 \newtheorem*{corollary*}{Corollary}
 
 % definition style — definitions, examples, conventions
 \theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{definitions}[theorem]{Definitions}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{examples}[theorem]{Examples}
-\newtheorem{convention}[theorem]{Convention}
-\newtheorem{conventions}[theorem]{Conventions}
-\newtheorem{notation}[theorem]{Notation}
-\newtheorem{exercises}[theorem]{Exercises}
-\newtheorem{fact}[theorem]{Fact}
-\newtheorem{question}[theorem]{Question}
+\DiSharedTheorem{definition}{Definition}
+\DiSharedTheorem{definitions}{Definitions}
+\DiSharedTheorem{example}{Example}
+\DiSharedTheorem{examples}{Examples}
+\DiSharedTheorem{convention}{Convention}
+\DiSharedTheorem{conventions}{Conventions}
+\DiSharedTheorem{notation}{Notation}
+\DiSharedTheorem{exercises}{Exercises}
+\DiSharedTheorem{fact}{Fact}
+\DiSharedTheorem{question}{Question}
 
 % remark style — remarks, caveats
 % NOTE: \claim is intentionally NOT defined here.  Papers disagree on whether
 % it should be numbered (RealRandom/RealStructures group) or unnumbered
 % (ProbabilityModels group).  Each paper defines \claim locally.
 \theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
+\DiSharedTheorem{remark}{Remark}
 \newtheorem*{remark*}{Remark}
-\newtheorem{remarks}[theorem]{Remarks}
+\DiSharedTheorem{remarks}{Remarks}
 \newtheorem*{caveat*}{Caveat}
+
+% Names for the environments that cleveref does not know by default (harmless for the others).
+\newcommand{\di@base@crefnames}[3]{\crefname{#1}{#2}{#3}\Crefname{#1}{#2}{#3}}
+\di@base@crefnames{theorem}{Theorem}{Theorems}
+\di@base@crefnames{proposition}{Proposition}{Propositions}
+\di@base@crefnames{lemma}{Lemma}{Lemmas}
+\di@base@crefnames{corollary}{Corollary}{Corollaries}
+\di@base@crefnames{conjecture}{Conjecture}{Conjectures}
+\di@base@crefnames{definition}{Definition}{Definitions}
+\di@base@crefnames{definitions}{Definitions}{Definitions}
+\di@base@crefnames{example}{Example}{Examples}
+\di@base@crefnames{examples}{Examples}{Examples}
+\di@base@crefnames{convention}{Convention}{Conventions}
+\di@base@crefnames{conventions}{Conventions}{Conventions}
+\di@base@crefnames{notation}{Notation}{Notations}
+\di@base@crefnames{exercises}{Exercises}{Exercises}
+\di@base@crefnames{fact}{Fact}{Facts}
+\di@base@crefnames{question}{Question}{Questions}
+\di@base@crefnames{remark}{Remark}{Remarks}
+\di@base@crefnames{remarks}{Remarks}{Remarks}

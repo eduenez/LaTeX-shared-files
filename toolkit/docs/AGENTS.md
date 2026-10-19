@@ -116,7 +116,7 @@ copies of them, and so does every repository created from it. Therefore:
    paper's `.sty`; if the notation is generic, propose adding it to `LaTeX-shared-files` instead of defining it locally.
 4. **Cross references.** Labels use the prefixes of `STYLE.md` §7 with kebab-case slugs (`thm:main-result`); refer to them
    with `\cref{...}` (list: `\cref{a,b}`), never `Theorem~\ref{...}`. Shared-counter theorem environments must be declared
-   with `\DiSharedTheorem` (see `di-theorem-rudin`) so that `\cref` prints the right name.
+   with `\DiSharedTheorem` (provided by `di-base-core` and `di-theorem-rudin`) so that `\cref` prints the right name.
 5. **Bibliography.** (`make bib-diff` shows your additions and any edits of existing entries; fix existing entries upstream, in `math-bibliography`.) Add entries only to the root `references.bib` (never a per-paper `.bib`, never an inline
    `thebibliography`); reuse an existing entry if the work is already there. Keys: `Author-Author:YYYY` (lower-case
    suffix `a`, `b`, … for same author-year; `:0000` if undated); a hyphen only separates authors, never appears inside a

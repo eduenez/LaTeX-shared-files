@@ -256,7 +256,8 @@ Example: `\label{thm:main-result}` → `\cref{thm:main-result}`.
 - `\cref{...}` auto-generates "Theorem 2.1", "Section 3", …; a list is `\cref{a,b,c}`. Never hardcode
   "Theorem \ref{...}". (Papers that keep their own look load `di-cleveref`, which spells the names with capitals.)
 - Declare theorem-like environments that share the theorem counter with `\DiSharedTheorem{lemma}{Lemma}`
-  (from `di-theorem-rudin`) so that `\cref` prints "Lemma" rather than "Theorem".
+  (provided by `di-base-core`, hence by every `di-base-*`, and by `di-theorem-rudin`) so that `\cref` prints "Lemma" rather than
+  "Theorem". All the standard environments of these packages are already declared this way.
 - Define macros for repeated notation in the project style file `<paper>.sty`
   (its "Project-specific additions" section) — never in the master `.tex`. See
   "The style file and the vendored `_packages/`" above.
