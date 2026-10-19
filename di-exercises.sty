@@ -11,9 +11,15 @@
 %%   \usepackage{di-exercises}
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{di-exercises}[2026/06/07 Exercise environments via xsim]
+\ProvidesPackage{di-exercises}[2026/10/19 Exercise environments via xsim]
 
 \RequirePackage{xsim}
+
+% Papers grade exercises with [difficulty=...], which is not a built-in xsim property.  An
+% undeclared property's list is never created with \seq_new, and with the 2026 LaTeX kernel
+% appending to it makes the list contain itself: the second graded exercise then stops the run
+% with "TeX capacity exceeded [input stack size]".  Declaring the property creates the list.
+\DeclareExerciseProperty{difficulty}
 
 \xsimsetup{
   exercise/within  = section,   % number as <section>.<counter>
