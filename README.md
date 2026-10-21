@@ -2,6 +2,16 @@
 
 Shared LaTeX style files for the Dueñez–Iovino research group.
 
+## Starting a new repository of manuscripts
+
+```bash
+python3 toolkit/scripts/init_repo.py ~/repos/NewThing --mode submodule   # single author: both masters as submodules
+python3 toolkit/scripts/init_repo.py ~/repos/NewThing --mode vendored    # with collaborators: pristine vendored copies
+```
+
+This replaces a separate template repository: the new repository is built from the current toolkit, gets a README for its mode
+and an `AGENTS.md`, and is added to `vendor-registry.json` (commit that here). See [`toolkit/README.md`](toolkit/README.md).
+
 ## Contents
 
 | File | Purpose |

@@ -2,6 +2,7 @@
 """init_repo.py — create a new repository of manuscripts with the house toolkit, in one of two modes.
 
     python3 init_repo.py TARGET --mode vendored|submodule [--shared PATH|URL] [--bib PATH|URL] [--no-commit]
+                         [--repo OWNER/NAME] [--notes TEXT] [--no-register]
 
   vendored    for collaborators who do not know submodules: pristine, checksummed copies of the shared packages (_packages/), the
               toolkit (_scripts/, _templates/, Makefile, latexmkrc, .vscode/, …) and an editable references.bib, pinned in
@@ -13,8 +14,12 @@
 TARGET must not exist or be empty. --shared / --bib name the source repositories (a local checkout or a URL); by default the
 checkout this script belongs to, and its sibling math-bibliography (or the GitHub URLs). Needs `git`; submodule mode needs the
 network (private repositories: your Git credentials). Afterwards:  cd TARGET && make doctor && make new P=my-paper TYPE=article
+
+The new repository gets a README for its mode and a "This repository" section (to fill in) in AGENTS.md. When --shared is a
+local checkout, the repository is also added to that checkout's vendor-registry.json (--repo names it on GitHub; --no-register
+skips this); commit the registry there.
 """
-import argparse, os, shutil, subprocess, sys
+import argparse, json, os, shutil, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -50,6 +55,97 @@ def checkout(spec, default_local, url, tmp):
     return local, remote
 
 
+AGENTS_ANCHOR = '## 0. At the start of a session'
+
+
+def agents_section(mode):
+    how = ('**submodule mode** (see *Two ways the shared material arrives*)' if mode == 'submodule'
+           else '**vendored mode** (see *Two ways the shared material arrives*)')
+    return ('## This repository\n\n'
+            f'TODO: who writes here and what each paper directory holds (one line each). The repository uses {how}.\n'
+            'Run `make doctor` after a fresh clone' + (' (`git clone --recurse-submodules`, or `make submodules`).' if mode == 'submodule' else '.')
+            + '\n\n')
+
+
+def readme(name, repo, mode):
+    if mode == 'vendored':
+        return (f'# {name}\n\nLaTeX manuscripts, one per subdirectory, built with the house toolkit (vendored mode).\n\n'
+                '```bash\nmake doctor                              # check tools and setup\n'
+                'make new P=my-paper TYPE=article         # or monograph, book-single\ncd my-paper && make                      # build\n```\n\n'
+                'See AGENTS.md (assistants), and STYLE.md / ONBOARDING.md for the house practices.\n')
+    return f'''# {name}
+
+LaTeX manuscripts, one per subdirectory, built with the house toolchain (the same as in the
+[template](https://github.com/eduenez/LaTeX-codespace-template)).
+
+## What is here
+
+| Directory | What |
+|---|---|
+| `<paper>/` | one directory per manuscript (`make new` creates them) |
+| `_packages/` | **submodule**: [LaTeX-shared-files](https://github.com/eduenez/LaTeX-shared-files) (`di-*.sty`, and the toolkit in `_packages/toolkit/`) |
+| `math-bibliography/` | **submodule**: [math-bibliography](https://github.com/eduenez/math-bibliography) (`references.bib`) |
+| `Makefile`, `latexmkrc` (two-line stubs), `AGENTS.md`, `.vscode/`, … | the house toolchain, *used in place* from `_packages/toolkit/` |
+
+This is a single-author repository, so it uses **submodules** instead of vendored copies: the shared style files, the toolkit
+(scripts, templates, house documents) and the bibliography come straight from their repositories at the pinned commits.
+
+## First time on a new machine
+
+```bash
+git clone --recurse-submodules https://github.com/{repo}
+cd {name}
+make doctor            # checks tools and that both submodules are populated
+```
+(If you cloned without `--recurse-submodules`: `make submodules`.)
+
+## Working
+
+```bash
+make new P=my-paper TYPE=article        # or TYPE=monograph (chapter files) or TYPE=book-single (one-file book)
+cd my-paper && make                     # build (also: make watch, make format, make check, make arxiv, make help)
+cd my-paper && latexmk                  # the same without make
+```
+
+Papers cite the master bibliography as `\\bibliography{{../math-bibliography/references}}`. The conventions are those of the
+template: [STYLE.md](_packages/toolkit/docs/STYLE.md) (writing), [AGENTS.md](AGENTS.md) (for AI assistants),
+[ONBOARDING.md](_packages/toolkit/docs/ONBOARDING.md), [CONVERTING.md](_packages/toolkit/docs/CONVERTING.md).
+
+## Keeping the submodules current
+
+```bash
+make update-shared                     # newest LaTeX-shared-files (scripts, styles) and math-bibliography
+# build a paper or two, then:
+git add _packages math-bibliography && git commit -m "Update shared files and bibliography"
+```
+
+Adding or correcting a bibliography entry: edit `math-bibliography/references.bib`, commit and push **inside** `math-bibliography/`
+(it is its own repository), then commit the new pointer here. The same holds for a shared macro: change it in `LaTeX-shared-files`.
+'''
+
+
+def register(shared, target, name, repo, mode, notes):
+    """Add the new repository to vendor-registry.json of the LaTeX-shared-files checkout; return the file's path (None if skipped)."""
+    path = os.path.join(shared, 'vendor-registry.json')
+    if not os.path.exists(path):
+        return None
+    reg = json.load(open(path))
+    if any(c.get('name') == name for c in reg.get('consumers', [])):
+        print(f'init_repo: {name} is already in {path}; left unchanged')
+        return None
+    entry = {'name': name, 'repo': repo, 'path': os.path.relpath(target, shared)}
+    if mode == 'submodule':
+        entry.update(model='submodule', vendors=['sty', 'bib'],
+                     submodules={'_packages': 'LaTeX-shared-files', 'math-bibliography': 'math-bibliography'},
+                     notes=notes or 'solo repository created by init_repo.py; both masters as submodules (toolkit used in place from _packages/toolkit/)')
+    else:
+        entry.update(model='vendored-simple', vendors=['sty', 'bib', 'toolkit'], tool='make update-shared (_scripts/update_shared.py)',
+                     notes=notes or 'multi-paper repository created by init_repo.py')
+    reg['consumers'].append(entry)
+    open(path, 'w').write(json.dumps(reg, indent=2, ensure_ascii=False) + '\n')
+    return path
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('target')
@@ -59,6 +155,9 @@ def main():
     ap.add_argument('--shared-url', help='URL recorded in .gitmodules for _packages (default: origin of the source)')
     ap.add_argument('--bib-url', help='URL recorded in .gitmodules for math-bibliography')
     ap.add_argument('--no-commit', action='store_true')
+    ap.add_argument('--repo', help='GitHub OWNER/NAME of the new repository (default: eduenez/<basename of TARGET>)')
+    ap.add_argument('--notes', help='one-line description recorded in vendor-registry.json')
+    ap.add_argument('--no-register', action='store_true', help='do not add the new repository to vendor-registry.json')
     a = ap.parse_args()
     target = os.path.abspath(a.target)
     if os.path.exists(target) and os.listdir(target):
@@ -104,21 +203,32 @@ def main():
                 shutil.copy2(os.path.join(tk, 'submodule-stubs', stub), os.path.join(target, stub))
             run('git', 'submodule', 'add', '-q', shared_url, '_packages', cwd=target)
             run('git', 'submodule', 'add', '-q', bib_url, 'math-bibliography', cwd=target)
-        # a README and the CLAUDE.md alias (same text for every AI assistant)
+            # the submodules are cloned from their URLs, so they pin the remote heads, not necessarily the local checkouts
+            head = run('git', '-C', os.path.join(target, '_packages'), 'rev-parse', '--short', 'HEAD')
+            bib_head = run('git', '-C', os.path.join(target, 'math-bibliography'), 'rev-parse', '--short', 'HEAD')
+        # a README, a "This repository" section in AGENTS.md, and the CLAUDE.md alias (same text for every AI assistant)
         name = os.path.basename(target)
-        open(os.path.join(target, 'README.md'), 'w').write(
-            f'# {name}\n\nLaTeX manuscripts, one per subdirectory, built with the house toolkit ({a.mode} mode).\n\n'
-            '```bash\nmake doctor                              # check tools and setup\n'
-            'make new P=my-paper TYPE=article         # or monograph, book-single\ncd my-paper && make                      # build\n```\n\n'
-            'See AGENTS.md (assistants), and STYLE.md / ONBOARDING.md for the house practices'
-            + (' (in `_packages/toolkit/docs/` for a submodule repository).\n' if a.mode == 'submodule' else '.\n'))
+        repo = a.repo or f'eduenez/{name}'
+        open(os.path.join(target, 'README.md'), 'w').write(readme(name, repo, a.mode))
+        agents = os.path.join(target, 'AGENTS.md')
+        if os.path.exists(agents):
+            s = open(agents).read()
+            if '## This repository' not in s and AGENTS_ANCHOR in s:
+                open(agents, 'w').write(s.replace(AGENTS_ANCHOR, agents_section(a.mode) + AGENTS_ANCHOR, 1))
         if not os.path.lexists(os.path.join(target, 'CLAUDE.md')):
             os.symlink('AGENTS.md', os.path.join(target, 'CLAUDE.md'))
         if not a.no_commit:
             run('git', 'add', '-A', cwd=target)
-            run('git', 'commit', '-q', '-m', f'Initial repository ({a.mode} mode) from LaTeX-shared-files@{head}\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>', cwd=target)
+            run('git', 'commit', '-q', '-m', f'Initial repository ({a.mode} mode) from LaTeX-shared-files@{head}', cwd=target)
+        # register the new consumer in the master list, when the source is a real checkout (not a temporary clone)
+        registered = None
+        if not a.no_register and not shared.startswith(tmp):
+            registered = register(shared, target, name, repo, a.mode, a.notes)
     print(f'created {a.target} ({a.mode} mode; LaTeX-shared-files @ {head}, math-bibliography @ {bib_head})')
+    if registered:
+        print(f'registered {name} in {registered}: commit it there (and run _scripts/consumers.py --write once the checkouts are current)')
     print(f'next:  cd {a.target} && make doctor && make new P=my-paper TYPE=article && cd my-paper && make')
+    print(f'       gh repo create {repo} --private --source {a.target} --push      (or add a remote and push)')
 
 
 if __name__ == '__main__':
