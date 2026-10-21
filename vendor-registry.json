@@ -98,7 +98,7 @@
         "sty",
         "bib"
       ],
-      "notes": "converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
+      "notes": "converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
       "tool": "make update-shared (python3 _scripts/update_shared.py)"
     },
     {
@@ -110,7 +110,7 @@
         "sty",
         "bib"
       ],
-      "notes": "converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
+      "notes": "converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
       "tool": "make update-shared (python3 _scripts/update_shared.py)"
     },
     {
@@ -122,7 +122,7 @@
         "sty",
         "bib"
       ],
-      "notes": "converted from submodules to vendored copies on branch vendored-model (pushed, pending merge); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
+      "notes": "converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
       "tool": "make update-shared (python3 _scripts/update_shared.py)"
     },
     {
