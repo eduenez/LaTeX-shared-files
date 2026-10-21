@@ -187,7 +187,7 @@
         "_packages": "LaTeX-shared-files",
         "math-bibliography": "math-bibliography"
       },
-      "notes": "solo repository; both masters as submodules (_packages = LaTeX-shared-files, toolkit used in place from _packages/toolkit/; Makefile and latexmkrc are stubs). Branch use-toolkit-submodule pending merge."
+      "notes": "solo repository; both masters as submodules (_packages = LaTeX-shared-files, toolkit used in place from _packages/toolkit/; Makefile and latexmkrc are stubs)."
     }
   ],
   "retired": [
