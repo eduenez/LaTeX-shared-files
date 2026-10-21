@@ -5,7 +5,7 @@
     "runServices": ["vscode"],
     "shutdownAction": "stopCompose",
     "workspaceFolder": "/workspace",
-    "postCreateCommand": "bash /workspace/_scripts/setup-hooks.sh",
+    "postCreateCommand": "cd /workspace && (git submodule update --init || true) && make install-hooks",
     "customizations": {
         "vscode": {
             "extensions": [
