@@ -265,6 +265,27 @@ once = tw.process(sample, 60)
 check("process is idempotent", tw.process(once, 60), once)
 
 
+# ---------------------------------------------------------------------------
+# arxiv_bundle — coauthor notes never reach arXiv (it publishes the source)
+# ---------------------------------------------------------------------------
+print("arxiv_bundle.strip_notes:")
+import arxiv_bundle as ab  # noqa: E402
+
+_pre = "\\newcommand{\\note}[3][]{x}\n\\begin{document}\n"
+check("preamble definitions are left alone; inline note between words",
+      ab.strip_notes(_pre + "a word\\note{ED}{why $x$?} more\n\\end{document}"),
+      (_pre + "a word more\n\\end{document}", 1))
+check("note alone on its line takes the line (no paragraph break appears)",
+      ab.strip_notes(_pre + "first line\n\\Note{JI}{a {nested} remark}\nsecond line\n"),
+      (_pre + "first line\nsecond line\n", 1))
+check("optional argument, discussion with paragraphs, plain \\todo, \\listofnotes (not counted)",
+      ab.strip_notes(_pre + "x\\note[noline]{ED}{a}.\n\\begin{discussion}{ED}\none\n\ntwo\n\\end{discussion}\n"
+                     "y\\todo{t} z\n\\listofnotes\n"),
+      (_pre + "x.\ny z\n", 3))
+check("\\notes and \\Notebook are other macros",
+      ab.strip_notes(_pre + "\\notes{a}{b} \\Notebook\n"), (_pre + "\\notes{a}{b} \\Notebook\n", 0))
+
+
 print()
 if FAILURES:
     print(f"{len(FAILURES)} FAILURE(S):\n")

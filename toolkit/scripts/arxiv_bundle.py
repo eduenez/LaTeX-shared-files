@@ -13,6 +13,8 @@ What it does
      '%#' banners (the "poor man's headers" of STYLE.md §4), plus one banner per inlined package saying where it came from;
   4. verifies the result: compiles the bundle in an empty directory with plain pdflatex (no bibtex, no TEXINPUTS) and
      compares page count and text with the normal build of the paper.
+  Coauthor notes (di-notes' \\note, \\Note, {discussion}; plain \\todo; \\listofnotes) are removed from the bundle, since arXiv
+  publishes the source; the comparison is then with a build of the paper with its notes hidden.
 Version numbers follow arXiv's (v1, v2, …). Existing bundles are never overwritten (use --force). The zip is byte-for-byte
 reproducible (fixed timestamps), so committing it records exactly what was submitted. Tag the commit when you submit:
     git tag arxiv-<paper>-v1
@@ -94,6 +96,73 @@ def strip_comments(text, where):
     return '\n'.join(out).strip('\n') + '\n'
 
 
+NOTE_CMDS = {'note': 2, 'Note': 2, 'todo': 1, 'listofnotes': 0, 'listoftodos': 0}   # name -> mandatory arguments
+NOTE_START = re.compile(r'\\(%s)(?![A-Za-z@])|\\begin\{discussion\}' % '|'.join(NOTE_CMDS))
+
+
+def skip_group(s, i, open_, close):
+    """Index just after the group opening at s[i] (s[i] == open_), braces/brackets balanced, escapes skipped."""
+    depth = 0
+    while i < len(s):
+        c = s[i]
+        if c == '\\':
+            i += 2
+            continue
+        if c == open_:
+            depth += 1
+        elif c == close:
+            depth -= 1
+            if depth == 0:
+                return i + 1
+        i += 1
+    die('unbalanced braces in a coauthor note')
+
+
+def strip_notes(tex):
+    """Remove coauthor notes (di-notes' \\note, \\Note, {discussion}; plain \\todo; \\listofnotes) from the document body:
+    arXiv publishes the source, and a hidden note is still in it. A note alone on its line takes the line with it (an empty
+    line left behind would start a new paragraph). Returns (tex, number of notes removed)."""
+    start = tex.find('\\begin{document}')
+    if start < 0:
+        return tex, 0
+    head, body, n = tex[:start], tex[start:], 0
+    out, i = [], 0
+    while True:
+        m = NOTE_START.search(body, i)
+        if not m:
+            break
+        s, e = m.start(), m.end()
+        if m.group(1):
+            j = e
+            while j < len(body) and body[j] in ' \t':
+                j += 1
+            if j < len(body) and body[j] == '[':
+                j = skip_group(body, j, '[', ']')
+            for _ in range(NOTE_CMDS[m.group(1)]):
+                while j < len(body) and body[j] in ' \t\n':
+                    j += 1
+                if j >= len(body) or body[j] != '{':
+                    die(f'\\{m.group(1)} without its argument near: {body[s:s + 60]!r}')
+                j = skip_group(body, j, '{', '}')
+            e = j
+        else:
+            end = body.find('\\end{discussion}', e)
+            if end < 0:
+                die('\\begin{discussion} without \\end{discussion}')
+            e = end + len('\\end{discussion}')
+        ls = body.rfind('\n', 0, s) + 1
+        le = body.find('\n', e)
+        le = len(body) if le < 0 else le
+        if not body[ls:s].strip() and not body[e:le].strip():   # alone on its line: drop the whole line
+            s, e = ls, min(le + 1, len(body))
+        out.append(body[i:s])
+        i = e
+        if not m.group(1) or not m.group(1).startswith('listof'):
+            n += 1
+    out.append(body[i:])
+    return head + ''.join(out), n
+
+
 def vendor_commits():
     """file -> short commit from _packages/vendor.lock (lines: file repo commit sha256:...)."""
     d = {}
@@ -147,6 +216,8 @@ class Flattener:
         text = open(path, encoding='utf-8').read()
         takes_options = re.search(r'\\ProcessOptions|\\DeclareOption', text) is not None
         text = re.sub(r'^\s*\\(NeedsTeXFormat|ProvidesPackage)\s*(\{[^}]*\})(\[[^\]]*\])?\s*$', '', text, flags=re.M)
+        # an \endinput inlined into the one-file bundle would end the whole file, not just the package
+        text = re.sub(r'^\s*\\endinput\s*$', '', text, flags=re.M)
         outer = self.depth == 0
         self.depth += 1
         body = self.flatten(strip_comments(text, path), path, in_package=True)
@@ -155,7 +226,7 @@ class Flattener:
         # itself calls \makeatother must not leave @ off for the rest of its parent, so re-assert it after each
         head = '\\makeatletter\n' if outer else ''
         if takes_options:
-            o = (opts or '').strip('[]')
+            o = 'hide' if name == 'di-notes' else (opts or '').strip('[]')   # the bundle never shows coauthor notes
             head += '\\def\\@currname{%s}\\def\\@curroptions{%s}\n' % (name, o)
         return self.banner(name, tag) + head + body.strip('\n') + ('\n\\makeatother\n' if outer else '\n\\makeatletter\n')
 
@@ -243,7 +314,19 @@ def main():
     fl = Flattener(pdir)
     src = open(os.path.join(pdir, main_tex), encoding='utf-8').read()
     tex = fl.flatten(strip_comments(src, main_tex), main_tex)
+    tex, n_notes = strip_notes(tex)
     tex = re.sub(r'\n{3,}', '\n\n', tex).strip('\n') + '\n'
+    if n_notes:
+        # the reference is then the paper with its notes hidden (as \documentclass[final] would print it); its .bbl is the
+        # one to ship, since a \cite that only a note made must not reach the bibliography
+        print(f'removed {n_notes} coauthor note(s) (\\note, \\Note, discussion, \\todo) from the bundle')
+        hidden = name + '-nonotes'
+        hcmd = cmd[:-1] + [f'-jobname={hidden}', '-usepretex=\\PassOptionsToPackage{hide}{di-notes}\\PassOptionsToPackage{disable}{todonotes}', main_tex]
+        if subprocess.run(hcmd, cwd=pdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+            die(f'the build of {a.paper}/{main_tex} with its notes hidden fails')
+        bbl = os.path.join(pdir, '_build', hidden + '.bbl')
+        ref_pdf = os.path.join(pdir, '_build', hidden + '.pdf')
+        shutil.move(os.path.join(pdir, hidden + '.pdf'), ref_pdf)   # keep it out of the paper directory
     uses_bib = '\\bibliography{' in tex
     files = {name + '.tex': tex.encode('utf-8')}
     if uses_bib:
@@ -283,7 +366,7 @@ def main():
                 d = [l for l in difflib.unified_diff(a_txt.split('\n'), b_txt.split('\n'), 'normal build', 'bundle', lineterm='', n=0)]
                 print('\n'.join(d[:40]))
                 die(f'the bundle prints differently from the normal build ({pages(a_txt)} vs {pages(b_txt)} pages)')
-            print(f'verified: {pages(b_txt)} pages, text identical to the normal build, no undefined references')
+            print(f'verified: {pages(b_txt)} pages, text identical to the normal build{" with its notes hidden" if n_notes else ""}, no undefined references')
 
     # 4. zip (deterministic)
     os.makedirs(outdir, exist_ok=True)
