@@ -30,7 +30,9 @@ new = text
 try:
     for repo, files in repos.items():
         d = os.path.join(tmp, repo.replace('/', '_'))
-        r = subprocess.run(['git', 'clone', '-q', '--depth', '1', f'https://github.com/{repo}.git', d], capture_output=True, text=True)
+        # the bibliography with its history (small): the pinned version tells local edits from upstream corrections
+        depth = [] if any(f == 'references.bib' for f, _ in files) else ['--depth', '1']
+        r = subprocess.run(['git', 'clone', '-q', *depth, f'https://github.com/{repo}.git', d], capture_output=True, text=True)
         if r.returncode:
             print(f'{repo}: cannot clone ({r.stderr.strip()[:120]})')
             continue
@@ -69,13 +71,33 @@ try:
             only_loc = [k for k in loc if k not in upe]
             # a "local-only" entry that is the same work (title+year) as an upstream entry was renamed upstream: superseded, drop it
             _t = lambda e: re.sub(r'[^a-z0-9]+', '', e[1].get('title', '').lower()) + e[1].get('year', '')
-            up_titles = {_t(v) for v in upe.values()}
+            up_titles = {_t(v): k for k, v in upe.items()}
             superseded = [k for k in only_loc if _t(loc[k]) in up_titles]
+            # ... unless a paper here still cites it: dropping it would leave an undefined citation. Keep it and say which
+            # upstream key to cite instead (a rerun after the switch drops it).
+            cited = set()
+            for dp, dns, fns in os.walk(root):
+                dns[:] = [x for x in dns if not x.startswith(('.', '_'))]
+                for fn in fns:
+                    if fn.endswith('.tex'):
+                        for m in re.finditer(r'\\[A-Za-z]*cite[a-z]*\*?(?:\[[^\]]*\]){0,2}\{([^}]*)\}', open(os.path.join(dp, fn), errors='replace').read()):
+                            cited.update(x.strip() for x in m.group(1).split(','))
+            for k in [k for k in superseded if k in cited]:
+                print(f'  {k} is the same work as upstream {up_titles[_t(loc[k])]} but is still cited here: kept; cite '
+                      f'{up_titles[_t(loc[k])]} instead (python3 _scripts/migrate/texfix.py cites --map …), then rerun to drop it')
+            superseded = [k for k in superseded if k not in cited]
             if superseded:
                 print('  superseded by renamed upstream entries (dropped): ' + ', '.join(superseded))
             only_loc = [k for k in only_loc if k not in superseded]
-            changed = [k for k in set(loc) & set(upe) if not ns['same'](loc[k], upe[k])]
-            print(f'  references.bib: {len(set(upe) - set(loc))} new upstream, {len(only_loc)} local-only kept, {len(changed)} locally edited')
+            differ = [k for k in set(loc) & set(upe) if not ns['same'](loc[k], upe[k])]
+            # an entry that differs from upstream was edited HERE only if it also differs from the pinned upstream version;
+            # otherwise it was corrected upstream and the correction is simply taken (without a usable pin: assume edited)
+            pin = dict(files)['references.bib']
+            r = subprocess.run(['git', '-C', d, 'show', f'{pin}:references.bib'], capture_output=True, text=True)
+            base = ns['parse'](r.stdout) if r.returncode == 0 else {}
+            changed = [k for k in differ if k not in base or not ns['same'](loc[k], base[k])]
+            corrected = len(differ) - len(changed)
+            print(f'  references.bib: {len(set(upe) - set(loc))} new upstream, {corrected} corrected upstream, {len(only_loc)} local-only kept, {len(changed)} locally edited')
             if changed and not force:
                 print('  -> locally edited entries would be overwritten: ' + ', '.join(sorted(changed)[:10]) + ('' if len(changed) <= 10 else ' …'))
                 print('     fix them upstream first (python3 _scripts/bib_diff.py --emit-local-only out.bib) or rerun with --force-upstream')
