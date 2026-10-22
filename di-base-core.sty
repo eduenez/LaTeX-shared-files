@@ -105,7 +105,9 @@
 
 % ── Collaboration tools ──────────────────────────────────────────────────────
 
-\RequirePackage[colorinlistoftodos, textsize=small]{todonotes}
+% obeyFinal: \documentclass[final]{...} hides plain \todo notes too, as it hides di-notes' notes
+\RequirePackage[obeyFinal, colorinlistoftodos, textsize=small]{todonotes}
+\RequirePackage{di-notes}  % \note (margin), \Note and {discussion} (inline): coauthor notes, hidden by [final]
 
 % ── Theorem environments ─────────────────────────────────────────────────────
 

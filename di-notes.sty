@@ -1,0 +1,97 @@
+%% di-notes.sty — coauthor notes that stand out in the PDF and are clearly not part of the document.
+%%
+%%   \note{ED}{text}                    minor note: a margin balloon with a line to the spot it annotates
+%%   \Note{ED}{text}                    substantial note: a full-width box between paragraphs
+%%   \begin{discussion}{ED} … \end{discussion}   the same, for several paragraphs
+%%   \listofnotes                       list of all notes with their pages (empty when the notes are hidden)
+%%   \DiNoteAuthor{KM}{teal}            give an author a colour (ED and JI have theirs; others are gray until declared)
+%%
+%% Notes are shown unless the document is final:  \documentclass[final]{amsart}  hides them all, and nothing else
+%% changes (final is every package's default anyway). draft shows them, as does no option; draft is not needed, and it
+%% also turns figures into empty boxes. The package options show | hide override the class option.
+%%
+%% When a document has margin notes and they are shown, the page is widened by \DiNotesMargin and the balloons go in
+%% that extra strip (in the outer margin of two-sided documents), so the text block, and therefore every line break and
+%% page break, is exactly the same as with the notes hidden. Whether there are margin notes is recorded in the .aux file,
+%% so a document without them keeps its page size. Builds on todonotes (loaded by di-base-core).
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{di-notes}[2026/10/22 Duenez-Iovino coauthor notes]
+
+\newif\ifdi@notes@show \di@notes@showtrue
+% show/hide are declared after draft/final, so a package option overrides the class option
+\DeclareOption{draft}{\di@notes@showtrue}
+\DeclareOption{final}{\di@notes@showfalse}
+\DeclareOption{show}{\di@notes@showtrue}
+\DeclareOption{hide}{\di@notes@showfalse}
+\ProcessOptions\relax
+
+\RequirePackage{xcolor}
+\RequirePackage{etoolbox}
+\RequirePackage{todonotes}
+
+% ── Authors ──────────────────────────────────────────────────────────────────
+% (colour names without @: todonotes writes them to the .tdo file, read back outside package code)
+\colorlet{dinote-default}{gray}
+\newcommand{\DiNoteAuthor}[2]{\colorlet{dinote-#1}{#2}}
+\DiNoteAuthor{ED}{blue}
+\DiNoteAuthor{JI}{orange}
+% the colour name of an author, resolved before todonotes sees it (todonotes copies its options into the list of
+% notes, where a conditional would break)
+\newcommand{\di@withcolor}[2]{%
+  \ifcsname\string\color@dinote-#1\endcsname\def\di@nc{dinote-#1}\else\def\di@nc{dinote-default}\fi
+  \expandafter#2\expandafter{\di@nc}}
+
+% ── The notes ────────────────────────────────────────────────────────────────
+\newcommand{\di@notefont}{\sffamily\footnotesize\raggedright}
+\newcommand{\di@notelabel}[2]{\textbf{\textcolor{#1!70!black}{#2:}}~}
+\newif\ifdi@notes@margin
+
+\ifdi@notes@show
+  % #1 colour, #2 extra todonotes options, #3 initials, #4 text, #5 entry in \listofnotes
+  \newcommand{\di@marginnote}[5]{%
+    \global\di@notes@margintrue
+    \todo[color=#1!12, bordercolor=#1, linecolor=#1, size=\footnotesize, caption={#3: #5}, #2]%
+      {\di@notefont\di@notelabel{#1}{#3}#4}}
+  \newcommand{\di@inlinenote}[5]{%
+    \todo[inline, color=#1!8, bordercolor=#1, linecolor=#1, caption={#3: #5}, #2]%
+      {\di@notefont\di@notelabel{#1}{#3}#4}}
+  \newcommand{\note}[3][]{\di@withcolor{#2}\di@marginnote{#1}{#2}{#3}{#3}}
+  \newcommand{\Note}[3][]{\di@withcolor{#2}\di@inlinenote{#1}{#2}{#3}{#3}}
+  % several paragraphs cannot be a caption, so a discussion appears in \listofnotes as "ED: discussion"
+  \NewDocumentEnvironment{discussion}{O{} m +b}{\di@withcolor{#2}\di@inlinenote{#1}{#2}{#3}{discussion}}{}
+\else
+  % \@bsphack/\@esphack, as \marginpar and \todo do: an invisible note between two words leaves exactly one space
+  \newcommand{\note}[3][]{\@bsphack\@esphack}
+  \newcommand{\Note}[3][]{\@bsphack\@esphack}
+  \NewDocumentEnvironment{discussion}{O{} m +b}{}{\ignorespacesafterend}
+\fi
+
+% Decided now, not with a conditional at use: \listoftodos reads ahead and would swallow the \fi.
+% amsart/amsbook give \@starttoc a second argument (the heading), which \listoftodos does not pass: it would swallow
+% whatever follows; there the list is started directly.
+\ifdi@notes@show
+  \newcommand{\listofnotes}{\listoftodos[Notes]}
+  \@ifclassloaded{amsart}{\renewcommand{\listofnotes}{\@starttoc{tdo}{Notes}}}{}
+  \@ifclassloaded{amsbook}{\renewcommand{\listofnotes}{\@starttoc{tdo}{Notes}}}{}
+\else
+  \newcommand{\listofnotes}{}
+\fi
+
+% ── Room for the balloons without moving the text ────────────────────────────
+\newlength{\DiNotesMargin}
+\setlength{\DiNotesMargin}{5cm}
+\ifdi@notes@show
+  % this run's margin notes are recorded for the next run (the .aux file is read at \begin{document})
+  \AtEndDocument{\ifdi@notes@margin
+    \immediate\write\@auxout{\string\global\string\let\string\di@notes@hadmargin\string\relax}\fi}
+  \AfterEndPreamble{%
+    \ifdefined\di@notes@hadmargin
+      \advance\paperwidth\DiNotesMargin
+      \ifdefined\pdfpagewidth \pdfpagewidth=\paperwidth \fi
+      \ifdefined\stockwidth \stockwidth=\paperwidth \fi
+      \setlength{\marginparsep}{0.6cm}%
+      \setlength{\marginparwidth}{\dimexpr\DiNotesMargin-\marginparsep-0.8cm\relax}%
+      \if@twoside\advance\evensidemargin\DiNotesMargin\fi
+      \normalmarginpar
+    \fi}
+\fi
