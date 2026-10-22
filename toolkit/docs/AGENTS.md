@@ -125,9 +125,13 @@ copies of them, and so does every repository created from it. Therefore:
 6. **Source style.** One sentence or clause per source line, two-space indentation, modern Unicode text (except in
    `\title`/`\author`), no `$$`, no `eqnarray`; run `make format` rather than formatting by hand. Do not hard-wrap
    prose at a column: the editor soft-wraps (configured in `.vscode/settings.json`).
-7. **Personal editor preferences** (theme, font size, keybindings) do not belong in `.vscode/`.
-8. **After editing**, build the paper and fix undefined references and citations before you finish.
-9. **Git.** Small, specific commits ("Add proof of Lemma 3.2"). Pull before you start, push when asked. Do not rewrite
+7. **Notes to coauthors** (`STYLE.md` §11): `\note{XX}{…}` for a remark in the margin, `\Note{XX}{…}` or
+   `\begin{discussion}{XX}` for a substantial one, with the writer's initials. Never write remarks as coloured text,
+   comments meant to be read in the PDF, or footnotes. Never resolve or delete a coauthor's note unless asked.
+   `\documentclass[final]{…}` hides every note.
+8. **Personal editor preferences** (theme, font size, keybindings) do not belong in `.vscode/`.
+9. **After editing**, build the paper and fix undefined references and citations before you finish.
+10. **Git.** Small, specific commits ("Add proof of Lemma 3.2"). Pull before you start, push when asked. Do not rewrite
    history, force-push, delete branches or files someone else owns, or commit generated files, unless explicitly asked.
    Ask before bulk or cross-paper changes (renames, reformatting whole files).
 

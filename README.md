@@ -24,6 +24,7 @@ and an `AGENTS.md`, and is added to `vendor-registry.json` (commit that here). S
 | `di-random.sty` | Notation for Keisler randomizations and stochastic structures |
 | `di-ramsey.sty` | Notation for Ramsey theory, ultrafilter semigroups, stable Boolean algebras |
 | `di-exercises.sty` | `xsim`-backed `{exercise}`/`{solution}` environments |
+| `di-notes.sty` | Coauthor notes: `\note{ED}{…}` (margin balloon), `\Note{ED}{…}` / `{discussion}` (inline box); hidden by `\documentclass[final]`; loaded by `di-base-core` |
 | `latexmkrc` | Template `latexmkrc` for paper repos (copy to repo root) |
 | `Makefile` | `make install` copies `.sty` files to `TEXMFHOME` for local use |
 

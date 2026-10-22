@@ -49,6 +49,7 @@ the tools do most of the work for you.
 | `\newtheorem{lemma}[theorem]{Lemma}` in a look-preserving paper | `\DiSharedTheorem{lemma}{Lemma}` | `\cref` then prints "Lemma" |
 | committing PDFs, `.aux`, backups | nothing (ignored) | generated files bloat history |
 | editing a collaborator's section silently | comment/branch/PR | everybody's changes stay reviewable |
+| remarks in red text, `% ED: …` comments, or a footnote | `\note{ED}{…}` (margin) or `\Note{ED}{…}` (box) | visible to coauthors, never mistaken for the paper; `\documentclass[final]` hides them all |
 
 ## Where to read more
 

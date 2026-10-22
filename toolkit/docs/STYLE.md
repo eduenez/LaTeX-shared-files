@@ -312,6 +312,28 @@ Two properties to rely on:
 
 ## 11. Collaboration
 
-- `todonotes` is loaded: `\todo{...}` / `\todo[inline]{...}`.
+### Notes to coauthors
+
+Notes are printed in the PDF so that everyone sees them, and they look nothing like the paper: small sans-serif type in a
+tinted box, labelled with the author's initials, never numbered. Two kinds (from `di-notes`, loaded by the base):
+
+| For | Write | Prints |
+|---|---|---|
+| a minor remark about one spot | `\note{ED}{Do we need $X$ separable here?}` | a balloon in the margin, with a line to that spot |
+| a substantial remark | `\Note{JI}{Before submitting we should decide …}` | a full-width box between paragraphs |
+| several paragraphs | `\begin{discussion}{ED}` … `\end{discussion}` | the same box |
+
+- Put a margin note right after the word it is about, with no space before it (`… on~$X$.\note{ED}{…}`).
+- Initials pick the colour: `ED` blue, `JI` orange, anyone else gray until the paper's `.sty` says
+  `\DiNoteAuthor{KM}{teal}`. `\listofnotes` (e.g. at the end) lists every note with its page.
+- **To print the paper without the notes, add `final` to the document class:** `\documentclass[12pt,final]{amsart}`. Every
+  note disappears and nothing else changes. Remove `final` to see them again. (`draft` is not needed for notes, and it also
+  turns figures into empty boxes.)
+- Margin notes do not move the text: while they are shown the page is simply wider, so every line and page break is the
+  one of the final paper. Inline notes do take space.
+- Resolve a note by acting on it and deleting it; reply to it with a note of your own next to it.
+- `make arxiv` removes all notes from the submitted source (arXiv publishes the source) and checks the bundle against the
+  paper printed with its notes hidden.
+- Plain `\todo{...}` from `todonotes` also works (and `final` hides it), but prefer `\note`/`\Note`, which say who wrote them.
 - Git mantra: **pull → commit often → push**. Small, specific commit messages
   ("Add proof of Lemma 3.2", not "updates").
