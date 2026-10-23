@@ -286,6 +286,47 @@ check("\\notes and \\Notebook are other macros",
       ab.strip_notes(_pre + "\\notes{a}{b} \\Notebook\n"), (_pre + "\\notes{a}{b} \\Notebook\n", 0))
 
 
+# ---------------------------------------------------------------------------
+# toolkit_lock — the scripts-only profile never installs the rest of the toolkit
+# ---------------------------------------------------------------------------
+# The failure this prevents: a flat repository that vendors only .sty files and the bibliography (ProbabilityModels and
+# friends) needs current vendoring scripts, but a full sync would add a Makefile, latexmkrc, templates, … and change its build.
+print("toolkit_lock profiles:")
+import tempfile  # noqa: E402
+import toolkit_lock as tlk  # noqa: E402
+
+
+def _toolkit_case(profile_line):
+    up, root = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    (up / "toolkit" / "scripts").mkdir(parents=True)
+    (up / "toolkit" / "docs").mkdir()
+    for name in ("update_shared.py", "bib_diff.py", "doctor.sh"):
+        (up / "toolkit" / "scripts" / name).write_text(f"# {name}\n")
+    (up / "toolkit" / "docs" / "STYLE.md").write_text("style\n")
+    (up / "toolkit" / "MANIFEST.tsv").write_text(
+        "managed\tscripts/update_shared.py\t_scripts/update_shared.py\tuse\n"
+        "managed\tscripts/bib_diff.py\t_scripts/bib_diff.py\tuse\n"
+        "managed\tscripts/doctor.sh\t_scripts/doctor.sh\tuse\n"
+        "managed\tdocs/STYLE.md\tSTYLE.md\tuse\n")
+    (root / "_scripts").mkdir()
+    if profile_line is not None:
+        (root / "_scripts" / "vendor.lock").write_text(tlk.HEADER + profile_line + "\n")
+    tlk.sync(str(up), "abc1234", str(root), True, log=lambda *_: None)
+    files = sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and "DO_NOT_EDIT" not in p.name)
+    return files, tlk.read_profile(str(root)), sorted(tlk.read_lock(str(root)))
+
+
+_files, _profile, _lock = _toolkit_case(tlk.PROFILE_LINE)
+check("scripts profile: only the vendoring scripts are copied",
+      _files, ["_scripts/bib_diff.py", "_scripts/update_shared.py", "_scripts/vendor.lock"])
+check("scripts profile: the profile line survives the rewritten lock", _profile, "scripts")
+check("scripts profile: the lock pins exactly those scripts", _lock, ["_scripts/bib_diff.py", "_scripts/update_shared.py"])
+_files, _profile, _lock = _toolkit_case(None)
+check("full profile (no profile line): every managed file is copied",
+      _files, ["STYLE.md", "_scripts/bib_diff.py", "_scripts/doctor.sh", "_scripts/update_shared.py", "_scripts/vendor.lock"])
+check("full profile: no profile line is invented", _profile, "full")
+
+
 print()
 if FAILURES:
     print(f"{len(FAILURES)} FAILURE(S):\n")

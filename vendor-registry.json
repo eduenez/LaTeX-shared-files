@@ -99,7 +99,7 @@
         "bib"
       ],
       "notes": "converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
-      "tool": "make update-shared (python3 _scripts/update_shared.py)"
+      "tool": "make update-shared (python3 _scripts/update_shared.py); toolkit profile: scripts only (_scripts/vendor.lock)"
     },
     {
       "name": "RealRandom",
@@ -111,7 +111,7 @@
         "bib"
       ],
       "notes": "converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
-      "tool": "make update-shared (python3 _scripts/update_shared.py)"
+      "tool": "make update-shared (python3 _scripts/update_shared.py); toolkit profile: scripts only (_scripts/vendor.lock)"
     },
     {
       "name": "RealStructures",
@@ -123,7 +123,7 @@
         "bib"
       ],
       "notes": "converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later",
-      "tool": "make update-shared (python3 _scripts/update_shared.py)"
+      "tool": "make update-shared (python3 _scripts/update_shared.py); toolkit profile: scripts only (_scripts/vendor.lock)"
     },
     {
       "name": "DImanuscripts",

@@ -8,6 +8,9 @@ sha256:<hex>`), exactly like the shared .sty files in _packages/, and *seed* fil
     python3 _scripts/toolkit_lock.py check            verify the managed files against their recorded checksums (exit 1 on problems)
     (update_shared.py calls sync() for you:  make update-shared [--apply])
 
+A repository that vendors only the .sty files and the bibliography declares `# profile: scripts` in _scripts/vendor.lock; it then
+receives just the vendoring scripts (PROFILE_SCRIPTS), never the rest of the toolkit.
+
 Never edit a managed file in a consuming repository: change it in LaTeX-shared-files/toolkit/ first, then `make update-shared`.
 """
 import hashlib, os, re, shutil, sys
@@ -19,6 +22,22 @@ HEADER = """# vendor.lock — the TOOLKIT files vendored from eduenez/LaTeX-shar
 # These files are PRISTINE copies: never edit them here. Change them in LaTeX-shared-files first, then run `make update-shared`.
 # (The shared .sty files and the bibliography are pinned separately, in _packages/vendor.lock.)
 """
+
+
+# A repository whose _scripts/vendor.lock carries the line  `# profile: scripts`  vendors only the scripts that keep its shared
+# files current (it vendors .sty files and the bibliography, but not the rest of the toolkit: e.g. a flat repository with
+# papers at its root and its own latexmkrc).  sync() then refreshes exactly these files and nothing else.
+PROFILE_LINE = '# profile: scripts'
+PROFILE_SCRIPTS = ('_scripts/update_shared.py', '_scripts/toolkit_lock.py', '_scripts/houseroot.py', '_scripts/bib_diff.py',
+                   '_scripts/vendor_check.py')
+
+
+def read_profile(root):
+    """'scripts' if the toolkit lock declares the scripts-only profile, else 'full'."""
+    p = os.path.join(root, LOCK)
+    if os.path.exists(p) and any(line.strip() == PROFILE_LINE for line in open(p)):
+        return 'scripts'
+    return 'full'
 
 
 def sha(path):
@@ -88,6 +107,10 @@ def read_lock(root):
 def sync(upstream, head, root, apply_, add_new=False, log=print):
     """Compare (and with apply_ refresh) the managed toolkit files of `root` against the upstream clone `upstream`."""
     rows = [(m, s_, d_) for m, s_, d_, _ in manifest(upstream)]
+    profile = read_profile(root)
+    if profile == 'scripts':
+        rows = [(m, s_, d_) for m, s_, d_ in rows if m == 'managed' and d_ in PROFILE_SCRIPTS]
+        log('  toolkit profile: scripts only (' + ', '.join(os.path.basename(d) for _, _, d in rows) + ')')
     lock = read_lock(root)
     new_lock, n_up, n_same, n_new = {}, 0, 0, 0
     for mode, src, dest in rows:
@@ -121,9 +144,9 @@ def sync(upstream, head, root, apply_, add_new=False, log=print):
         log(f'  toolkit {g}: no longer in the manifest (left in place; delete it if obsolete)')
     log(f'  toolkit: {n_same} identical, {n_up} updated, {n_new} new, {len(gone)} dropped upstream')
     if apply_:
-        body = HEADER + '\n' + ''.join(f'{d:<44} {REPO:<28} {c:<8} sha256:{h}\n' for d, (c, h) in sorted(new_lock.items()))
+        body = HEADER + (PROFILE_LINE + '\n' if profile == 'scripts' else '') + '\n' + ''.join(f'{d:<44} {REPO:<28} {c:<8} sha256:{h}\n' for d, (c, h) in sorted(new_lock.items()))
         open(os.path.join(root, LOCK), 'w').write(body)
-        write_donotedit(root)
+        write_donotedit(root, ('_packages', '_scripts') if profile == 'scripts' else ('_packages', '_scripts', '_templates'))
 
 
 def check(root):
