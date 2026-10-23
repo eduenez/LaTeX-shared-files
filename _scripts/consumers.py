@@ -50,11 +50,14 @@ def stale(c):
     # the vendored toolkit (toolkit/MANIFEST.tsv): managed files whose content differs from toolkit/ here
     mf = os.path.join(here, 'toolkit', 'MANIFEST.tsv')
     if os.path.exists(os.path.join(p, '_scripts', 'vendor.lock')) and os.path.exists(mf):
+        sys.path.insert(0, os.path.join(here, 'toolkit', 'scripts'))
+        import toolkit_lock  # the scripts-only profile limits the comparison to the vendoring scripts
+        only = toolkit_lock.PROFILE_SCRIPTS if toolkit_lock.read_profile(p) == 'scripts' else None
         for line in open(mf, encoding='utf-8'):
             if line.startswith('#') or not line.strip():
                 continue
             mode, src, dest = line.rstrip('\n').split('\t')[:3]
-            if mode != 'managed':
+            if mode != 'managed' or (only is not None and dest not in only):
                 continue
             cp = os.path.join(p, dest)
             if not os.path.exists(cp) or open(os.path.join(here, 'toolkit', src), 'rb').read() != open(cp, 'rb').read():
