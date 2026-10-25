@@ -326,6 +326,34 @@ check("full profile (no profile line): every managed file is copied",
       _files, ["STYLE.md", "_scripts/bib_diff.py", "_scripts/doctor.sh", "_scripts/update_shared.py", "_scripts/vendor.lock"])
 check("full profile: no profile line is invented", _profile, "full")
 
+# ---------------------------------------------------------------------------
+# manifestations — manifestations.toml
+# ---------------------------------------------------------------------------
+print("manifestations:")
+import tempfile  # noqa: E402
+import tomllib  # noqa: E402
+import manifestations as mf  # noqa: E402
+
+with tempfile.TemporaryDirectory() as _d:
+    (Path(_d) / "a.zip").write_bytes(b"x")
+    mf.add(_d, "arxiv-v1", "arxiv", {"date": "2026-10-20", "tag": "arxiv-p-v1", "artifact": "a.zip", "sha256": mf.sha256(Path(_d) / "a.zip")})
+    mf.set_fields(_d, "arxiv-v1", {"arxiv_id": "2610.10000", "doi": "10.48550/arXiv.2610.10000"})
+    mf.add(_d, "arxiv-v1", "arxiv", {"tag": "arxiv-p-v1"})          # existing id: updated, not duplicated
+    mf.add(_d, "arxiv-v2", "arxiv", {"date": "2026-11-01"})
+    _recs = mf.records(_d)
+    check("two records, no duplicate", [r["id"] for r in _recs], ["arxiv-v1", "arxiv-v2"])
+    check("arXiv id stays a string (YAML would make 2610.10000 the float 2610.1)", _recs[0]["arxiv_id"], "2610.10000")
+    check("commented hint line is filled in place", sum(1 for l in (Path(_d) / mf.FILE).read_text().split("\n") if l.startswith("arxiv_id")), 1)
+    check("sha256 of a good artifact checks", mf.check(str(Path(_d).parent), [Path(_d).name], quiet=True), 0)
+    (Path(_d) / "a.zip").write_bytes(b"y")
+    check("a changed artifact is an error", mf.check(str(Path(_d).parent), [Path(_d).name], quiet=True), 1)
+    try:
+        mf.set_fields(_d, "arxiv-v1", {"password": "abc123"})
+        _refused = False
+    except SystemExit:
+        _refused = True
+    check("a password key is refused", _refused, True)
+
 
 print()
 if FAILURES:

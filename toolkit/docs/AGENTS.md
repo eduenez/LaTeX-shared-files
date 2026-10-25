@@ -59,6 +59,7 @@ same as `make`. At the repository root the same targets exist with `P=<paper>`; 
 | `make check [P=<paper>]` | dry run: report what `make format` would change |
 | `make lint [P=<paper>]` | chktex |
 | `make arxiv [V=n] [FORCE=1]` (in `<paper>/`; `V=n`, not `-Vn`) | one-file arXiv bundle `<paper>/arxiv/<main>-arxiv-vN.zip` (.tex + .bbl, packages inlined, comments stripped except `%#` banners, verified); commit it and tag `arxiv-<paper>-vN` only when the user has submitted |
+| `make record ID=<id> [ARXIV=<arXiv id>] [SET='key=value']`, `make manifest` (in `<paper>/`) | add facts (arXiv id, DOI, a pointer to where the paper password is kept: never the password) to a record of `<paper>/manifestations.toml`, written by `make arxiv`; list the records and check tags, checksums and missing ids |
 | `make export P=<paper>` | self-contained copy in `_export/<paper>/` (arXiv, submission) |
 | `make install-hooks` | install the advisory pre-commit hook |
 

@@ -47,6 +47,9 @@ papers=$(for f in [!_.]*/*.tex; do [ -f "$f" ] && grep -l '\\documentclass' "$f"
 [ -n "$papers" ] && ok "papers: $papers" || note "no papers found" "make new P=<name> TYPE=article"
 nomk=$(for d in $papers; do [ -f "$d/Makefile" ] || printf "%s " "$d"; done)
 [ -z "$nomk" ] || note "papers without a Makefile: $nomk" "bash $here/add-paper-makefiles.sh   (adds the one-line Makefile; 'make' then works inside each paper)"
+if [ -n "$(ls [!_.]*/manifestations.toml 2>/dev/null)" ]; then
+  mf=$(python3 "$here/manifestations.py" check --quiet 2>&1) && ok "manifestations.toml: tags, checksums and arXiv ids" || note "manifestations.toml needs attention" "$(echo "$mf" | head -3 | cut -c1-110)   (make manifest, inside the paper)"
+fi
 [ -f .vscode/settings.json ] && ok "VS Code settings (soft-wrap on)" || note "no .vscode/settings.json" "restore it from Git"
 echo
 if [ $miss -eq 0 ]; then if [ $warn -gt 0 ]; then echo "All required tools are present ($warn optional item(s) noted)."; else echo "All required tools are present."; fi; else echo "$miss required item(s) missing — see 'fix:' hints above, then re-run: make doctor"; fi

@@ -12,6 +12,7 @@ managed	scripts/export-paper.sh	_scripts/export-paper.sh	use
 managed	scripts/flatten.py	_scripts/flatten.py	use
 managed	scripts/houseroot.py	_scripts/houseroot.py	use
 managed	scripts/init_repo.py	_scripts/init_repo.py	use
+managed	scripts/manifestations.py	_scripts/manifestations.py	use
 managed	scripts/new-paper.sh	_scripts/new-paper.sh	use
 managed	scripts/paper.mk	_scripts/paper.mk	use
 managed	scripts/setup-hooks.sh	_scripts/setup-hooks.sh	use

@@ -17,7 +17,8 @@ What it does
   publishes the source; the comparison is then with a build of the paper with its notes hidden.
 Version numbers follow arXiv's (v1, v2, …). Existing bundles are never overwritten (use --force). The zip is byte-for-byte
 reproducible (fixed timestamps), so committing it records exactly what was submitted. Tag the commit when you submit:
-    git tag arxiv-<paper>-v1
+    git tag -a arxiv-<paper>-v1 -m ...
+The bundle is also recorded in <paper>/manifestations.toml (see manifestations.py), where the arXiv id and DOI are added later.
 """
 import argparse, os, re, shutil, subprocess, sys, tempfile, zipfile
 
@@ -377,8 +378,25 @@ def main():
             zi.external_attr = 0o644 << 16
             z.writestr(zi, files[f])
     print(f'wrote {os.path.relpath(zpath, ROOT)}  ({os.path.getsize(zpath)} bytes): {", ".join(sorted(files))}')
-    print(f'after submitting:  git add {os.path.relpath(zpath, ROOT)} && git commit -m "arXiv v{v} of {name}" && git tag arxiv-{name}-v{v}')
-
+    tag = f'arxiv-{name}-v{v}'
+    mid = f'arxiv-v{v}' if name == os.path.basename(pdir) else f'arxiv-{name}-v{v}'
+    try:
+        import manifestations
+        who = subprocess.run(['git', '-C', ROOT, 'config', 'user.name'], capture_output=True, text=True).stdout.strip()
+        made = manifestations.add(pdir, mid, 'arxiv', {'tag': tag, 'artifact': os.path.relpath(zpath, pdir), 'submitter': who,
+                                                       'date': __import__('datetime').date.today().isoformat(),
+                                                       'sha256': manifestations.sha256(zpath)},
+                                  ('arxiv_id = ""     # when arXiv announces it:  make record ID=%s ARXIV=2610.01234  (fills arxiv_id, doi, url)' % mid,
+                                   'credential = ""   # WHERE the paper password is kept, e.g. "vault: arXiv <id>" (a pointer, never the password)'))
+        print(f'{"recorded" if made else "updated"} {mid} in {os.path.relpath(os.path.join(pdir, "manifestations.toml"), ROOT)}')
+    except SystemExit as e:
+        print(f'warning: could not update manifestations.toml: {e}')
+    rel = os.path.relpath(zpath, ROOT)
+    print(f'after submitting:  git add {rel} {os.path.relpath(os.path.join(pdir, "manifestations.toml"), ROOT)} && git commit -m "arXiv v{v} of {name}"'
+          f' && git tag -a {tag} -m "arXiv v{v} of {name}" && git push origin HEAD {tag}')
+    print('then, the same day: put the paper password arXiv e-mails you in the shared vault and record WHERE (never the password itself):\n'
+          f'    make record ID={mid} SET=\'credential=vault: arXiv <id>\'\n'
+          f'and when the arXiv id is announced:  make record ID={mid} ARXIV=2610.01234')
 
 if __name__ == '__main__':
     main()

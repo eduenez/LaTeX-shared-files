@@ -28,7 +28,12 @@ the tools do most of the work for you.
    surname (`BenYaacov`, not `Ben-Yaacov`).
 8. **Start a new paper.** `make new P=my-paper TYPE=article` (or `monograph`: one file per chapter; or `book-single`: a whole book in one file), then edit `my-paper/my-paper.tex` and
    `my-paper/my-paper.sty`. Then work inside `my-paper/`: `make` builds it (`make help` lists the rest), as does plain `latexmk`.
-9. **What not to touch.** `_packages/` (shared, vendored: change it upstream, then re-vendor), other people's papers,
+9. **Submitting to arXiv (or a journal).** `make arxiv` builds the one-file bundle and records it in `my-paper/manifestations.toml`, which lists every
+   *manifestation* of the paper: arXiv versions, versions sent to editors and referees, camera-ready files. After submitting: commit the zip and that
+   file, tag the commit (`git tag -a arxiv-my-paper-v1`) and push the tag. A few days later, when arXiv announces the id: `make record ID=arxiv-v1 ARXIV=2610.01234`
+   (fills the id, the DOI and the URL); `make manifest` lists and checks the records. **The arXiv paper password**, the only way for a coauthor to claim a
+   submission, goes into the shared vault the day you get it, never into the repository; record only *where* (`make record ID=arxiv-v1 'SET=credential=vault: arXiv 2610.01234'`).
+10. **What not to touch.** `_packages/` (shared, vendored: change it upstream, then re-vendor), other people's papers,
    `latexmkrc`/`Makefile` at the root (they affect everybody).
 
 ## Cheat sheet: old habit → house way

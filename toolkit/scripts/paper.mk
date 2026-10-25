@@ -25,7 +25,7 @@ LATEXMK := latexmk $(if $(wildcard latexmkrc),,-r ../latexmkrc)
 
 .DEFAULT_GOAL := pdf
 .PHONY: pdf PDF compile article all watch clean distclean help FORCE \
-        arxiv flat format reflow fashion wrap indent sep check lint export doctor vendor-check bib-diff update-shared install-hooks
+        arxiv record manifest flat format reflow fashion wrap indent sep check lint export doctor vendor-check bib-diff update-shared install-hooks
 
 ## pdf: build the default document of this directory (synonyms: PDF, compile, article)
 pdf PDF compile article:
@@ -47,6 +47,15 @@ FORCE:
 ## `make arxiv` takes the next free version; `make arxiv V=2` names one; add FORCE=1 to overwrite it. (Not -V2: make reads that as an option.)
 arxiv:
 	@python3 $(HERE)arxiv_bundle.py $(PAPER) $(if $(V),--version $(V)) $(if $(FORCE),--force) $(ARXIV_ARGS)
+
+## record: add facts to a line of <paper>/manifestations.toml:  make record ID=arxiv-v1 ARXIV=2610.01234   or   SET='credential=vault: arXiv 2610.01234'
+##         (one SET= per call). `make manifest` lists the records and checks tags, checksums, missing ids.
+record:
+	@test -n "$(ID)" || { echo "usage: make record ID=<id> [ARXIV=<arXiv id>] [SET='key=value']"; exit 2; }
+	@python3 $(HERE)manifestations.py set $(PAPER) "$(ID)" $(if $(ARXIV),--arxiv "$(ARXIV)") $(if $(SET),"$(SET)")
+manifest:
+	@python3 $(HERE)manifestations.py list $(PAPER)
+	@python3 $(HERE)manifestations.py check $(PAPER)
 
 ## flat: single-file view of the whole document (all \input/\include inlined) in _build/<main>-flat.tex, for reading,
 ## searching and global replace; see flatten.py
@@ -79,6 +88,7 @@ help:
 	@echo "  make lint       chktex                            make export    self-contained copy (arXiv)"
 	@echo "  make flat       single-file view of a multi-file document (_build/NAME-flat.tex)"
 	@echo "  make arxiv      one-file arXiv bundle: next free version, or V=n [FORCE=1]"
+	@echo "  make record     add facts to manifestations.toml (ID=.. ARXIV=..)   make manifest  list and check them"
 	@echo "  make clean      remove intermediates              make distclean also remove the PDFs"
 	@echo "  make doctor | vendor-check | bib-diff | update-shared   repository-wide chores"
 	@echo "Plain 'latexmk' in this directory does the same as 'make'."
