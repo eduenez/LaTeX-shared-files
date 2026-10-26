@@ -25,7 +25,7 @@ LATEXMK := latexmk $(if $(wildcard latexmkrc),,-r ../latexmkrc)
 
 .DEFAULT_GOAL := pdf
 .PHONY: pdf PDF compile article all watch clean distclean help FORCE \
-        arxiv record manifest flat format reflow fashion wrap indent sep check lint export doctor vendor-check bib-diff update-shared install-hooks
+        arxiv record manifest flat format reflow fashion wrap indent sep check lint export doctor vendor-check bib-diff newkey update-shared install-hooks
 
 ## pdf: build the default document of this directory (synonyms: PDF, compile, article)
 pdf PDF compile article:
@@ -76,7 +76,7 @@ distclean: clean
 # Formatting, linting and export act on this paper only; the repository-wide chores run at the root.
 format reflow fashion wrap indent sep check lint export:
 	@$(MAKE) --no-print-directory -C $(ROOT) $@ P=$(PAPER)
-doctor vendor-check bib-diff update-shared install-hooks:
+doctor vendor-check bib-diff newkey update-shared install-hooks:
 	@$(MAKE) --no-print-directory -C $(ROOT) $@
 
 ## help: list the targets

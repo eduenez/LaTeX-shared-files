@@ -28,7 +28,7 @@ HEADER = """# vendor.lock — the TOOLKIT files vendored from eduenez/LaTeX-shar
 # files current (it vendors .sty files and the bibliography, but not the rest of the toolkit: e.g. a flat repository with
 # papers at its root and its own latexmkrc).  sync() then refreshes exactly these files and nothing else.
 PROFILE_LINE = '# profile: scripts'
-PROFILE_SCRIPTS = ('_scripts/update_shared.py', '_scripts/toolkit_lock.py', '_scripts/houseroot.py', '_scripts/bib_diff.py',
+PROFILE_SCRIPTS = ('_scripts/update_shared.py', '_scripts/toolkit_lock.py', '_scripts/houseroot.py', '_scripts/bib_diff.py', '_scripts/ownkeys.py',
                    '_scripts/vendor_check.py')
 
 

@@ -493,6 +493,10 @@ def cmd_bib_merge(reg: Registry, args) -> int:
     quar_map = key_map(quar_path.read_text()) if quar_path.exists() else {}
     to_quar = {k: modified[k][1] for k in modified if k not in quar_map}
 
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "toolkit" / "scripts"))
+    import ownkeys
+    for note in ownkeys.advise(list(to_add), known=master_map):
+        print(_c("  " + note, C_YEL))
     print(f"{_c(args.child, C_GRN)} -> master ({reg.bib_name()}):")
     print(f"  new -> merge: {_c(str(len(to_add)), C_GRN if to_add else C_DIM)}"
           + (f"  ({', '.join(sorted(to_add))})" if to_add else ""))

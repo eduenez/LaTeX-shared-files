@@ -5,6 +5,7 @@ Compare the repository's references.bib with the upstream master (math-bibliogra
   - local-only entries   : added here, to be proposed upstream (use --emit-local-only to write them to a file)
   - upstream-only entries: new upstream since this copy was vendored (make update-shared brings them in)
   - CHANGED entries      : same key, different content — an EDIT of an existing entry (fix it upstream, not only here)
+Local-only keys of our own papers (Dueñez/Iovino, 2026 on) without a letter get an advisory note (ownkeys.py).
 Exit status 1 if any entry was changed locally; additions alone are fine. --upstream FILE avoids the network (clones the repo otherwise).
 """
 import sys, os, re, subprocess, tempfile, shutil
@@ -87,6 +88,12 @@ def main():
     changed = sorted(k for k in set(loc) & set(upe) if not same(loc[k], upe[k]))
     print(f'references.bib: {len(loc)} local entries, {len(upe)} upstream')
     print(f'  local-only (to propose upstream): {len(only_loc)}' + (': ' + ', '.join(only_loc[:12]) + (' …' if len(only_loc) > 12 else '') if only_loc else ''))
+    try:
+        import ownkeys
+        for n in ownkeys.advise(only_loc, known=loc):
+            print('  ' + n)
+    except ImportError:
+        pass
     print(f'  upstream-only (new upstream; `make update-shared`): {len(only_up)}')
     print(f'  CHANGED here relative to upstream: {len(changed)}')
     for k in changed[:20]:

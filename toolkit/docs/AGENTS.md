@@ -125,7 +125,7 @@ copies of them, and so does every repository created from it. Therefore:
    (`{\'a}`, `{\"U}ber`, `{B}anach`). Style `amsalpha`. Keep bare at-signs out of header comments.
    **Our own papers** (every paper with Iovino and/or Dueñez among the authors) get a letter from the start: `Author-Author:YYYYl`, `l` one
    character `a`–`z` (`Aubone-Iovino:2026a`), even if it is the only one that year. We write several papers a year, and a key must not
-   change when a second one appears. Take the next unused letter for that author set and year; never rename existing keys on your own
+   change when a second one appears. `make newkey AUTHORS=Aubone-Iovino YEAR=2027` prints the next unused key for that author set and year (`make bib-diff` and the commit hook remind you if you forget); never rename existing keys on your own
    (a rename touches every `\cite` and every consumer repository).
 6. **Source style.** One sentence or clause per source line, two-space indentation, modern Unicode text (except in
    `\title`/`\author`), no `$$`, no `eqnarray`; run `make format` rather than formatting by hand. Do not hard-wrap

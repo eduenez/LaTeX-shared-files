@@ -69,6 +69,11 @@ else
 	@echo "bib-diff: the bibliography is a submodule: edit math-bibliography/references.bib in place, commit and push there, then commit the new pointer here."
 endif
 
+## newkey: the next unused citation key for one of our own papers:  make newkey AUTHORS=Aubone-Iovino YEAR=2027   ->  Aubone-Iovino:2027a
+newkey:
+	@test -n "$(AUTHORS)" -a -n "$(YEAR)" || { echo "usage: make newkey AUTHORS=Aubone-Iovino YEAR=2027   (surnames, hyphen-separated, no accents)"; exit 2; }
+	@python3 $(SCRIPTS)/ownkeys.py newkey "$(AUTHORS)" "$(YEAR)"
+
 ## update-shared: vendored: dry run of what changed upstream (APPLY=1 applies); submodule: move _packages and math-bibliography to
 ## their newest upstream commits and say what to commit
 update-shared:
@@ -87,7 +92,7 @@ update-submodules: update-shared
 submodules:
 	@git submodule update --init
 
-.PHONY: test submodules update-submodules vendor-check bib-diff update-shared doctor all help new export build build-all article pdf PDF compile format reflow fashion wrap indent sep check lint clean install-hooks $(PAPERS)
+.PHONY: test submodules update-submodules vendor-check bib-diff newkey update-shared doctor all help new export build build-all article pdf PDF compile format reflow fashion wrap indent sep check lint clean install-hooks $(PAPERS)
 
 all: help
 
@@ -100,6 +105,7 @@ help:
 	@echo "    make update-shared   Shared files ($(MODE) mode): vendored = dry run of what changed upstream (APPLY=1 applies); submodule = move the pointers"
 	@echo "    make vendor-check    Vendored mode: verify that _packages/ and the toolkit files are pristine (checksums)"
 	@echo "    make bib-diff        Vendored mode: compare references.bib with the upstream master (additions / edits)"
+	@echo "    make newkey          Next free citation key for our own papers: AUTHORS=Aubone-Iovino YEAR=2027 -> Aubone-Iovino:2027a"
 	@echo "    make submodules      Fetch the submodules after a fresh clone"
 	@echo ""
 	@echo "  Papers:"

@@ -243,6 +243,9 @@ Example: `\label{thm:main-result}` → `\cref{thm:main-result}`.
   **never appears inside a surname** — write `BenYaacov`, `NashWilliams`, `TomczakJaegermann`, `vonNeumann`, `vanMoerbeke`
   (accents dropped: `Erdos`). Same author(s) and year: add `a`, `b`, … (`Gowers:1996a`). Undated: `:0000`
   (e.g. private communications). Reuse an existing entry if the work is already there.
+  **Our own papers** (Dueñez and/or Iovino among the authors) get the letter from the start, `Aubone-Iovino:2026a`, even if it is the
+  only one that year, because several papers a year are the rule and a key must not change when a second one appears.
+  `make newkey AUTHORS=Aubone-Iovino YEAR=2027` prints the next unused key. Advisory only: older keys keep their form.
 - Cite with `\cite{key}`. A non-breaking space before it (`Doe~\cite{Doe:2020}`) is recommended.
 - The bibliography is typeset by `\bibliographystyle{amsalpha}` + `\bibliography{../references}`
   at the end of the main `.tex`.

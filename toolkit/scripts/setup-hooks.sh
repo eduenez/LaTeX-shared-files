@@ -45,6 +45,11 @@ set -uo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
+# Advisory: citation keys added to references.bib that break the letter convention for our own papers (ownkeys.py)
+if git diff --cached --name-only | grep -qx 'references.bib'; then
+  python3 "$REPO_ROOT/@SCRIPTS@/ownkeys.py" staged 2>/dev/null || true
+fi
+
 # Collect staged .tex files
 STAGED_TEX=$(git diff --cached --name-only --diff-filter=ACM | grep '\.tex$' || true)
 

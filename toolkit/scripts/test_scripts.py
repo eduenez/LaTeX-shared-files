@@ -354,6 +354,22 @@ with tempfile.TemporaryDirectory() as _d:
         _refused = True
     check("a password key is refused", _refused, True)
 
+# ---------------------------------------------------------------------------
+# ownkeys — citation keys of our own papers
+# ---------------------------------------------------------------------------
+print("ownkeys:")
+import ownkeys  # noqa: E402
+
+check("own key without letter, 2026 on: advised", len(ownkeys.advise(["Aubone-Iovino:2026"])), 1)
+check("own key with letter: fine", ownkeys.advise(["Aubone-Iovino:2026a"]), [])
+check("own key before 2026: left alone", ownkeys.advise(["Duenez-Iovino:2019"]), [])
+check("somebody else's key: left alone", ownkeys.advise(["Maurey:2026"]), [])
+check("non-year suffix is not ours to judge", ownkeys.advise(["Aubone-Iovino:GKS"]), [])
+check("next letter after a, b", ownkeys.next_key("Aubone-Iovino", 2026, ["Aubone-Iovino:2026a", "Aubone-Iovino:2026b", "Other:2026a"]), "Aubone-Iovino:2026c")
+check("first key of a year", ownkeys.next_key("Aubone-Iovino", 2027, ["Aubone-Iovino:2026a"]), "Aubone-Iovino:2027a")
+check("an unlettered key counts as a", ownkeys.next_key("Aubone-Duenez-Iovino", 2026, ["Aubone-Duenez-Iovino:2026"]), "Aubone-Duenez-Iovino:2026b")
+check("keys_of ignores @comment and @string", ownkeys.keys_of("@comment{x}\n@article{A:2020,\n}\n@string{s = {x}}"), ["A:2020"])
+
 
 print()
 if FAILURES:
