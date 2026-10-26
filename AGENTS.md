@@ -14,11 +14,12 @@ This repository is the **single source of truth** for the group's shared LaTeX m
    created from it hold *vendored copies* (pristine, checksummed); other repositories hold this one as a submodule. A fix made in a
    vendored copy is lost at the next update and is a violation of the workflow. If you find a bug while working in a consuming
    repository, make the fix here (or tell the maintainer), never there.
-2. **Test before you commit:** `python3 toolkit/scripts/test_scripts.py && python3 toolkit/scripts/test_texfashion.py`; for a style
+2. **Test before you commit:** `python3 toolkit/scripts/test_scripts.py && python3 toolkit/scripts/test_texfashion.py` (and `python3 _scripts/test_sync_all.py` after touching `_scripts/`); for a style
    file, build a paper that uses it.
 3. **Keep the manifest in step:** a new or removed file under `toolkit/` needs `toolkit/MANIFEST.tsv` regenerated
    (`toolkit/README.md`).
-4. **Then propagate** (the maintainer's step, or with the maintainer's go-ahead): `python3 _scripts/consumers.py` shows which
+4. **Then propagate** (the maintainer's step, or with the maintainer's go-ahead): `python3 _scripts/vendor.py sync-all` does the whole loop
+   for every consumer (dry run first; `--apply` commits, `--push` publishes; see `WORKFLOW.md` §7). By hand: `python3 _scripts/consumers.py` shows which
    consumers are behind. Order: `LaTeX-codespace-template` first (`make update-shared`, then `python3 _scripts/update_shared.py
    --apply`, build, commit, push), then the vendoring consumers, then re-check with `consumers.py`. Update `CONSUMERS.md`
    (`consumers.py --write`) when the list of consumers changes.
