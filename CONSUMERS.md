@@ -15,7 +15,7 @@ the repositories to update (`python3 _scripts/consumers.py` shows who is behind)
 | [`eduenez/ProbabilityModels`](https://github.com/eduenez/ProbabilityModels) | vendored-simple | `55b7b0a` | converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later |
 | [`eduenez/RealRandom`](https://github.com/eduenez/RealRandom) | vendored-simple | `55b7b0a` | converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later |
 | [`eduenez/RealStructures`](https://github.com/eduenez/RealStructures) | vendored-simple | `55b7b0a` | converted from submodules to vendored copies (branch vendored-model, merged); flat layout with several papers at the root — candidate for full consolidation into a multi-paper repository later |
-| [`eduenez/research`](https://github.com/eduenez/research) | submodule | `a789079` | solo repository; both masters as submodules (_packages = LaTeX-shared-files, toolkit used in place from _packages/toolkit/; Makefile and latexmkrc are stubs). |
+| [`eduenez/research`](https://github.com/eduenez/research) | submodule | `fcb3b7f` | solo repository; both masters as submodules (_packages = LaTeX-shared-files, toolkit used in place from _packages/toolkit/; Makefile and latexmkrc are stubs). |
 
 **Models.** *vendored-json*: copies in `_packages/` with `vendor.lock.json` and a frozen bibliography baseline; maintained with
 `vendor.py` and `vendor_sty.py` run from LaTeX-shared-files. *vendored-simple*: copies in `_packages/` with `vendor.lock` (SHA-256 per file);
