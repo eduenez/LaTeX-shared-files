@@ -295,7 +295,7 @@ def cmd_init(reg: Registry, args) -> int:
 
 def _commit(repo: Path, paths: list[str], msg: str) -> None:
     git(repo, "add", "-A", "--", *paths)
-    full = msg + "\n\nCo-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+    full = msg + "\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
     git(repo, "commit", "-q", "-m", full)
 
 
