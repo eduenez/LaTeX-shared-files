@@ -65,10 +65,14 @@ LaTeX-shared-files/di-*.sty ──────vendor──▶ child/_packages/di
 
 - Run everything **from the `LaTeX-shared-files` repo** (the tool finds its
   siblings via `vendor-registry.json` here).
-- On PATH: `python3` (3.10+), `bibtex-tidy`, `biber`, `gzip`. Check:
+- On PATH: `python3` (3.10+), `git`, and **`bibtex-tidy` at the pinned version** (in `math-bibliography/.bibtex-tidy-version`;
+  another version may reformat entries). It needs Node.js; install with
   ```sh
-  python3 --version && command -v bibtex-tidy biber gzip
+  npm install -g bibtex-tidy@$(cat ../math-bibliography/.bibtex-tidy-version)
   ```
+  (on a workstation set up with `prof-workstation`, its `18-latex-tools` feature does this). `vendor.py` checks the tool and its
+  version before every command and stops, with this install line, if either is wrong. `biber` (TeX Live) is needed only for
+  `validate --datamodel`.
 - The sibling repos must be checked out next to this one (as in
   `vendor-registry.json`: `../no-free-lunch`, `../math-bibliography`).
 

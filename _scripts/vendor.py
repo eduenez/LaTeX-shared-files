@@ -50,6 +50,7 @@ import gzip
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -140,6 +141,22 @@ def sha256_bytes(data: bytes) -> str:
 
 def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+def check_tools(reg: "Registry") -> str | None:
+    """Every command formats bibliographies with bibtex-tidy: fail before touching anything if it is missing or is not the version
+    the master is formatted with (math-bibliography/.bibtex-tidy-version; another version may reformat entries). None if fine."""
+    pin_file = reg.bib_master() / ".bibtex-tidy-version"
+    pin = pin_file.read_text().strip() if pin_file.exists() else None
+    install = f"npm install -g bibtex-tidy@{pin or '<version>'}"
+    if not shutil.which("bibtex-tidy"):
+        return f"bibtex-tidy is not installed (needs Node.js):  {install}"
+    have = subprocess.run(["bibtex-tidy", "--version"], capture_output=True, text=True).stdout.strip().lstrip("v")
+    if pin and have != pin:
+        return f"bibtex-tidy {have} is installed, but {pin_file} pins {pin}:  {install}"
+    if not shutil.which("git"):
+        return "git is not on PATH"
+    return None
 
 
 def bibtex_tidy(data: bytes, args: list[str], extra: list[str] | None = None) -> bytes:
@@ -819,6 +836,10 @@ def main() -> int:
 
     args = p.parse_args()
     reg = Registry(find_registry())
+    problem = check_tools(reg)
+    if problem:
+        print(f"vendor.py: {problem}", file=sys.stderr)
+        return 2
     if args.cmd == "sync-all":
         import sync_all
         return sync_all.run(reg, args)
