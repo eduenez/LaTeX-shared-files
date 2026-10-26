@@ -23,8 +23,8 @@ and how you (the maintainer) drive it with `_scripts/vendor.py`.
   `di-base-article.sty`, `di-base-monograph.sty`, `di-structures.sty`, …).
 - `math-bibliography` — the master `references.bib`.
 
-**Children** (the paper/book repos that consume them): `no-free-lunch`,
-`topos-logic`, `QuantumStructures`.
+**Children** (the old-model paper/book repos that consume them, with `vendor.lock.json`): `no-free-lunch`. (`topos-logic` was converted to the
+simple model, `make update-shared`, on 2026-10-25; `QuantumStructures` is retired into QuantumTeam. `vendor-registry.json` and `CONSUMERS.md` are authoritative.)
 
 Instead of submodules, each child carries **vendored** copies — real, committed
 files — so a collaborator clones and builds with zero submodule steps. The
@@ -70,8 +70,7 @@ LaTeX-shared-files/di-*.sty ──────vendor──▶ child/_packages/di
   python3 --version && command -v bibtex-tidy biber gzip
   ```
 - The sibling repos must be checked out next to this one (as in
-  `vendor-registry.json`: `../no-free-lunch`, `../topos-logic`,
-  `../QuantumStructures`, `../math-bibliography`).
+  `vendor-registry.json`: `../no-free-lunch`, `../math-bibliography`).
 
 **Golden rule:** every command that changes anything is a **dry run by default**.
 You must pass `--apply` to actually write files, and even then the tool only
@@ -269,7 +268,7 @@ A rejected push is reported and the commit stays local. Anything a person must d
 upstream, malformed key, dirty consumer) is listed in red, exit status 1, and the other consumers go on. Safe to re-run; a second run does nothing.
 **Style files of the old-model children (`--sty`, opt-in).** Bibliography changes only add data; a style change is code and can alter the printed
 output, so it is never applied by default. The dry run lists newer shared `di-*.sty` files as "optional"; to apply them:
-`vendor.py sync-all --apply --sty --build no-free-lunch topos-logic` (`--build NAME[/dir]` is required: the files are copied in, the child's paper is
+`vendor.py sync-all --apply --sty --build no-free-lunch` (`--build NAME[/dir]` is required: the files are copied in, the child's paper is
 built with `make`, and they are committed only if it passes, otherwise reverted). Every run also prints a "project .sty changed since its snapshot"
 line for each child (`sty-snapshot` / `sty-propagate` stay manual: that file belongs to the coauthors).
 Test: `python3 _scripts/test_sync_all.py` (sandbox of bare remotes; no network).
