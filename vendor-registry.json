@@ -19,10 +19,6 @@
     "no-free-lunch": {
       "path": "../no-free-lunch",
       "project_sty": "NFL.sty"
-    },
-    "topos-logic": {
-      "path": "../topos-logic",
-      "project_sty": "topos-logic.sty"
     }
   },
   "consumers": [
@@ -42,13 +38,13 @@
       "name": "topos-logic",
       "repo": "eduenez/topos-logic",
       "path": "../topos-logic",
-      "model": "vendored-json",
+      "model": "vendored-simple",
       "vendors": [
         "sty",
         "bib"
       ],
-      "tool": "vendor.py + vendor_sty.py",
-      "notes": "uses the shared references.bib only (references-local.bib adopted into the master); PR workflow (collaborators)"
+      "tool": "make update-shared (python3 _scripts/update_shared.py); toolkit profile: scripts only (_scripts/vendor.lock)",
+      "notes": "flat single-paper monograph with collaborators (own project .sty, own Makefile and formatters in _scripts/); converted 2026-10-25 from the old vendor.lock.json model (vendored-json) to the simple model: PDF identical before and after; the children/topos-logic snapshot of the project .sty was dropped"
     },
     {
       "name": "LaTeX-codespace-template",
