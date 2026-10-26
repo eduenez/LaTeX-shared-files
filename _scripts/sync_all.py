@@ -42,7 +42,8 @@ from vendor import C_DIM, C_GRN, C_RED, C_YEL, _c  # noqa: E402
 
 def env():
     """Evaluated at each call: the environment (e.g. GIT_CONFIG_* in the sandbox test) may change after import."""
-    return dict(os.environ, GIT_TERMINAL_PROMPT="0")
+    # PYTHONDONTWRITEBYTECODE: the consumers' scripts run here must not leave __pycache__ in their repositories
+    return dict(os.environ, GIT_TERMINAL_PROMPT="0", PYTHONDONTWRITEBYTECODE="1")
 
 
 JUNK = ("__pycache__", ".DS_Store", ".pyc")
