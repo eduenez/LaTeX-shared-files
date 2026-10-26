@@ -181,6 +181,10 @@ else, they are **dry-run by default**; `--apply` writes files and commits locall
   (a malformed **new** key is blocked; everything else warns), tidy them into the
   master `math-bibliography/references.bib`, and route any *modified* existing
   entries to `_quarantined_references.bib` for manual review (never auto-merged).
+  `<child>` may also be a **vendored-simple consumer** (QuantumDI, QuantumTeam, the template, …): its baseline is the
+  master's `references.bib` at the commit pinned in its `_packages/vendor.lock`. After the merge, push `math-bibliography`
+  and run `make update-shared APPLY=1` in the consumer (its local-only entries are then identical to upstream).
+  Keys a consumer keeps on purpose (the template's demo entries) are listed as `bib_merge_ignore` in its registry entry.
 - **`bib-propagate [child…]`** — push the updated master bib back down. Refreshes
   each child's frozen baseline to the new master, and updates the working copy by a
   **3-way merge** (base = old frozen, ours = working, theirs = new master), per

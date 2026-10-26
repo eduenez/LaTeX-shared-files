@@ -177,7 +177,7 @@ Phase B — the child→master→children bib flow and `.sty` snapshots — is a
 available (dry-run by default; `--apply` commits locally):
 
 ```sh
-python3 _scripts/vendor.py bib-merge <child> [--apply]      # child NEW -> master; MODIFIED -> quarantine
+python3 _scripts/vendor.py bib-merge <child> [--apply]      # child or vendored-simple consumer: NEW -> master; MODIFIED -> quarantine
 python3 _scripts/vendor.py bib-propagate [child] [--apply]  # master -> children (refresh baseline + working)
 python3 _scripts/vendor.py sty-snapshot <child> [--apply]   # child <project>.sty -> children/<name>/
 ```

@@ -21,8 +21,11 @@ Phase A — inspection + migration:
   validate  house-style key check + sort check (+ biber datamodel).  (read-only)
 
 Phase B — reconciliation (child -> master -> children):
-  bib-merge      merge a child's NEW entries into the master bib; route MODIFIED
+  bib-merge      merge a consumer's NEW entries into the master bib; route MODIFIED
                  existing entries to _quarantined_references.bib.   (writes with --apply)
+                 Works for registered children AND for vendored-simple consumers
+                 (QuantumDI, QuantumTeam, ...): their baseline is the master at the
+                 commit pinned in _packages/vendor.lock.
   bib-propagate  push the master bib down: refresh each child's frozen baseline and
                  3-way-merge its working copy (untouched follows master, local edits
                  preserved).                                        (writes with --apply)
@@ -434,15 +437,38 @@ def serialize_bib(preamble: str, kmap: dict[str, str]) -> str:
 
 # ── bib-merge: child NEW entries -> master; child MODIFIED entries -> quarantine ──
 
+def _merge_source(reg: Registry, name: str, tidy: list[str]) -> tuple[str, str, str]:
+    """(baseline, working_tidied, source_commit) of the consumer `name`.
+
+    A registered child (vendored-json) has a frozen baseline in packages/. A vendored-simple consumer (QuantumDI, QuantumTeam, the
+    template, ...) has none: its baseline is the master's references.bib at the commit pinned in its _packages/vendor.lock."""
+    if name in reg.children:
+        child = reg.child_path(name)
+        lock = load_lock_json(child)
+        if lock is None:
+            sys.exit(f"{name}: not migrated — run: vendor.py init")
+        baseline, rec = _bib_baseline(child, lock)
+        return baseline, bibtex_tidy((child / rec["working_path"]).read_bytes(), tidy).decode(), rec["source_commit"]
+    cons = next((c for c in reg.data.get("consumers", []) if c["name"] == name and c.get("model") == "vendored-simple"), None)
+    if cons is None:
+        sys.exit(f"{name}: not a registered child nor a vendored-simple consumer (see vendor-registry.json)")
+    repo = reg.resolve(cons["path"])
+    lockp = next((repo / d / "vendor.lock" for d in ("_packages", "_scripts") if (repo / d / "vendor.lock").exists()), None)
+    pin = next((c for n, r, c in read_plain_lock(lockp) if n == reg.bib_name() and r.endswith("math-bibliography")), None) if lockp else None
+    if pin is None:
+        sys.exit(f"{name}: no pinned {reg.bib_name()} in its vendor.lock")
+    baseline = git_show(reg.bib_master(), pin, reg.bib_name()).decode()
+    return baseline, bibtex_tidy((repo / reg.bib_name()).read_bytes(), tidy).decode(), pin
+
+
 def cmd_bib_merge(reg: Registry, args) -> int:
-    child = reg.child_path(args.child)
-    lock = load_lock_json(child)
-    if lock is None:
-        sys.exit(f"{args.child}: not migrated — run: vendor.py init")
     tidy = reg.tidy_args()
-    baseline, rec = _bib_baseline(child, lock)
-    working_tidied = bibtex_tidy((child / rec["working_path"]).read_bytes(), tidy).decode()
+    baseline, working_tidied, source_commit = _merge_source(reg, args.child, tidy)
     new, modified = classify(working_tidied, baseline)
+    # keys a consumer keeps on purpose and never offers upstream (e.g. the template's demo entries): "bib_merge_ignore" in its registry entry
+    skip = set(next((c.get("bib_merge_ignore", []) for c in reg.data.get("consumers", []) if c["name"] == args.child), []))
+    new = {k: v for k, v in new.items() if k not in skip}
+    modified = {k: v for k, v in modified.items() if k not in skip}
     if not new and not modified:
         print(f"{_c(args.child, C_GRN)}: nothing to merge (0 new, 0 modified)")
         return 0
@@ -491,7 +517,7 @@ def cmd_bib_merge(reg: Registry, args) -> int:
                   "% Quarantined bib entries: modifications to EXISTING entries made in child\n"
                   "% repos. Review each against references.bib, then merge upstream or drop.\n\n")
         block = "\n\n".join(
-            f"% ── from {args.child} (modified vs baseline @ {rec['source_commit']}) ──\n{to_quar[k]}"
+            f"% ── from {args.child} (modified vs baseline @ {source_commit}) ──\n{to_quar[k]}"
             for k in sorted(to_quar))
         with quar_path.open("a") as fh:
             fh.write(header + block + "\n")
@@ -501,7 +527,8 @@ def cmd_bib_merge(reg: Registry, args) -> int:
                 f"vendor: merge {len(to_add)} new entr{'y' if len(to_add) == 1 else 'ies'} "
                 f"from {args.child}" + (f" + quarantine {len(to_quar)} modified" if to_quar else ""))
         print(_c(f"  committed math-bibliography @ {git(master_dir, 'rev-parse', '--short', 'HEAD')}", C_GRN))
-        print(_c("  next: vendor.py bib-propagate --apply", C_DIM))
+        print(_c("  next: " + ("vendor.py bib-propagate --apply" if args.child in reg.children else
+                              f"push math-bibliography, then `make update-shared APPLY=1` in {args.child} (its copies become identical)"), C_DIM))
     return 0
 
 
@@ -755,7 +782,7 @@ def main() -> int:
     sp.add_argument("child")
     sp.add_argument("--datamodel", action="store_true", help="also run biber --validate-datamodel")
 
-    sp = sub.add_parser("bib-merge", help="merge a child's NEW entries into the master bib (MODIFIED -> quarantine)")
+    sp = sub.add_parser("bib-merge", help="merge a consumer's NEW entries into the master bib (MODIFIED -> quarantine); child or vendored-simple consumer")
     sp.add_argument("child")
     sp.add_argument("--apply", action="store_true", help="write & commit math-bibliography (default: dry run)")
 

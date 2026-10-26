@@ -61,7 +61,11 @@
         "toolkit"
       ],
       "tool": "make update-shared (_scripts/update_shared.py)",
-      "notes": "template for new multi-paper repositories; ships the full set of di-* packages Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock."
+      "notes": "template for new multi-paper repositories; ships the full set of di-* packages Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock.",
+      "bib_merge_ignore": [
+        "example2024",
+        "placeholder2025"
+      ]
     },
     {
       "name": "QuantumDI",
