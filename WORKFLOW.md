@@ -249,6 +249,27 @@ untouched until you pass `--force` or reconcile by hand. Both are idempotent
 
 ---
 
+## 7. One command for the whole loop: `sync-all`
+
+Everything in sections 5-6 for *every* consumer at once (`_scripts/sync_all.py`, run as `vendor.py sync-all`):
+
+```sh
+python3 _scripts/vendor.py sync-all                  # dry run: fetches, writes nothing, says what each step would do
+python3 _scripts/vendor.py sync-all --apply          # does it, committing locally (never pushes)
+python3 _scripts/vendor.py sync-all --apply --push   # ... and pushes: the master first, then every consumer
+#   --only NAME ...   --skip NAME ...   --no-harvest   --build CONSUMER/PAPER ...   --json   -v
+```
+
+Steps: preflight (masters and consumers reachable, no tracked changes, fast-forwarded; a consumer with unpushed commits of its own is skipped) ->
+harvest (`bib-merge` for every vendored consumer: new entries into the master, edited ones to quarantine; a malformed key skips that consumer and
+shows the fix) -> publish the master (`update_shared.py` reads the master from GitHub, so without `--push` the run stops before propagating) ->
+propagate (vendored-simple: `update_shared.py`, looked at before it is applied; vendored-json: `bib-propagate`; submodule consumers: move the pointers,
+ignoring documentation-only upstream commits) -> one commit per consumer, explicit paths only -> regenerate `CONSUMERS.md`.
+A rejected push is reported and the commit stays local. Anything a person must decide (renamed key still cited, entry edited here and
+upstream, malformed key, dirty consumer) is listed in red, exit status 1, and the other consumers go on. Safe to re-run; a second run does nothing.
+Test: `python3 _scripts/test_sync_all.py` (sandbox of bare remotes; no network).
+`repos` in `site-tools` fetches and fast-forwards all local clones first and reminds you to run this when a master moved.
+
 ## For authors (the short version — no tools to run)
 
 - Edit your paper's `references.bib` and `<project>.sty` freely.

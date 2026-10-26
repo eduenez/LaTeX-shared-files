@@ -29,6 +29,9 @@ Phase B — reconciliation (child -> master -> children):
   bib-propagate  push the master bib down: refresh each child's frozen baseline and
                  3-way-merge its working copy (untouched follows master, local edits
                  preserved).                                        (writes with --apply)
+  sync-all       the whole loop in one command: harvest every consumer's new entries, publish the
+                 master, propagate to every consumer, regenerate CONSUMERS.md.  Dry run by default;
+                 --apply commits locally, --push publishes (see sync_all.py).
   sty-snapshot   copy a child's <project>.sty UP to LaTeX-shared-files/children/. (writes with --apply)
   sty-propagate  push a child's <project>.sty DOWN from LaTeX-shared-files/children/
                  (3-way vs the last snapshot; local edits preserved, conflicts
@@ -803,8 +806,21 @@ def main() -> int:
     sp.add_argument("--force", action="store_true", help="on conflict, overwrite the child with the master version")
     sp.add_argument("--apply", action="store_true", help="write the child .sty and commit (default: dry run)")
 
+    sp = sub.add_parser("sync-all", help="the whole loop: harvest -> publish -> propagate to every consumer (see sync_all.py)")
+    sp.add_argument("--apply", action="store_true", help="do it, committing locally (default: dry run)")
+    sp.add_argument("--push", action="store_true", help="also push the masters and every consumer (implies --apply)")
+    sp.add_argument("--only", nargs="+", metavar="NAME", help="only these consumers")
+    sp.add_argument("--skip", nargs="+", metavar="NAME", help="not these consumers")
+    sp.add_argument("--no-harvest", action="store_true", help="propagate only; take nothing from the consumers")
+    sp.add_argument("--build", nargs="+", metavar="CONSUMER/PAPER", help="after propagating, run make in these paper directories")
+    sp.add_argument("--json", action="store_true", help="machine-readable report")
+    sp.add_argument("-v", "--verbose", action="store_true", help="also list consumers with nothing to do")
+
     args = p.parse_args()
     reg = Registry(find_registry())
+    if args.cmd == "sync-all":
+        import sync_all
+        return sync_all.run(reg, args)
     return {"init": cmd_init, "status": cmd_status, "diff": cmd_diff,
             "validate": cmd_validate, "bib-merge": cmd_bib_merge,
             "bib-propagate": cmd_bib_propagate, "sty-snapshot": cmd_sty_snapshot,
