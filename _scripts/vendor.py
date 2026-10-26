@@ -812,7 +812,8 @@ def main() -> int:
     sp.add_argument("--only", nargs="+", metavar="NAME", help="only these consumers")
     sp.add_argument("--skip", nargs="+", metavar="NAME", help="not these consumers")
     sp.add_argument("--no-harvest", action="store_true", help="propagate only; take nothing from the consumers")
-    sp.add_argument("--build", nargs="+", metavar="CONSUMER/PAPER", help="after propagating, run make in these paper directories")
+    sp.add_argument("--sty", action="store_true", help="also update the shared style files of vendored-json children (needs --build NAME[/dir]; reverted if the build fails)")
+    sp.add_argument("--build", nargs="+", metavar="CONSUMER[/DIR]", help="run make in these directories (required with --sty; also smoke-builds after propagating)")
     sp.add_argument("--json", action="store_true", help="machine-readable report")
     sp.add_argument("-v", "--verbose", action="store_true", help="also list consumers with nothing to do")
 

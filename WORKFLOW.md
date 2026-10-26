@@ -267,6 +267,11 @@ propagate (vendored-simple: `update_shared.py`, looked at before it is applied; 
 ignoring documentation-only upstream commits) -> one commit per consumer, explicit paths only -> regenerate `CONSUMERS.md`.
 A rejected push is reported and the commit stays local. Anything a person must decide (renamed key still cited, entry edited here and
 upstream, malformed key, dirty consumer) is listed in red, exit status 1, and the other consumers go on. Safe to re-run; a second run does nothing.
+**Style files of the old-model children (`--sty`, opt-in).** Bibliography changes only add data; a style change is code and can alter the printed
+output, so it is never applied by default. The dry run lists newer shared `di-*.sty` files as "optional"; to apply them:
+`vendor.py sync-all --apply --sty --build no-free-lunch topos-logic` (`--build NAME[/dir]` is required: the files are copied in, the child's paper is
+built with `make`, and they are committed only if it passes, otherwise reverted). Every run also prints a "project .sty changed since its snapshot"
+line for each child (`sty-snapshot` / `sty-propagate` stay manual: that file belongs to the coauthors).
 Test: `python3 _scripts/test_sync_all.py` (sandbox of bare remotes; no network).
 `repos` in `site-tools` fetches and fast-forwards all local clones first and reminds you to run this when a master moved.
 

@@ -4,7 +4,7 @@
     python3 _scripts/vendor.py sync-all                    dry run: what each phase would do (fetches, writes nothing)
     python3 _scripts/vendor.py sync-all --apply            ... and do it, committing locally
     python3 _scripts/vendor.py sync-all --apply --push     ... and push (the masters first, then every consumer)
-    options: --only NAME ...  --skip NAME ...  --no-harvest  --build CONSUMER/PAPER ...  --json
+    options: --only NAME ...  --skip NAME ...  --no-harvest  --sty  --build CONSUMER[/DIR] ...  --json
 
 Phases (each consumer is independent: one that needs a person is skipped and listed, the others go on; safe to re-run):
   0 preflight   masters and consumers: reachable, no tracked changes, on their tracking branch, fast-forwarded when behind;
@@ -17,6 +17,10 @@ Phases (each consumer is independent: one that needs a person is skipped and lis
                 submodule consumers: move the submodule pointers; legacy-bib: reported only
   4 commit      one commit per consumer, explicit paths only (never `git add -A`); push with --push (a rejected push is reported,
                 the commit stays local)
+  3b style      vendored-json children only, OPT-IN (--sty): newer shared di-*.sty files are copied in, the child's paper is built
+                (--build NAME[/DIR] is required), and the files are committed only if the build passes (otherwise reverted).
+                Without --sty the dry run lists what is available. Always shown: "project .sty changed since its snapshot".
+                (Style is code, not data: a change can alter the printed output, so it is never applied by default.)
   5 close       regenerate CONSUMERS.md / consumers.json and commit them in both masters (documentation only; nobody becomes stale)
 Never: rebase, reset, stash, force-push, or touch an entry a person has to decide about (renamed key still cited, entry edited in
 two places, malformed key).  Exit status 1 if anything needs a person.
@@ -56,6 +60,19 @@ def g(repo, *args, timeout=120):
 
 def short(repo):
     return g(repo, "rev-parse", "--short", "HEAD")[1]
+
+
+BUILT = set()
+
+
+def build_dirs(reg, name, path, specs):
+    """Directories to `make` for the --build specs that name this consumer (NAME or NAME/dir)."""
+    return [path / spec.partition("/")[2] for spec in specs or [] if spec == name or spec.startswith(name + "/")]
+
+
+def make(d):
+    r = subprocess.run(["make"], cwd=d, capture_output=True, text=True, env=env(), timeout=1800)
+    return r.returncode == 0, (r.stdout[-300:] + r.stderr[-300:]).strip()
 
 
 class Row:
@@ -233,6 +250,47 @@ def propagate_child(reg, c, path, apply, push, rows):
         rows.append(Row(name, "push", "done" if rc == 0 else "needs-you", "pushed" if rc == 0 else f"PUSH REJECTED ({err.splitlines()[-1] if err else rc})"))
 
 
+def child_style(reg, c, path, apply, push, args, rows):
+    """vendored-json children: the shared style files (opt-in) and the project-.sty drift line."""
+    name = c["name"]
+    script = reg.root / "_scripts" / "vendor_sty.py"
+    r = subprocess.run([sys.executable, str(script), str(path)], capture_output=True, text=True, env=env(), timeout=300)
+    updates = [l[2:].split(":")[0].strip() for l in r.stdout.splitlines() if l.startswith("~ ")]
+    lock = vendor.load_lock_json(path) or {}
+    proj = next((f for f in lock.get("files", []) if f["kind"] == "project-sty"), None)
+    if proj and (path / proj["local_path"]).exists() and proj.get("sha256") != vendor.sha256_file(path / proj["local_path"]):
+        rows.append(Row(name, "project-sty", "info", f"{proj['local_path']} changed since its snapshot in LaTeX-shared-files "
+                                                       f"(python3 _scripts/vendor.py sty-snapshot {name}); never automated: it is your coauthors' file"))
+    if not updates:
+        return
+    listing = ", ".join(updates)
+    dirs = build_dirs(reg, name, path, getattr(args, "build", None))
+    if not getattr(args, "sty", False):
+        rows.append(Row(name, "style", "optional", f"{len(updates)} shared style file(s) newer upstream ({listing}); apply with: --sty --build {name}"))
+        return
+    if not dirs:
+        rows.append(Row(name, "style", "needs-you", f"{len(updates)} style file(s) to update ({listing}) but no --build {name}[/dir]: style is only applied together with a passing build"))
+        return
+    if not apply:
+        rows.append(Row(name, "style", "planned", f"{len(updates)} style file(s) ({listing}); would build {', '.join(str(d.relative_to(path)) or '.' for d in dirs)} before committing"))
+        return
+    r = subprocess.run([sys.executable, str(script), str(path), "--apply"], capture_output=True, text=True, env=env(), timeout=300)
+    paths = ["_packages/vendor.lock.json"] + [f"_packages/{f}" for f in updates]
+    if r.returncode:
+        g(path, "checkout", "--", *paths)
+        rows.append(Row(name, "style", "error", (r.stdout + r.stderr).strip()[-200:]))
+        return
+    for d in dirs:
+        ok, tail = make(d)
+        BUILT.add(str(d))
+        if not ok:
+            g(path, "checkout", "--", *paths)
+            rows.append(Row(name, "style", "needs-you", f"build of {d.relative_to(path) or '.'} FAILED with the new style files, reverted: {tail[-160:]}"))
+            return
+    rows.append(Row(name, "style", "done", f"{len(updates)} style file(s) ({listing}); build passed"))
+    commit_and_push(path, paths, "Update shared style files from LaTeX-shared-files (build checked)", apply, push, rows, name)
+
+
 def propagate_submodules(reg, c, path, apply, push, rows):
     name = c["name"]
     moved = []
@@ -273,6 +331,7 @@ def run(reg, args):
     apply = bool(args.apply or args.push)
     push = bool(args.push)
     rows = []
+    BUILT.clear()
     bib_master = reg.bib_master()
     masters = {"math-bibliography": bib_master, "LaTeX-shared-files": reg.root}
 
@@ -328,6 +387,7 @@ def run(reg, args):
                 propagate_simple(reg, c, path, apply, push, rows)
             elif m == "vendored-json":
                 propagate_child(reg, c, path, apply, push, rows)
+                child_style(reg, c, path, apply, push, args, rows)
             elif m == "submodule":
                 propagate_submodules(reg, c, path, apply, push, rows)
             else:
@@ -337,7 +397,7 @@ def run(reg, args):
     for spec in args.build or []:
         cons, _, paper = spec.partition("/")
         d = next((reg.resolve(c["path"]) / paper for c, _ in usable if c["name"] == cons), None)
-        if d and d.is_dir() and apply:
+        if d and d.is_dir() and apply and str(d) not in BUILT:
             r = subprocess.run(["make"], cwd=d, capture_output=True, text=True, timeout=900)
             rows.append(Row(spec, "build", "done" if r.returncode == 0 else "needs-you", "" if r.returncode == 0 else r.stdout[-200:] + r.stderr[-200:]))
 
@@ -355,19 +415,20 @@ def report(rows, args, abort=None):
     if args.json:
         print(json.dumps([r.as_dict() for r in rows], indent=1))
     else:
-        colors = {"ok": C_DIM, "nothing": C_DIM, "planned": C_YEL, "done": C_GRN, "needs-you": C_RED, "error": C_RED}
+        colors = {"ok": C_DIM, "nothing": C_DIM, "planned": C_YEL, "done": C_GRN, "needs-you": C_RED, "error": C_RED, "optional": C_YEL, "info": C_DIM}
         mode = "PUSH" if args.push else "APPLY" if args.apply else "DRY RUN"
         print(f"sync-all ({mode})")
         for r in rows:
             if r.status in ("nothing", "ok") and not r.detail and not getattr(args, "verbose", False):
                 continue
-            print(f"  {r.name:<26}{r.phase:<11}{_c(r.status, colors.get(r.status, ''))}  {r.detail}".rstrip())
+            print(f"  {r.name:<26}{r.phase:<13}{_c(r.status, colors.get(r.status, ''))}  {r.detail}".rstrip())
         if abort:
             print(_c(f"stopped: {abort}", C_RED))
         todo = [r for r in rows if r.status in ("needs-you", "error")]
         planned = [r for r in rows if r.status == "planned"]
+        extras = [r for r in rows if r.status in ("optional", "info")]
         if not rows or (not todo and not planned and not any(r.status == "done" for r in rows)):
-            print(_c("  nothing to do: every consumer is current", C_DIM))
+            print(_c("  nothing to do: every consumer is current" + (" (optional items above)" if extras else ""), C_DIM))
         if planned and not (args.apply or args.push):
             print(_c(f"\n{len(planned)} step(s) planned. Add --apply to do them (commits locally), --push to publish.", C_DIM))
         if todo:

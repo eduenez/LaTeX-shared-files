@@ -35,7 +35,7 @@ def sh(cwd, *args):
 
 class Args:
     def __init__(self, **kw):
-        self.apply = self.push = self.no_harvest = self.json = self.verbose = False
+        self.apply = self.push = self.no_harvest = self.json = self.verbose = self.sty = False
         self.only = self.skip = self.build = None
         self.__dict__.update(kw)
 
@@ -63,16 +63,21 @@ class SyncAll(unittest.TestCase):
         bare("math-bibliography", PEERS / "math-bibliography")
         for n in ("consA", "consB", "consC"):
             bare(n, PEERS / "LaTeX-codespace-template")
-        for n in ("LaTeX-shared-files", "math-bibliography", "consA", "consB", "consC"):
+        bare("childX", PEERS / "no-free-lunch")                              # an old-model (vendored-json) child
+        for n in ("LaTeX-shared-files", "math-bibliography", "consA", "consB", "consC", "childX"):
             work(n)
+        (t / "childX" / "Makefile").write_text("all:\n\t@true\n")          # the real one runs a whole TeX build
+        sh(t / "childX", "commit", "-qam", "trivial Makefile for the test")
+        sh(t / "childX", "push", "-q")
         real_reg = json.loads((REAL / "vendor-registry.json").read_text())
         ignore = ["example2024", "placeholder2025"]
         reg = dict(real_reg)
-        reg["children"] = {}
+        reg["children"] = {"childX": {"path": "../childX", "project_sty": "NFL.sty"}}
         reg["masters"] = dict(real_reg["masters"])
         reg["masters"]["bibliography"] = dict(real_reg["masters"]["bibliography"], path="../math-bibliography")
         reg["consumers"] = [dict(name=n, repo=f"eduenez/{n}", path=f"../{n}", model="vendored-simple", vendors=["sty", "bib", "toolkit"],
                                  bib_merge_ignore=ignore) for n in ("consA", "consB", "consC")]
+        reg["consumers"].append(dict(name="childX", repo="eduenez/childX", path="../childX", model="vendored-json", vendors=["sty", "bib"]))
         (t / "LaTeX-shared-files" / "vendor-registry.json").write_text(json.dumps(reg, indent=2))
         cls.reg = vendor.Registry(t / "LaTeX-shared-files" / "vendor-registry.json")
 
@@ -162,6 +167,45 @@ class SyncAll(unittest.TestCase):
         self.assertIn("commit stays local", rows[("consB", "push")]["detail"])
         self.assertNotEqual(self.head("consB"), self.remote_head("consB"))     # committed, not pushed
         self.assertEqual(rc, 1)
+
+    def test_6_style_is_opt_in_needs_a_build_and_reverts_on_failure(self):
+        notes = self.t / "LaTeX-shared-files" / "di-notes.sty"
+        notes.write_text(notes.read_text() + "\n%% changed upstream for the test\n")
+        sh(self.t / "LaTeX-shared-files", "commit", "-qam", "di-notes: test change")
+        sh(self.t / "LaTeX-shared-files", "push", "-q")
+        head0, sty0 = self.head("childX"), (self.t / "childX" / "_packages" / "di-notes.sty").read_text()
+        # without --sty: offered, nothing written; the project-.sty drift line is always there
+        rc, rows = self.run_sync(push=True)
+        self.assertEqual(rows[("childX", "style")]["status"], "optional")
+        self.assertIn("di-notes.sty", rows[("childX", "style")]["detail"])
+        self.assertEqual(rows[("childX", "project-sty")]["status"], "info")
+        self.assertEqual(self.head("childX"), head0)
+        # --sty without --build: refused
+        rc, rows = self.run_sync(push=True, sty=True)
+        self.assertEqual(rows[("childX", "style")]["status"], "needs-you")
+        self.assertEqual(self.head("childX"), head0)
+        # --sty with a failing build: reverted, nothing committed
+        mk = self.t / "childX" / "Makefile"
+        mk.write_text("all:\n\t@false\n")
+        sh(self.t / "childX", "commit", "-qam", "broken build")
+        sh(self.t / "childX", "push", "-q")
+        broken = self.head("childX")
+        rc, rows = self.run_sync(push=True, sty=True, build=["childX"])
+        self.assertEqual(rows[("childX", "style")]["status"], "needs-you")
+        self.assertIn("reverted", rows[("childX", "style")]["detail"])
+        self.assertEqual((self.head("childX"), (self.t / "childX" / "_packages" / "di-notes.sty").read_text()), (broken, sty0))
+        self.assertEqual(sh(self.t / "childX", "status", "--porcelain", "--untracked-files=no"), "")
+        # --sty with a passing build: applied, committed, pushed
+        mk.write_text("all:\n\t@true\n")
+        sh(self.t / "childX", "commit", "-qam", "fixed build")
+        sh(self.t / "childX", "push", "-q")
+        rc, rows = self.run_sync(push=True, sty=True, build=["childX"])
+        self.assertEqual(rows[("childX", "style")]["status"], "done")
+        self.assertEqual(rows[("childX", "commit")]["status"], "done")
+        self.assertIn("changed upstream for the test", (self.t / "childX" / "_packages" / "di-notes.sty").read_text())
+        self.assertEqual(self.head("childX"), self.remote_head("childX"))
+        rc, rows = self.run_sync(push=True)                                   # and then there is nothing left to offer
+        self.assertNotIn(("childX", "style"), rows)
 
 
 if __name__ == "__main__":
