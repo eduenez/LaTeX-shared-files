@@ -4,7 +4,7 @@
     python3 _scripts/vendor.py sync-all                    dry run: what each phase would do (fetches, writes nothing)
     python3 _scripts/vendor.py sync-all --apply            ... and do it, committing locally
     python3 _scripts/vendor.py sync-all --apply --push     ... and push (the masters first, then every consumer)
-    options: --only NAME ...  --skip NAME ...  --no-harvest  --sty  --build CONSUMER[/DIR] ...  --json
+    options: --only NAME ...  --skip NAME ...  --no-harvest  --submodules-of MASTER  --sty  --build CONSUMER[/DIR] ...  --json
 
 Phases (each consumer is independent: one that needs a person is skipped and listed, the others go on; safe to re-run):
   0 preflight   masters and consumers: reachable, no tracked changes, on their tracking branch, fast-forwarded when behind;
@@ -292,11 +292,13 @@ def child_style(reg, c, path, apply, push, args, rows):
     commit_and_push(path, paths, "Update shared style files from LaTeX-shared-files (build checked)", apply, push, rows, name)
 
 
-def propagate_submodules(reg, c, path, apply, push, rows):
+def propagate_submodules(reg, c, path, apply, push, rows, only_of=None):
     name = c["name"]
     moved = []
     relevant = {"math-bibliography": ["references.bib"], "LaTeX-shared-files": [":(glob)di-*.sty", ":(glob)di-*.bst", "toolkit"]}
     for sub, kind in (c.get("submodules") or {}).items():
+        if only_of and kind != only_of:          # --submodules-of: leave the other masters' submodules where they are
+            continue
         sp = path / sub
         if not (sp / ".git").exists():
             rows.append(Row(name, "propagate", "error", f"submodule {sub} is not checked out"))
@@ -347,6 +349,9 @@ def run(reg, args):
         return report(rows, args, abort="a master repository is not clean, reachable and fast-forwardable")
 
     consumers = [c for c in reg.data.get("consumers", []) if (not args.only or c["name"] in args.only) and c["name"] not in (args.skip or [])]
+    known = {c["name"] for c in reg.data.get("consumers", [])}
+    for n in sorted(set(args.only or []) - known):
+        rows.append(Row(n, "preflight", "needs-you", "not in vendor-registry.json: add it there (python3 _scripts/consumers.py lists unregistered repositories)"))
     usable = []
     for c in consumers:
         path = reg.resolve(c["path"])
@@ -390,7 +395,7 @@ def run(reg, args):
                 propagate_child(reg, c, path, apply, push, rows)
                 child_style(reg, c, path, apply, push, args, rows)
             elif m == "submodule":
-                propagate_submodules(reg, c, path, apply, push, rows)
+                propagate_submodules(reg, c, path, apply, push, rows, getattr(args, "submodules_of", None))
             else:
                 rows.append(Row(c["name"], "propagate", "nothing", f"{m}: not automated"))
         except (subprocess.TimeoutExpired, RuntimeError) as e:

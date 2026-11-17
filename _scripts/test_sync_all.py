@@ -47,6 +47,10 @@ class SyncAll(unittest.TestCase):
         t = Path(cls.tmp.name)
         cls.t = t
         (t / "remotes" / "eduenez").mkdir(parents=True)
+        # your own git config must not apply: a global url.<ssh>.insteadOf https://github.com/ would win over the sandbox rewrite
+        # below, and update_shared.py would then reach the real GitHub over ssh (hanging on the ssh agent's approval prompt)
+        os.environ["GIT_CONFIG_GLOBAL"] = "/dev/null"
+        os.environ["GIT_CONFIG_NOSYSTEM"] = "1"
         os.environ["GIT_CONFIG_COUNT"] = "1"
         os.environ["GIT_CONFIG_KEY_0"] = f"url.file://{t}/remotes/.insteadOf"
         os.environ["GIT_CONFIG_VALUE_0"] = "https://github.com/"
@@ -206,6 +210,51 @@ class SyncAll(unittest.TestCase):
         self.assertEqual(self.head("childX"), self.remote_head("childX"))
         rc, rows = self.run_sync(push=True)                                   # and then there is nothing left to offer
         self.assertNotIn(("childX", "style"), rows)
+
+
+class SubmodulesOf(unittest.TestCase):
+    """A submodule consumer with both masters as submodules, each with a relevant commit upstream: --submodules-of moves one only."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        t = Path(self._tmp.name)
+        self._env = dict(os.environ)
+        os.environ.update(GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_COUNT="1",
+                          GIT_CONFIG_KEY_0="protocol.file.allow", GIT_CONFIG_VALUE_0="always", **IDENT)
+        for name, f in (("bib", "references.bib"), ("sty", "di-x.sty")):
+            sh(t, "init", "-q", "--bare", "-b", "main", f"{name}.git")
+            sh(t, "clone", "-q", f"{name}.git", f"{name}-seed")
+            (t / f"{name}-seed" / f).write_text("one\n")
+            sh(t / f"{name}-seed", "add", f)
+            sh(t / f"{name}-seed", "commit", "-qm", "one")
+            sh(t / f"{name}-seed", "push", "-q", "origin", "HEAD:main")
+        sh(t, "init", "-q", "-b", "main", "paper")
+        self.p = t / "paper"
+        sh(self.p, "submodule", "add", "-q", str(t / "bib.git"), "math-bibliography")
+        sh(self.p, "submodule", "add", "-q", str(t / "sty.git"), "_packages")
+        sh(self.p, "commit", "-qm", "submodules")
+        for name, f in (("bib", "references.bib"), ("sty", "di-x.sty")):      # a relevant commit upstream in each master
+            (t / f"{name}-seed" / f).write_text("two\n")
+            sh(t / f"{name}-seed", "commit", "-qam", "two")
+            sh(t / f"{name}-seed", "push", "-q", "origin", "HEAD:main")
+        self.c = {"name": "paper", "submodules": {"math-bibliography": "math-bibliography", "_packages": "LaTeX-shared-files"}}
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self._env)
+        self._tmp.cleanup()
+
+    def planned(self, only_of):
+        rows = []
+        sync_all.propagate_submodules(None, self.c, self.p, False, False, rows, only_of)
+        return [r.detail for r in rows if r.phase == "propagate"]
+
+    def test_all_submodules_by_default(self):
+        self.assertEqual(self.planned(None), ["submodule pointer(s) to move: math-bibliography, _packages"])
+
+    def test_submodules_of_one_master_only(self):
+        self.assertEqual(self.planned("math-bibliography"), ["submodule pointer(s) to move: math-bibliography"])
+        self.assertEqual(self.planned("LaTeX-shared-files"), ["submodule pointer(s) to move: _packages"])
 
 
 if __name__ == "__main__":

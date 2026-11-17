@@ -260,8 +260,11 @@ Everything in sections 5-6 for *every* consumer at once (`_scripts/sync_all.py`,
 python3 _scripts/vendor.py sync-all                  # dry run: fetches, writes nothing, says what each step would do
 python3 _scripts/vendor.py sync-all --apply          # does it, committing locally (never pushes)
 python3 _scripts/vendor.py sync-all --apply --push   # ... and pushes: the master first, then every consumer
-#   --only NAME ...   --skip NAME ...   --no-harvest   --build CONSUMER/PAPER ...   --json   -v
+#   --only NAME ...   --skip NAME ...   --no-harvest   --submodules-of MASTER   --build CONSUMER/PAPER ...   --json   -v
 ```
+
+`--submodules-of math-bibliography` (or `LaTeX-shared-files`) moves only that master's submodules in submodule consumers (`research` keeps
+its `_packages` where it is); `repos --bib-submodules` (site-tools) uses it. A name in `--only` that is not in `vendor-registry.json` is reported.
 
 Steps: preflight (masters and consumers reachable, no tracked changes, fast-forwarded; a consumer with unpushed commits of its own is skipped) ->
 harvest (`bib-merge` for every vendored consumer: new entries into the master, edited ones to quarantine; a malformed key skips that consumer and
