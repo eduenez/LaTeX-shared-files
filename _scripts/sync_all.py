@@ -30,6 +30,7 @@ import io
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -51,9 +52,30 @@ JUNK = ("__pycache__", ".DS_Store", ".pyc")
 
 # ── helpers ──────────────────────────────────────────────────────────────────────
 
+def run_group(args, cwd=None, timeout=None, env=None):
+    """subprocess.run(args, capture_output=True, text=True) in a process group of its own. On timeout the WHOLE group is killed and
+    TimeoutExpired raised: killing only the direct child (what subprocess.run does) left git's ssh behind, still waiting for the ssh
+    agent's approval long after sync-all had given up. The new session also has no terminal, so a credential or passphrase prompt
+    fails at once instead of waiting. Because the group is separate, a Ctrl-C or kill of sync-all itself no longer reaches it: so it is
+    killed here too when the wait is interrupted (KeyboardInterrupt, or the SystemExit that run() makes of SIGTERM)."""
+    p = subprocess.Popen(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         text=True, start_new_session=True)
+    try:
+        out, err = p.communicate(timeout=timeout)
+    except BaseException:                                  # TimeoutExpired, KeyboardInterrupt, SystemExit
+        if hasattr(os, "killpg"):
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(p.pid, signal.SIGKILL)
+        else:                                              # Windows: no process groups
+            p.kill()
+        p.communicate()
+        raise
+    return subprocess.CompletedProcess(args, p.returncode, out, err)
+
+
 def g(repo, *args, timeout=120):
     try:
-        r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, env=env(), timeout=timeout)
+        r = run_group(["git", "-C", str(repo), *args], timeout=timeout, env=env())
     except subprocess.TimeoutExpired:
         return 124, "", f"git {args[0]} timed out"
     return r.returncode, r.stdout.strip(), r.stderr.strip()
@@ -72,7 +94,7 @@ def build_dirs(reg, name, path, specs):
 
 
 def make(d):
-    r = subprocess.run(["make"], cwd=d, capture_output=True, text=True, env=env(), timeout=1800)
+    r = run_group(["make"], cwd=d, env=env(), timeout=1800)
     return r.returncode == 0, (r.stdout[-300:] + r.stderr[-300:]).strip()
 
 
@@ -201,7 +223,7 @@ def propagate_simple(reg, c, path, apply, push, rows):
         rows.append(Row(name, "propagate", "error", "no _scripts/update_shared.py"))
         return
     # always look first: `update_shared.py --apply` rewrites the lock pins even when nothing a paper uses has changed
-    r = subprocess.run([sys.executable, str(script)], cwd=path, capture_output=True, text=True, env=env(), timeout=900)
+    r = run_group([sys.executable, str(script)], cwd=path, env=env(), timeout=900)
     out = r.stdout + r.stderr
     changes, blocked, summary = parse_update_shared(out)
     if blocked or r.returncode:
@@ -214,7 +236,7 @@ def propagate_simple(reg, c, path, apply, push, rows):
     if not apply:
         rows.append(Row(name, "propagate", "planned", summary))
         return
-    r = subprocess.run([sys.executable, str(script), "--apply"], cwd=path, capture_output=True, text=True, env=env(), timeout=900)
+    r = run_group([sys.executable, str(script), "--apply"], cwd=path, env=env(), timeout=900)
     if r.returncode:
         rows.append(Row(name, "propagate", "error", (r.stdout + r.stderr).strip()[-200:]))
         return
@@ -255,7 +277,7 @@ def child_style(reg, c, path, apply, push, args, rows):
     """vendored-json children: the shared style files (opt-in) and the project-.sty drift line."""
     name = c["name"]
     script = reg.root / "_scripts" / "vendor_sty.py"
-    r = subprocess.run([sys.executable, str(script), str(path)], capture_output=True, text=True, env=env(), timeout=300)
+    r = run_group([sys.executable, str(script), str(path)], env=env(), timeout=300)
     updates = [l[2:].split(":")[0].strip() for l in r.stdout.splitlines() if l.startswith("~ ")]
     lock = vendor.load_lock_json(path) or {}
     proj = next((f for f in lock.get("files", []) if f["kind"] == "project-sty"), None)
@@ -275,7 +297,7 @@ def child_style(reg, c, path, apply, push, args, rows):
     if not apply:
         rows.append(Row(name, "style", "planned", f"{len(updates)} style file(s) ({listing}); would build {', '.join(str(d.relative_to(path)) or '.' for d in dirs)} before committing"))
         return
-    r = subprocess.run([sys.executable, str(script), str(path), "--apply"], capture_output=True, text=True, env=env(), timeout=300)
+    r = run_group([sys.executable, str(script), str(path), "--apply"], env=env(), timeout=300)
     paths = ["_packages/vendor.lock.json"] + [f"_packages/{f}" for f in updates]
     if r.returncode:
         g(path, "checkout", "--", *paths)
@@ -330,7 +352,13 @@ def propagate_submodules(reg, c, path, apply, push, rows, only_of=None):
 
 # ── main ─────────────────────────────────────────────────────────────────────────
 
+def exit_on_sigterm():
+    """A kill or `timeout` of sync-all becomes SystemExit, so run_group() can take its child's process group down with it."""
+    signal.signal(signal.SIGTERM, lambda signum, _frame: sys.exit(128 + signum))
+
+
 def run(reg, args):
+    exit_on_sigterm()
     apply = bool(args.apply or args.push)
     push = bool(args.push)
     rows = []
@@ -404,7 +432,7 @@ def run(reg, args):
         cons, _, paper = spec.partition("/")
         d = next((reg.resolve(c["path"]) / paper for c, _ in usable if c["name"] == cons), None)
         if d and d.is_dir() and apply and str(d) not in BUILT:
-            r = subprocess.run(["make"], cwd=d, capture_output=True, text=True, timeout=900)
+            r = run_group(["make"], cwd=d, timeout=900)
             rows.append(Row(spec, "build", "done" if r.returncode == 0 else "needs-you", "" if r.returncode == 0 else r.stdout[-200:] + r.stderr[-200:]))
 
     # 5. close

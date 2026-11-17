@@ -212,6 +212,69 @@ class SyncAll(unittest.TestCase):
         self.assertNotIn(("childX", "style"), rows)
 
 
+class Timeouts(unittest.TestCase):
+    """A git command whose own child outlives it (git push -> ssh waiting for the agent's approval): on timeout the whole process
+    group must die, not just git."""
+
+    def test_timeout_kills_the_grandchild_too(self):
+        with tempfile.TemporaryDirectory() as t:
+            pidfile = Path(t) / "pid"
+            sh(t, "init", "-q")
+            # the alias starts a long sleep in the background (a stand-in for ssh) and waits for it
+            rc, _, err = sync_all.g(t, "-c", f"alias.slow=!sleep 60 & echo $! > {pidfile}; wait", "slow", timeout=2)
+            self.assertEqual(rc, 124)
+            self.assertIn("timed out", err)
+            pid = int(pidfile.read_text())
+            with self.assertRaises(ProcessLookupError):     # gone, not orphaned
+                for _ in range(20):
+                    os.kill(pid, 0)
+                    import time
+                    time.sleep(0.1)
+
+    def _interrupt_sync_all(self, sig):
+        """sync-all (a child process here) running git -> stand-in ssh; send it `sig`; -> pid of the stand-in."""
+        import time
+        with tempfile.TemporaryDirectory() as t:
+            pidfile = Path(t) / "pid"
+            sh(t, "init", "-q")
+            code = ("import sys; sys.path.insert(0, %r); import sync_all; sync_all.exit_on_sigterm(); "
+                    "sync_all.g(%r, '-c', 'alias.slow=!sleep 60 & echo $! > %s; wait', 'slow', timeout=120)") % (str(HERE), t, pidfile)
+            p = subprocess.Popen([sys.executable, "-c", code], stderr=subprocess.DEVNULL)   # its KeyboardInterrupt traceback is expected
+            for _ in range(100):                              # wait until the stand-in ssh is running
+                if pidfile.exists() and pidfile.read_text().strip():
+                    break
+                time.sleep(0.05)
+            pid = int(pidfile.read_text())
+            p.send_signal(sig)
+            p.wait(timeout=10)
+            return pid
+
+    def assertGone(self, pid):
+        import time
+        for _ in range(20):
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return
+            time.sleep(0.1)
+        os.kill(pid, 9)
+        self.fail(f"process {pid} survived sync-all")
+
+    def test_kill_of_sync_all_takes_its_children_down(self):
+        import signal
+        self.assertGone(self._interrupt_sync_all(signal.SIGTERM))
+
+    def test_ctrl_c_of_sync_all_takes_its_children_down(self):
+        import signal
+        self.assertGone(self._interrupt_sync_all(signal.SIGINT))
+
+    def test_normal_command_unaffected(self):
+        with tempfile.TemporaryDirectory() as t:
+            sh(t, "init", "-q")
+            rc, out, _ = sync_all.g(t, "rev-parse", "--is-inside-work-tree")
+            self.assertEqual((rc, out), (0, "true"))
+
+
 class SubmodulesOf(unittest.TestCase):
     """A submodule consumer with both masters as submodules, each with a relevant commit upstream: --submodules-of moves one only."""
 
