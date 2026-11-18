@@ -7,7 +7,7 @@
     options: --only NAME ...  --skip NAME ...  --no-harvest  --submodules-of MASTER  --sty  --build CONSUMER[/DIR] ...  --json
 
 Phases (each consumer is independent: one that needs a person is skipped and listed, the others go on; safe to re-run):
-  0 preflight   masters and consumers: reachable, no tracked changes, on their tracking branch, fast-forwarded when behind;
+  0 preflight   the ssh agent (one connection to the remotes, AGENT_WAIT to approve), then masters and consumers: reachable, no tracked changes, on their tracking branch, fast-forwarded when behind;
                 a consumer with unpushed commits of its own is skipped (a push would publish them too)
   1 harvest     entries a consumer added or edited -> math-bibliography (vendor.py bib-merge): new entries merged and sorted,
                 edited ones quarantined; a consumer with a malformed key is skipped and the key to fix is shown
@@ -104,6 +104,44 @@ class Row:
 
     def as_dict(self):
         return dict(name=self.name, phase=self.phase, status=self.status, detail=self.detail)
+
+
+AGENT_WAIT = 120     # seconds to answer the ssh agent's approval prompt before the run stops (no work done yet)
+NET_STEP = 300       # seconds for a consumer's update_shared.py (clones over the shared ssh connection, then local work)
+SSH_URL = re.compile(r"^(?:ssh://(?P<dest>[\w.-]+@[\w.-]+(?::\d+)?)/|(?P<scp>[\w.-]+@[\w.-]+):)")
+
+
+def ssh_destinations(paths):
+    """user@host of every ssh remote `origin` among these repositories (after url.*.insteadOf rewriting); local/https: none."""
+    dests = []
+    for p in paths:
+        url = g(p, "ls-remote", "--get-url", "origin")[1]
+        m = SSH_URL.match(url)
+        dest = m and (f"ssh://{m['dest']}" if m["dest"] else m["scp"])   # ssh takes ssh://user@host:port as a destination
+        if dest and dest not in dests:
+            dests.append(dest)
+    return dests
+
+
+def agent_check(dests):
+    """-> None if ssh authenticates to every destination within AGENT_WAIT, else the reason. Run BEFORE any work.
+
+    Each ssh connection asks the agent (Bitwarden) for a signature; one left unanswered hangs git with no error, and a burst of
+    them can leave requests unanswered with no prompt shown at all. So the run authenticates once, here, up front: the moment to
+    approve. With ~/.ssh/github.conf (prof-workstation: ControlMaster/ControlPersist) this connection then stays open and every
+    fetch, clone and push of the run reuses it — no further signatures. Without it, the later connections still ask the agent."""
+    for dest in dests:
+        try:
+            r = run_group(["ssh", "-T", "-o", "BatchMode=yes", dest], timeout=AGENT_WAIT, env=env())
+        except subprocess.TimeoutExpired:
+            sock = os.environ.get("SSH_AUTH_SOCK", "")
+            where = os.path.realpath(sock) if sock else "(SSH_AUTH_SOCK unset)"
+            return (f"no answer from the ssh agent for {dest} within {AGENT_WAIT}s. Approve the request in Bitwarden on the machine "
+                    f"this session's agent belongs to (SSH_AUTH_SOCK -> {where}), then re-run; nothing has been changed")
+        if r.returncode == 255:                     # ssh's own failure; the server's refusal of a shell (GitHub: 1) is fine
+            last = (r.stderr.strip().splitlines() or ["ssh failed"])[-1]
+            return f"ssh to {dest} failed: {last}"
+    return None
 
 
 def preflight(path, apply, master=False, tolerate_dirty=False):
@@ -223,7 +261,7 @@ def propagate_simple(reg, c, path, apply, push, rows):
         rows.append(Row(name, "propagate", "error", "no _scripts/update_shared.py"))
         return
     # always look first: `update_shared.py --apply` rewrites the lock pins even when nothing a paper uses has changed
-    r = run_group([sys.executable, str(script)], cwd=path, env=env(), timeout=900)
+    r = run_group([sys.executable, str(script)], cwd=path, env=env(), timeout=NET_STEP)
     out = r.stdout + r.stderr
     changes, blocked, summary = parse_update_shared(out)
     if blocked or r.returncode:
@@ -236,7 +274,7 @@ def propagate_simple(reg, c, path, apply, push, rows):
     if not apply:
         rows.append(Row(name, "propagate", "planned", summary))
         return
-    r = run_group([sys.executable, str(script), "--apply"], cwd=path, env=env(), timeout=900)
+    r = run_group([sys.executable, str(script), "--apply"], cwd=path, env=env(), timeout=NET_STEP)
     if r.returncode:
         rows.append(Row(name, "propagate", "error", (r.stdout + r.stderr).strip()[-200:]))
         return
@@ -366,7 +404,10 @@ def run(reg, args):
     bib_master = reg.bib_master()
     masters = {"math-bibliography": bib_master, "LaTeX-shared-files": reg.root}
 
-    # 0. preflight, masters
+    # 0. preflight: the ssh agent first (one approval, before anything is touched), then the masters
+    problem = agent_check(ssh_destinations(masters.values()))
+    if problem:
+        return report(rows, args, abort=problem)
     master_ok = True
     for mname, mpath in masters.items():
         # this repository is only written through explicit paths (CONSUMERS.md), so edits elsewhere in it do not matter

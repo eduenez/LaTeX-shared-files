@@ -75,6 +75,12 @@ LaTeX-shared-files/di-*.sty ──────vendor──▶ child/_packages/di
   `validate --datamodel`.
 - The sibling repos must be checked out next to this one (as in
   `vendor-registry.json`: `../no-free-lunch`, `../math-bibliography`).
+- **ssh agent.** `sync-all` first connects once to the masters' ssh remote (`ssh -T git@github.com`). If the agent asks for
+  approval (Bitwarden), this is when to give it: no answer within 2 minutes stops the run before anything is touched. With
+  `prof-workstation`'s `~/.ssh/github.conf` (a shared connection: `ControlMaster`/`ControlPersist`), that one connection
+  carries every later fetch, clone and push of the run, so there is nothing further to approve. Without it, every
+  connection asks the agent again, and a burst of requests (e.g. VS Code's auto-fetch, which `prof-workstation` turns off)
+  can leave some of them hanging with no prompt shown.
 
 **Golden rule:** every command that changes anything is a **dry run by default**.
 You must pass `--apply` to actually write files, and even then the tool only

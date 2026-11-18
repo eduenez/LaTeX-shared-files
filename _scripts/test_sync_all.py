@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -273,6 +274,39 @@ class Timeouts(unittest.TestCase):
             sh(t, "init", "-q")
             rc, out, _ = sync_all.g(t, "rev-parse", "--is-inside-work-tree")
             self.assertEqual((rc, out), (0, "true"))
+
+
+class AgentCheck(unittest.TestCase):
+    """The run authenticates to its ssh remotes once, before any work, and stops at once if the agent never answers."""
+
+    def fake_ssh(self, t, body):
+        b = Path(t) / "bin"
+        b.mkdir()
+        (b / "ssh").write_text("#!/bin/sh\n" + body + "\n")
+        (b / "ssh").chmod(0o755)
+        return mock.patch.dict(os.environ, {"PATH": f"{b}:{os.environ['PATH']}"})
+
+    def test_destinations_only_for_ssh_remotes(self):
+        with tempfile.TemporaryDirectory() as t:
+            for name, url in [("a", "git@github.com:me/a.git"), ("b", "ssh://git@host:2222/me/b"), ("c", "/srv/c.git"),
+                              ("d", "git@github.com:me/d.git")]:
+                sh(t, "init", "-q", name)
+                sh(Path(t) / name, "remote", "add", "origin", url)
+            got = sync_all.ssh_destinations([Path(t) / n for n in "abcd"])
+            self.assertEqual(got, ["git@github.com", "ssh://git@host:2222"])
+
+    def test_answer_passes_even_when_the_server_refuses_a_shell(self):
+        with tempfile.TemporaryDirectory() as t, self.fake_ssh(t, "echo 'Hi! no shell access' >&2; exit 1"):
+            self.assertIsNone(sync_all.agent_check(["git@github.com"]))
+
+    def test_ssh_failure_is_reported(self):
+        with tempfile.TemporaryDirectory() as t, self.fake_ssh(t, "echo 'Permission denied (publickey).' >&2; exit 255"):
+            self.assertIn("Permission denied", sync_all.agent_check(["git@github.com"]))
+
+    def test_no_answer_stops_within_the_wait(self):
+        with tempfile.TemporaryDirectory() as t, self.fake_ssh(t, "sleep 60"), mock.patch.object(sync_all, "AGENT_WAIT", 1):
+            msg = sync_all.agent_check(["git@github.com"])
+            self.assertIn("no answer from the ssh agent", msg)
 
 
 class SubmodulesOf(unittest.TestCase):
