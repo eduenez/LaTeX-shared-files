@@ -251,6 +251,46 @@ class SyncAll(unittest.TestCase):
         self.run_sync(push=True)
         self.assertEqual(before, {n: self.remote_head(n) for n in before})     # and a rerun has nothing more to do
 
+    def test_8_dry_run_fast_forwards_every_stale_copy_first(self):
+        other = self.t / "elsewhere"
+        for n in ("consA", "LaTeX-shared-files"):                      # someone else pushes to a consumer and to the tools
+            sh(self.t, "clone", "-q", str(self.t / "remotes" / "eduenez" / f"{n}.git"), str(other / n))
+            (other / n / "NOTE-from-elsewhere.txt").write_text("x\n")
+            sh(other / n, "add", "NOTE-from-elsewhere.txt")
+            sh(other / n, "commit", "-qm", "a commit made elsewhere")
+            sh(other / n, "push", "-q")
+        self.assertNotEqual(self.head("consA"), self.remote_head("consA"))
+        rc, rows = self.run_sync()                                         # a DRY run
+        self.assertEqual(self.head("consA"), self.remote_head("consA"))
+        self.assertEqual(self.head("LaTeX-shared-files"), self.remote_head("LaTeX-shared-files"))
+        self.assertIn("fast-forwarded", rows[("consA", "preflight")]["detail"])
+
+    def test_9_status_record_is_written_and_published(self):
+        rc, rows = self.run_sync(push=True)
+        remote = lambda f: sh(self.t / "remotes" / "eduenez" / "LaTeX-shared-files.git", "show", f"HEAD:{f}")
+        data = json.loads(remote("sync-status.json"))
+        self.assertEqual(data["mode"], "push")
+        self.assertIsNone(data["aborted"])
+        self.assertTrue(any(i["name"] == "consC" and "modified" in i["detail"] for i in data["issues"]))   # still dirty since test_1
+        repo = {r["name"]: r for r in data["repositories"]}
+        self.assertEqual((repo["consA"]["ahead"], repo["consA"]["behind"], repo["consA"]["dirty"]), (0, 0, 0))
+        self.assertIn("**Open issues:", remote("SYNC-STATUS.md"))
+        self.assertIn("`consC`", remote("SYNC-STATUS.md"))
+        self.assertEqual(self.head("LaTeX-shared-files"), self.remote_head("LaTeX-shared-files"))
+
+    def test_zz_a_run_that_stops_early_still_records_why(self):
+        bib = self.t / "math-bibliography" / "references.bib"
+        keep = bib.read_text()
+        bib.write_text(keep + "\n% an uncommitted edit\n")
+        try:
+            rc, rows = self.run_sync(apply=True)
+            data = json.loads((self.t / "LaTeX-shared-files" / "sync-status.json").read_text())
+            self.assertIn("master repository", data["aborted"])
+            self.assertIn("sync-status", sh(self.t / "LaTeX-shared-files", "log", "-1", "--format=%s"))
+            self.assertEqual(rc, 1)
+        finally:
+            bib.write_text(keep)
+
 
 class Timeouts(unittest.TestCase):
     """A git command whose own child outlives it (git push -> ssh waiting for the agent's approval): on timeout the whole process
@@ -420,6 +460,33 @@ class AgentCheck(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t, self.fake_ssh(t, "sleep 60"), mock.patch.object(sync_all, "AGENT_WAIT", 1):
             msg = sync_all.agent_check(["git@github.com"])
             self.assertIn("no answer from the ssh agent", msg)
+
+
+class SubmoduleSync(unittest.TestCase):
+    """A submodule consumer's submodule is brought to the commit its parent records (fresh local copies), when that is safe."""
+
+    def test_behind_submodule_is_brought_to_the_recorded_commit_and_a_dirty_one_is_reported(self):
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            sh(t, "init", "-q", "--bare", "sub.git")
+            sh(t, "clone", "-q", str(t / "sub.git"), "subwork")
+            for i in (1, 2):
+                (t / "subwork" / "f").write_text(f"{i}\n")
+                sh(t / "subwork", "add", "f")
+                sh(t / "subwork", "commit", "-qm", f"c{i}")
+            sh(t / "subwork", "push", "-q", "origin", "HEAD")
+            old = sh(t / "subwork", "rev-parse", "HEAD~1")
+            new = sh(t / "subwork", "rev-parse", "HEAD")
+            sh(t, "init", "-q", "parent")
+            sh(t / "parent", "-c", "protocol.file.allow=always", "submodule", "add", "-q", str(t / "sub.git"), "bib")
+            sh(t / "parent", "commit", "-qm", "with submodule at the newest commit")
+            sh(t / "parent" / "bib", "checkout", "-q", old)                 # a stale local checkout
+            problem, note = sync_all.sync_submodule(t / "parent", "bib")
+            self.assertIsNone(problem)
+            self.assertEqual(sh(t / "parent" / "bib", "rev-parse", "HEAD"), new)
+            (t / "parent" / "bib" / "f").write_text("local edit\n")
+            problem, _ = sync_all.sync_submodule(t / "parent", "bib")
+            self.assertIn("local changes", problem)
 
 
 class SubmodulesOf(unittest.TestCase):

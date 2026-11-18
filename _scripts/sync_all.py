@@ -7,8 +7,11 @@
     options: --only NAME ...  --skip NAME ...  --no-harvest  --submodules-of MASTER  --sty  --build CONSUMER[/DIR] ...  --json
 
 Phases (each consumer is independent: one that needs a person is skipped and listed, the others go on; safe to re-run):
-  0 preflight   the ssh agent (one connection to the remotes, AGENT_WAIT to approve), then masters and consumers: reachable, no tracked changes, on their tracking branch, fast-forwarded when behind;
-                a consumer with unpushed commits of its own is skipped (a push would publish them too)
+  0 preflight   FRESH COPIES FIRST, dry runs included. The ssh agent (one connection to the remotes, AGENT_WAIT to approve); then
+                LaTeX-shared-files itself is fetched and fast-forwarded, and the run restarts if that brought newer tools; then
+                math-bibliography and every consumer: reachable, no tracked changes, on their tracking branch, fast-forwarded when
+                behind, submodules (submodule consumers) checked out at the recorded commits. A consumer with unpushed commits of
+                its own, a dirty or diverged one, is skipped and reported (a push would publish its commits too)
   1 harvest     entries a consumer added or edited -> math-bibliography (vendor.py bib-merge): new entries merged and sorted,
                 edited ones quarantined; a consumer with a malformed key is skipped and the key to fix is shown. A new entry that
                 is the same work as a master entry (arXiv id/DOI and title) is not imported: its key is retired (rekey-dedup.json)
@@ -16,8 +19,10 @@ Phases (each consumer is independent: one that needs a person is skipped and lis
                 missing fields, the other keys are retired (rekey-dedup.json). Same identifier, different title: reported only
   2 publish     push math-bibliography (--push). update_shared.py clones the master FROM GITHUB, so without --push the run stops
                 before propagating whatever the master has not published
-  2b cites      every consumer: \\cite keys retired in the master (rekey*.json) renamed to the current ones in the tracked .tex
-                files (not in a frozen version: a .tex with a tracked .bbl beside it), committed on their own
+  2b cites      every consumer (legacy-bib too): \\cite keys retired in the master (rekey*.json) renamed to the current ones in
+                the tracked .tex files that use references.bib, committed on their own. Never renamed: frozen versions (.bbl
+                beside them), papers with their own thebibliography or only other databases, keys another .bib defines; those
+                citations are listed in the status record
   3 propagate   vendored-simple: update_shared.py --apply (style files, toolkit, bibliography); vendored-json: bib-propagate;
                 submodule consumers: move the submodule pointers; legacy-bib: reported only
   4 commit      one commit per consumer, explicit paths only (never `git add -A`); push with --push (a rejected push is reported,
@@ -27,6 +32,11 @@ Phases (each consumer is independent: one that needs a person is skipped and lis
                 Without --sty the dry run lists what is available. Always shown: "project .sty changed since its snapshot".
                 (Style is code, not data: a change can alter the printed output, so it is never applied by default.)
   5 close       regenerate CONSUMERS.md / consumers.json and commit them in both masters (documentation only; nobody becomes stale)
+  6 verify      (--apply/--push) every repository looked at is clean and, with --push, has nothing unpushed; otherwise reported
+  record        (--apply/--push, however the run ends, even interrupted) SYNC-STATUS.md + sync-status.json in LaTeX-shared-files:
+                every repository's branch/HEAD/state vs origin, this run's outcome per repository, ALL open issues (including
+                repositories that vendor shared files but are not registered) and the citations left unrenamed. Committed, and
+                published with --push: the authoritative record of where everything stands. A dry run leaves it alone.
 Never: rebase, reset, stash, force-push, or touch an entry a person has to decide about (renamed key still cited, entry edited in
 two places, malformed key).  Exit status 1 if anything needs a person.
 """
@@ -38,6 +48,7 @@ import re
 import signal
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace as NS
 
@@ -149,8 +160,9 @@ def agent_check(dests):
     return None
 
 
-def preflight(path, apply, master=False, tolerate_dirty=False):
-    """-> (state, detail): state 'ok' | 'skip'. Fast-forwards a clean, behind clone when apply."""
+def preflight(path, apply, master=False, tolerate_dirty=False, submodules=()):
+    """-> (state, detail): state 'ok' | 'skip'. Fetches and fast-forwards a clean, behind clone — in dry runs too: every later
+    step must see the current state, never a stale local copy — and brings its `submodules` to the commits it records."""
     if not (path / ".git").exists():
         return "skip", "not on disk"
     rc, _, err = g(path, "fetch", "--quiet")
@@ -171,13 +183,41 @@ def preflight(path, apply, master=False, tolerate_dirty=False):
         return "skip", f"{ahead} unpushed commit(s) of its own"
     note = f"{ahead} unpublished commit(s)" if ahead else ""
     if behind:
-        if not apply:
-            return "ok", f"would fast-forward {behind} commit(s)"
         rc, _, err = g(path, "merge", "--ff-only", "--quiet", "@{u}")
         if rc:
             return "skip", f"fast-forward refused: {err.splitlines()[0] if err else rc}"
         note = f"fast-forwarded {behind} commit(s)"
+    for sub in submodules:
+        problem, moved = sync_submodule(path, sub)
+        if problem:
+            return "skip", problem
+        if moved:
+            note = (note + "; " if note else "") + moved
     return "ok", note
+
+
+def sync_submodule(path, sub):
+    """Check out submodule `sub` at the commit its parent records, when that is safe (not checked out yet, or clean and behind).
+    -> (problem or None, note or "")."""
+    sp = path / sub
+    rec = g(path, "ls-tree", "HEAD", sub)[1].split()
+    if len(rec) < 3:
+        return f"submodule {sub} is not recorded in HEAD", ""
+    recorded = rec[2]
+    if not (sp / ".git").exists():
+        rc, _, err = g(path, "submodule", "update", "--init", "--", sub, timeout=600)
+        return (f"submodule {sub}: {err.splitlines()[-1] if err else rc}", "") if rc else (None, f"submodule {sub} checked out")
+    if g(sp, "status", "--porcelain", "--untracked-files=no")[1]:
+        return f"submodule {sub} has local changes", ""
+    cur = g(sp, "rev-parse", "HEAD")[1]
+    if cur == recorded:
+        return None, ""
+    if g(sp, "cat-file", "-e", recorded + "^{commit}")[0]:
+        g(sp, "fetch", "--quiet")
+    if g(sp, "merge-base", "--is-ancestor", cur, recorded)[0] == 0:
+        rc, _, err = g(path, "submodule", "update", "--", sub, timeout=600)
+        return (f"submodule {sub}: {err.splitlines()[-1] if err else rc}", "") if rc else (None, f"submodule {sub} brought to {recorded[:7]}")
+    return f"submodule {sub} is at {cur[:7]}, not at the recorded {recorded[:7]} (and not behind it)", ""
 
 
 def untracked(path):
@@ -491,6 +531,122 @@ def propagate_submodules(reg, c, path, apply, push, rows, only_of=None):
     commit_and_push(path, moved, "Update shared submodules to their newest upstream commits", apply, push, rows, name)
 
 
+# ── leftovers, state, the status record ───────────────────────────────────────────
+
+def leftover_cites(reg, path, aliases):
+    """[(file, [retired keys], why)] for tracked .tex files that still cite retired keys after the cites step (dry run: files the
+    step will NOT rename): frozen versions, files with their own thebibliography or on other databases, keys another .bib defines."""
+    import bibkeys
+    if not aliases:
+        return []
+    tracked = set(g(path, "ls-files")[1].splitlines())
+    other = set()
+    for b in (t for t in tracked if t.endswith(".bib") and t != str(reg.bib_name())):
+        if (path / b).is_file():
+            other |= set(vendor.key_map((path / b).read_text(errors="replace")))
+    out = []
+    for f in sorted(t for t in tracked if t.endswith(".tex")):
+        p = path / f
+        if not p.is_file():
+            continue
+        text = p.read_text(errors="replace")
+        keys = set()
+        for line in text.split("\n"):
+            code, _ = bibkeys._strip_comment(line)
+            for m in bibkeys.CITE.finditer(code):
+                keys |= {k.strip() for k in m.group(2).split(",")} & set(aliases)
+        if not keys:
+            continue
+        if bibkeys.frozen(p, tracked, path):
+            why = "frozen version (.bbl beside it)"
+        elif not bibkeys.uses_master(text):
+            why = "own thebibliography or other databases"
+        elif keys <= other:
+            why = "keys defined by another .bib here"
+        else:
+            continue                                                   # the cites step renames it (dry run)
+        out.append((f, sorted(keys), why))
+    return out
+
+
+def repo_state(path):
+    """{exists, branch, head, ahead, behind, dirty} from the local clone (after this run's fetch)."""
+    if not (path / ".git").exists():
+        return {"exists": False}
+    lr = g(path, "rev-list", "--left-right", "--count", "HEAD...@{u}")[1].split()
+    return {"exists": True, "branch": g(path, "branch", "--show-current")[1] or "(detached)", "head": short(path),
+            "ahead": int(lr[0]) if len(lr) == 2 else None, "behind": int(lr[1]) if len(lr) == 2 else None,
+            "dirty": len([l for l in g(path, "status", "--porcelain", "--untracked-files=no")[1].splitlines() if l])}
+
+
+STATUS_MD, STATUS_JSON = "SYNC-STATUS.md", "sync-status.json"
+
+
+def write_status(reg, args, rows, ctx, abort):
+    """The authoritative record of the last applying run, in LaTeX-shared-files: what every repository's state is, what this run
+    did, and what is still open. Committed (explicit paths) and, with --push, published."""
+    mode = "push" if args.push else "apply"
+    when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    names = [("LaTeX-shared-files", reg.root, "master"), ("math-bibliography", reg.bib_master(), "master")]
+    names += [(c["name"], reg.resolve(c["path"]), c["model"]) for c in reg.data.get("consumers", [])]
+    by = {}
+    for r in rows:
+        by.setdefault(r.name, []).append(r)
+    rank = {"error": 5, "needs-you": 4, "planned": 3, "done": 2, "optional": 1, "info": 1, "ok": 0, "nothing": 0}
+    repos = []
+    for name, path, model in names:
+        st = repo_state(path)
+        rs = by.get(name, [])
+        worst = max(rs, key=lambda r: rank.get(r.status, 0)).status if rs else "not looked at"
+        repos.append(dict(name=name, model=model, **st, outcome=worst,
+                          steps=[r.as_dict() for r in rs if r.status not in ("ok", "nothing") or r.detail]))
+    issues = [r.as_dict() for r in rows if r.status in ("needs-you", "error")]
+    r = subprocess.run([sys.executable, str(reg.root / "_scripts" / "consumers.py")], cwd=reg.root, capture_output=True, text=True)
+    unreg = [l.strip() for l in r.stdout.split("NOT in the registry", 1)[1].splitlines()[1:] if l.strip()] if "NOT in the registry" in r.stdout else []
+    if unreg:
+        issues.append(dict(name="(registry)", phase="discover", status="needs-you",
+                           detail=f"{len(unreg)} repositor(ies) vendor/link shared files but are not in vendor-registry.json: " + ", ".join(unreg)))
+    data = dict(generated=when, mode=mode, only=args.only, skip=args.skip, aborted=abort, issues=issues, repositories=repos,
+                retired_keys=len(ctx.get("aliases") or {}),
+                not_renamed={k: [dict(file=f, keys=ks, why=w) for f, ks, w in v] for k, v in ctx.get("leftover", {}).items()})
+    (reg.root / STATUS_JSON).write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+
+    def cell(x):
+        return str(x).replace("|", "\\|").replace("\n", " ")
+    md = ["# Sync status", "",
+          f"*Written by `vendor.py sync-all` at the end of every `--apply`/`--push` run (also an interrupted one). Do not edit. "
+          f"Machine-readable: `{STATUS_JSON}`.*", "",
+          f"**Last run:** {when}, `--{mode}`" + (f", only {', '.join(args.only)}" if args.only else "") + (f", skipping {', '.join(args.skip)}" if args.skip else "")
+          + (f". **Stopped early: {cell(abort)}**" if abort else ", completed") + ".", "",
+          f"**Open issues: {len(issues)}**" + ("" if issues else " — every repository looked at is current, clean and published."), ""]
+    for i in issues:
+        md.append(f"- `{i['name']}` ({i['phase']}): {cell(i['detail'])}")
+    md += ["", "## Repositories", "", "| Repository | Model | Branch | HEAD | vs origin | Last run |", "|---|---|---|---|---|---|"]
+    for rp in repos:
+        if not rp.get("exists"):
+            md.append(f"| `{rp['name']}` | {rp['model']} | — | — | not on disk | {rp['outcome']} |")
+            continue
+        vs = "dirty" if rp["dirty"] else ""
+        if rp["ahead"] is None:
+            vs = (vs + ", " if vs else "") + "no upstream"
+        else:
+            if rp["ahead"]:
+                vs = (vs + ", " if vs else "") + f"{rp['ahead']} unpushed"
+            if rp["behind"]:
+                vs = (vs + ", " if vs else "") + f"{rp['behind']} behind"
+        md.append(f"| `{rp['name']}` | {rp['model']} | {rp['branch']} | `{rp['head']}` | {vs or 'in sync'} | {rp['outcome']} |")
+    left = data["not_renamed"]
+    if left:
+        md += ["", "## Citations of retired keys left as they are", "",
+               "Not the master's to rename (frozen versions, papers on their own databases); listed so nothing is silently out of date.", ""]
+        for name, items in sorted(left.items()):
+            md.append(f"- `{name}`: " + "; ".join(f"`{x['file']}` ({x['why']}: {', '.join(x['keys'][:6])}{' …' if len(x['keys']) > 6 else ''})" for x in items[:8])
+                      + (f"; and {len(items) - 8} more file(s)" if len(items) > 8 else ""))
+    (reg.root / STATUS_MD).write_text("\n".join(md) + "\n")
+    msg = f"sync-status: {mode} run {when}" + (f", {len(issues)} open issue(s)" if issues else ", all current") + (" (stopped early)" if abort else "")
+    commit_and_push(reg.root, [STATUS_MD, STATUS_JSON], msg, True, bool(args.push), rows, "LaTeX-shared-files")
+
+
 # ── main ─────────────────────────────────────────────────────────────────────────
 
 def exit_on_sigterm():
@@ -499,26 +655,59 @@ def exit_on_sigterm():
 
 
 def run(reg, args):
+    """The whole loop. With --apply/--push the run ends — however it ends, even interrupted — by writing the authoritative record
+    SYNC-STATUS.md / sync-status.json in LaTeX-shared-files and committing (and with --push publishing) it."""
     exit_on_sigterm()
     apply = bool(args.apply or args.push)
+    rows, ctx = [], {"leftover": {}, "aliases": {}}
+    abort = "interrupted before the end"
+    try:
+        abort = _run(reg, args, rows, ctx)
+    except BaseException as e:
+        abort = f"interrupted: {type(e).__name__} {e}".strip()
+        raise
+    finally:
+        if apply:
+            try:
+                write_status(reg, args, rows, ctx, abort)
+            except Exception as e:                                  # the record must never hide the run's own outcome
+                rows.append(Row("LaTeX-shared-files", "status", "error", f"status record not written: {e}"[:200]))
+    return report(rows, args, abort=abort)
+
+
+def self_update(reg, apply, rows):
+    """Fast-forward LaTeX-shared-files FIRST; if that brought new commits, restart the run with the updated tools and registry."""
+    st, detail = preflight(reg.root, apply, master=True, tolerate_dirty=True)
+    rows.append(Row("LaTeX-shared-files", "preflight", "ok" if st == "ok" else "needs-you", detail))
+    entry = Path(sys.argv[0]).resolve() if sys.argv and sys.argv[0] else None
+    if (st == "ok" and detail.startswith("fast-forwarded") and os.environ.get("SYNC_ALL_REEXEC") != "1"
+            and entry == (reg.root / "_scripts" / "vendor.py").resolve()):
+        print(_c(f"LaTeX-shared-files {detail}: restarting with the updated tools", C_DIM), file=sys.stderr)
+        os.environ["SYNC_ALL_REEXEC"] = "1"
+        sys.stdout.flush()
+        os.execv(sys.executable, [sys.executable, *sys.argv])
+    return st == "ok"
+
+
+def _run(reg, args, rows, ctx):
+    """-> None, or the reason the run stopped early."""
+    apply = bool(args.apply or args.push)
     push = bool(args.push)
-    rows = []
     BUILT.clear()
     bib_master = reg.bib_master()
     masters = {"math-bibliography": bib_master, "LaTeX-shared-files": reg.root}
 
-    # 0. preflight: the ssh agent first (one approval, before anything is touched), then the masters
+    # 0. preflight: the ssh agent first (one approval, before anything is touched), then LaTeX-shared-files itself (restarting
+    #    with its newest tools), then the bibliography master, then every consumer: all fetched and fast-forwarded
     problem = agent_check(ssh_destinations(masters.values()))
     if problem:
-        return report(rows, args, abort=problem)
-    master_ok = True
-    for mname, mpath in masters.items():
-        # this repository is only written through explicit paths (CONSUMERS.md), so edits elsewhere in it do not matter
-        st, detail = preflight(mpath, apply, master=True, tolerate_dirty=(mpath == reg.root))
-        rows.append(Row(mname, "preflight", "ok" if st == "ok" else "needs-you", detail))
-        master_ok &= st == "ok"
-    if not master_ok:
-        return report(rows, args, abort="a master repository is not clean, reachable and fast-forwardable")
+        return problem
+    if not self_update(reg, apply, rows):
+        return "LaTeX-shared-files cannot be fast-forwarded"
+    st, detail = preflight(bib_master, apply, master=True)
+    rows.append(Row("math-bibliography", "preflight", "ok" if st == "ok" else "needs-you", detail))
+    if st != "ok":
+        return "a master repository is not clean, reachable and fast-forwardable"
 
     consumers = [c for c in reg.data.get("consumers", []) if (not args.only or c["name"] in args.only) and c["name"] not in (args.skip or [])]
     known = {c["name"] for c in reg.data.get("consumers", [])}
@@ -527,7 +716,8 @@ def run(reg, args):
     usable = []
     for c in consumers:
         path = reg.resolve(c["path"])
-        st, detail = preflight(path, apply)
+        subs = list((c.get("submodules") or {}).keys()) if c["model"] == "submodule" else []
+        st, detail = preflight(path, apply, submodules=subs)
         if st != "ok":
             rows.append(Row(c["name"], "preflight", "needs-you" if detail != "not on disk" else "error", detail))
         else:
@@ -552,21 +742,24 @@ def run(reg, args):
             rows.append(Row("math-bibliography", "publish", "done" if rc == 0 else "needs-you",
                             f"pushed {ahead} commit(s)" if rc == 0 else f"PUSH REJECTED ({err.splitlines()[-1] if err else rc})"))
             if rc:
-                return report(rows, args, abort="the master could not be pushed")
+                return "the master could not be pushed"
         elif apply:
             rows.append(Row("math-bibliography", "publish", "needs-you",
                             f"{ahead} commit(s) not pushed: consumers read the master from GitHub, so propagation is skipped; re-run with --push"))
-            return report(rows, args)
+            return None
         else:
             rows.append(Row("math-bibliography", "publish", "planned", f"would push {ahead} commit(s)"))
 
     # 2b-4. citations of retired keys, propagate, commit, push
     aliases = current_aliases(reg, {} if apply else planned)
+    ctx["aliases"] = aliases
     for c, path in usable:
         m = c["model"]
         try:
-            if m != "legacy-bib":
-                fix_cites(reg, c, path, aliases, apply, push, rows)
+            fix_cites(reg, c, path, aliases, apply, push, rows)
+            left = leftover_cites(reg, path, aliases)
+            if left:
+                ctx["leftover"][c["name"]] = left
             if m == "vendored-simple":
                 propagate_simple(reg, c, path, apply, push, rows)
             elif m == "vendored-json":
@@ -592,7 +785,16 @@ def run(reg, args):
             changed = [f for f in files if g(mpath, "status", "--porcelain", "--", f)[1]]
             if changed:
                 commit_and_push(mpath, changed, "CONSUMERS regenerated by sync-all", apply, push, rows, mname)
-    return report(rows, args)
+
+    # 6. verify: every repository this run looked at is clean and (with --push) fully published
+    if apply:
+        for name, path in [("math-bibliography", bib_master)] + [(c["name"], p) for c, p in usable]:
+            stt = repo_state(path)
+            if stt.get("dirty"):
+                rows.append(Row(name, "verify", "needs-you", f"{stt['dirty']} tracked file(s) left modified"))
+            if push and stt.get("ahead"):
+                rows.append(Row(name, "verify", "needs-you", f"{stt['ahead']} commit(s) not pushed"))
+    return None
 
 
 def report(rows, args, abort=None):

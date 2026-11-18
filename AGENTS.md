@@ -26,3 +26,6 @@ This repository is the **single source of truth** for the group's shared LaTeX m
 5. Do not break consumers: scripts and styles must stay backward compatible, or the change must come with the renames/migration
    (see `math-bibliography/rekey-*.json` for the bibliography's equivalent).
 6. Never force-push or rewrite history; small, specific commits.
+7. **Where everything stands:** `SYNC-STATUS.md` (and `sync-status.json`) is the authoritative record, rewritten by every
+   `vendor.py sync-all --apply/--push` run (never edit it by hand). Read it before reporting or acting on the state of the consumers;
+   `sync-all` always fetches and fast-forwards this repository and every consumer before it does anything else.

@@ -273,12 +273,24 @@ python3 _scripts/vendor.py bib-dedup [--apply]     # only merge the master's dup
 `--submodules-of math-bibliography` (or `LaTeX-shared-files`) moves only that master's submodules in submodule consumers (`research` keeps
 its `_packages` where it is); `repos --bib-submodules` (site-tools) uses it. A name in `--only` that is not in `vendor-registry.json` is reported.
 
-Steps: preflight (masters and consumers reachable, no tracked changes, fast-forwarded; a consumer with unpushed commits of its own is skipped) ->
+**Fresh copies first.** Before anything else — dry runs included — `sync-all` fetches and fast-forwards LaTeX-shared-files itself (restarting
+with its newest tools and registry if that brought commits), then math-bibliography, then every consumer, and checks out submodule consumers'
+submodules at the commits they record. A repository that cannot be brought up to date safely (local changes, own unpushed commits, diverged,
+detached) is skipped and reported, never worked on from a stale copy.
+
+**The record.** Every `--apply`/`--push` run ends — even when it stops early or is interrupted — by writing `SYNC-STATUS.md` (and
+`sync-status.json`) here and committing it (publishing it with `--push`): each repository's branch, HEAD and state against origin, what the run
+did to it, every open issue (including repositories that vendor shared files but are missing from the registry), and the citations of retired
+keys deliberately left unrenamed. It is the authoritative answer to "where does everything stand"; after the propagation a verify step checks
+that every repository it touched is clean and fully pushed.
+
+Steps: preflight (as above; a consumer with unpushed commits of its own is skipped) ->
 harvest (`bib-merge` for every vendored consumer: new entries into the master, edited ones to quarantine; a malformed key skips that consumer and
 shows the fix; a new entry that is the same work as a master entry is not imported, its key is retired) -> dedup the master
 (`bib-dedup`, below) -> publish the master (`update_shared.py` reads the master from GitHub, so without `--push` the run stops before propagating) ->
-rename retired citation keys in every consumer (below) -> propagate (vendored-simple: `update_shared.py`, looked at before it is applied; vendored-json: `bib-propagate`; submodule consumers: move the pointers,
-ignoring documentation-only upstream commits) -> one commit per consumer, explicit paths only -> regenerate `CONSUMERS.md`.
+rename retired citation keys in every consumer, legacy ones included (below) -> propagate (vendored-simple: `update_shared.py`, looked at before it is applied; vendored-json: `bib-propagate`; submodule consumers: move the pointers,
+ignoring documentation-only upstream commits) -> one commit per consumer, explicit paths only -> regenerate `CONSUMERS.md` -> verify ->
+write the record.
 A rejected push is reported and the commit stays local. Anything a person must decide (renamed key still cited, entry edited here and
 upstream, malformed key, dirty consumer) is listed in red, exit status 1, and the other consumers go on. Safe to re-run; a second run does nothing.
 **Duplicates and retired keys.** Two entries of the master are the *same work* when they share an identifier (arXiv id — from `eprint`, an
