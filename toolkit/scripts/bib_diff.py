@@ -57,7 +57,8 @@ def parse(text):
 
 
 def norm(v):
-    return re.sub(r'[\s{}]+', '', v)
+    # braces dropped and whitespace collapsed, not deleted: H\o egh and H{\o}egh differ (a control word ends at the space)
+    return re.sub(r'\s+', ' ', re.sub(r'[{}]', '', v)).strip()
 
 
 def same(a, b):
