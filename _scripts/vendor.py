@@ -215,6 +215,12 @@ def key_order(text: str) -> list[str]:
     return [e.key for e in parse_bib(text) if e.key is not None]
 
 
+def edits_not_upstream(modified: dict, master_map: dict[str, str]) -> dict:
+    """The consumer's edits (classify()'s `modified`) that the master does not already carry: an edit already adopted upstream
+    (the consumer's entry now equals the master's) is not a modification to review, only a pin that has not caught up yet."""
+    return {k: v for k, v in modified.items() if k not in master_map or _norm(v[1]) != _norm(master_map[k])}
+
+
 def classify(working_tidied: str, baseline: str) -> tuple[dict, dict]:
     """Return (new_entries, modified_entries) keyed by citation key.
     new: in working, not baseline. modified: in both, content differs."""
@@ -497,6 +503,10 @@ def cmd_bib_merge(reg: Registry, args) -> int:
     master_path = master_dir / reg.bib_name()
     master_text = master_path.read_text()
     master_map = key_map(master_text)
+    modified = edits_not_upstream(modified, master_map)
+    if not new and not modified:
+        print(f"{_c(args.child, C_GRN)}: nothing to merge (its edits are already upstream)")
+        return 0
 
     # House-style gate: block malformed NEW keys from entering the master.
     bad = sorted(k for k in new if not KEY_RE.match(k))

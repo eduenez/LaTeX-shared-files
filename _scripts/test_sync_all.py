@@ -276,6 +276,18 @@ class Timeouts(unittest.TestCase):
             self.assertEqual((rc, out), (0, "true"))
 
 
+class EditsAlreadyUpstream(unittest.TestCase):
+    """A consumer's edit that the master has since adopted is not quarantined (its pin simply has not caught up)."""
+
+    def test_only_edits_the_master_lacks_remain(self):
+        base = "@misc{A:2020,\n  title = {Old},\n}\n"
+        mine = "@misc{A:2020,\n  title = {New},\n}\n"
+        _, modified = vendor.classify(mine + "@misc{B:2020,\n  title = {Mine},\n}\n", base + "@misc{B:2020,\n  title = {Base},\n}\n")
+        self.assertEqual(sorted(modified), ["A:2020", "B:2020"])
+        master = vendor.key_map(mine + "@misc{B:2020,\n  title = {Base},\n}\n")     # A's edit adopted upstream, B's not
+        self.assertEqual(sorted(vendor.edits_not_upstream(modified, master)), ["B:2020"])
+
+
 class AgentCheck(unittest.TestCase):
     """The run authenticates to its ssh remotes once, before any work, and stops at once if the agent never answers."""
 

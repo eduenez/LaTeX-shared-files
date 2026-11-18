@@ -207,10 +207,11 @@ def harvest(reg, c, apply, rows):
     skip = set(c.get("bib_merge_ignore", []))
     new = {k: v for k, v in new.items() if k not in skip}
     modified = {k: v for k, v in modified.items() if k not in skip}
+    master_map = vendor.key_map((reg.bib_master() / reg.bib_name()).read_text())
+    modified = vendor.edits_not_upstream(modified, master_map)
     if not new and not modified:
         rows.append(Row(name, "harvest", "nothing"))
         return
-    master_map = vendor.key_map((reg.bib_master() / reg.bib_name()).read_text())
     bad = sorted(k for k in new if not vendor.KEY_RE.match(k))
     if bad:
         import ownkeys
