@@ -164,6 +164,17 @@ FUNCTION {field.or.null}
   if$
 }
 
+% The master bibliography gives undated works year = 0000 (biber's data model requires a year); such a year is treated
+% as absent: not printed, not in the label, not in the sort key.
+
+FUNCTION {year.or.null}
+{ year field.or.null
+  duplicate$ "0000" =
+    { pop$ "" }
+    'skip$
+  if$
+}
+
 FUNCTION {emphasize}
 { duplicate$ empty$
     { pop$ "" }
@@ -411,9 +422,9 @@ FUNCTION {format.journal.vol.year}
         'skip$
         { " \textbf{" * volume * "}" * }
       if$
-      year empty$
+      year.or.null empty$
         { "year" missing.warning }
-        { " (" * year * ")" * }
+        { " (" * year.or.null * ")" * }
       if$
     }
   if$
@@ -431,7 +442,7 @@ FUNCTION {format.number}
 % For formatting miscellaneous dates
 
 FUNCTION {format.date}
-{ year empty$
+{ year.or.null empty$
     { month empty$
 	{ "" }
 	{ "there's a month but no year in " cite$ * warning$
@@ -440,8 +451,8 @@ FUNCTION {format.date}
       if$
     }
     { month empty$
-	'year
-	{ month " " * year * }
+	'year.or.null
+	{ month " " * year.or.null * }
       if$
     }
   if$
@@ -609,7 +620,7 @@ FUNCTION {format.chapter.pages}
 
 FUNCTION {empty.misc.check}
 { author empty$ title empty$ howpublished empty$
-  month empty$ year empty$ note empty$
+  month empty$ year.or.null empty$ note empty$
   and and and and and
   key empty$ not and
     { "all relevant fields are empty in " cite$ * warning$ }
@@ -1138,10 +1149,10 @@ FUNCTION {calc.label}
     }
   if$
   duplicate$
-  year field.or.null purify$ #-1 #2 substring$
+  year.or.null purify$ #-1 #2 substring$
   *
   'label :=
-  year field.or.null purify$ #-1 #4 substring$
+  year.or.null purify$ #-1 #4 substring$
   *
   sortify 'sort.label :=
 }
@@ -1265,7 +1276,7 @@ FUNCTION {presort}
   *
   "    "
   *
-  year field.or.null sortify
+  year.or.null sortify
   *
   "    "
   *
