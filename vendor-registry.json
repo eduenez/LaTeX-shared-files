@@ -170,10 +170,11 @@
       "path": "../grants",
       "model": "vendored-simple",
       "vendors": [
+        "sty",
         "bib",
         "toolkit"
       ],
-      "notes": "grant proposals (Dueñez-Iovino); bibliography only: the master references.bib vendored at the root, scripts-only toolkit in _scripts/, no shared .sty. Migrated from the legacy biblioteca.bib / iovino.bib on 2026-11-18. PLANNED (deferred): convert each subdirectory to a grants_* paper directory (see docs/plans/grants-conversion.md in this repository)",
+      "notes": "grant proposals (Dueñez-Iovino); bibliography only: the master references.bib vendored at the root, scripts-only toolkit in _scripts/, only di-amsalpha.bst of the shared styles (in _packages/). Migrated from the legacy biblioteca.bib / iovino.bib on 2026-11-18. PLANNED (deferred): convert each subdirectory to a grants_* paper directory (see docs/plans/grants-conversion.md in this repository)",
       "tool": "_scripts/update_shared.py (no Makefile)"
     },
     {
