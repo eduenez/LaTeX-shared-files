@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-18 18:46 UTC",
+ "generated": "2026-11-18 18:56 UTC",
  "mode": "push",
  "only": null,
  "skip": null,
@@ -11,36 +11,62 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "f6b1cb4",
+   "head": "b0e0457",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "ok",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-shared-files",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b0e0457, pushed"
+    }
+   ]
   },
   {
    "name": "math-bibliography",
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "60de9a8",
+   "head": "43d6c0e",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "ok",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "math-bibliography",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 43d6c0e, pushed"
+    }
+   ]
   },
   {
    "name": "no-free-lunch",
    "model": "vendored-json",
    "exists": true,
    "branch": "main",
-   "head": "b0de031",
+   "head": "340508b",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "info",
+   "outcome": "done",
    "steps": [
+    {
+     "name": "no-free-lunch",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography 1 commit(s)"
+    },
+    {
+     "name": "no-free-lunch",
+     "phase": "push",
+     "status": "done",
+     "detail": "pushed"
+    },
     {
      "name": "no-free-lunch",
      "phase": "project-sty",
@@ -54,154 +80,290 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "bce29a8",
+   "head": "5274755",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "topos-logic",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "topos-logic",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 5274755, pushed"
+    }
+   ]
   },
   {
    "name": "LaTeX-codespace-template",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "d26a263",
+   "head": "50e8590",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 50e8590, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumDI",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "0ccc920",
+   "head": "f77572f",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumDI",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed f77572f, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumTeam",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "29f7d8a",
+   "head": "2866913",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumTeam",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "QuantumTeam",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 2866913, pushed"
+    }
+   ]
   },
   {
    "name": "ProbabilityModels",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "c2e7c82",
+   "head": "223df30",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "ProbabilityModels",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "ProbabilityModels",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 223df30, pushed"
+    }
+   ]
   },
   {
    "name": "RealRandom",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "3e277cf",
+   "head": "41965fe",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "RealRandom",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "RealRandom",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 41965fe, pushed"
+    }
+   ]
   },
   {
    "name": "RealStructures",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "4940c78",
+   "head": "c014415",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "RealStructures",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new, bibliography +0 new/7 corrected"
+    },
+    {
+     "name": "RealStructures",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed c014415, pushed"
+    }
+   ]
   },
   {
    "name": "DImanuscripts",
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "8a0b68c",
+   "head": "d4a5dc0",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "DImanuscripts",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved bib"
+    },
+    {
+     "name": "DImanuscripts",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed d4a5dc0, pushed"
+    }
+   ]
   },
   {
    "name": "eduenez.github.io",
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "2e5a0f6",
+   "head": "5a3e0d4",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "eduenez.github.io",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved math-bibliography"
+    },
+    {
+     "name": "eduenez.github.io",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 5a3e0d4, pushed"
+    }
+   ]
   },
   {
    "name": "talks",
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "2604011",
+   "head": "f42bf38",
+   "ahead": 0,
+   "behind": 0,
+   "dirty": 0,
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "talks",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved math-bibliography"
+    },
+    {
+     "name": "talks",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed f42bf38, pushed"
+    }
+   ]
+  },
+  {
+   "name": "grants",
+   "model": "vendored-simple",
+   "exists": true,
+   "branch": "master",
+   "head": "1b96489",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
    "outcome": "nothing",
    "steps": []
-  },
-  {
-   "name": "grants",
-   "model": "legacy-bib",
-   "exists": true,
-   "branch": "master",
-   "head": "259fb1b",
-   "ahead": 0,
-   "behind": 0,
-   "dirty": 0,
-   "outcome": "nothing",
-   "steps": [
-    {
-     "name": "grants",
-     "phase": "propagate",
-     "status": "nothing",
-     "detail": "legacy-bib: not automated"
-    }
-   ]
   },
   {
    "name": "research",
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "3125b9e",
+   "head": "c3b983b",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "research",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved _packages, math-bibliography"
+    },
+    {
+     "name": "research",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed c3b983b, pushed"
+    }
+   ]
   }
  ],
- "retired_keys": 446,
+ "retired_keys": 448,
  "not_renamed": {
   "DImanuscripts": [
    {
@@ -536,58 +698,6 @@
      "Shelah:Compact",
      "Tao:2008",
      "Tao:Metastability",
-     "Walsh:2012"
-    ],
-    "why": "own thebibliography or other databases"
-   }
-  ],
-  "grants": [
-   {
-    "file": "2023FDL/Duenez_FDL_full_proposal.tex",
-    "keys": [
-     "BenDavid2019",
-     "BlumerEtAl1989",
-     "BraKie2013",
-     "ChEchSh2014",
-     "ChEchSh2017",
-     "CuckerSmale2001",
-     "DorIsh2008i",
-     "DorIsh2008ii",
-     "DorIsh2008iii",
-     "DorIsh2008iv",
-     "EshelKaplan2021",
-     "IshDor2012",
-     "LiRu1973",
-     "Pedrycz1993",
-     "Shelah2004a",
-     "Shelah2009a",
-     "Simon2015",
-     "Sugeno198559",
-     "Valiant1984",
-     "Zachos2007",
-     "Zadeh1965338",
-     "vN1932"
-    ],
-    "why": "own thebibliography or other databases"
-   },
-   {
-    "file": "NSF2023/nsf2023-description.tex",
-    "keys": [
-     "Albeverio-Hoegh-Krohn-Fenstad:1986",
-     "Albeverio-Hoegh-Krohn-Mazzucchi:2023",
-     "BenYaacov-Keisler:2009",
-     "Chambers-Echenique:2021",
-     "Chen",
-     "Duenez-Iovino:2017",
-     "Duenez-Iovino:2021",
-     "Gonczarowski-Kominers-Shorrer",
-     "Gowers:email",
-     "Iovino:2014",
-     "Shelah:1972",
-     "Simon:2015",
-     "Tao:2008",
-     "Tao:Probability",
-     "Tsirelson",
      "Walsh:2012"
     ],
     "why": "own thebibliography or other databases"
