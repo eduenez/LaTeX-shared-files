@@ -168,11 +168,13 @@
       "name": "grants",
       "repo": "eduenez/grants",
       "path": "../grants",
-      "model": "legacy-bib",
+      "model": "vendored-simple",
       "vendors": [
-        "bib"
+        "bib",
+        "toolkit"
       ],
-      "notes": "NOT on the master: uses legacy biblioteca.bib / iovino.bib (and ../../DImanuscripts/iovino); candidate for migration to the master bibliography with math-bibliography/migrate.py --map rekey.json; PLANNED (deferred): convert each of the 6 subdirectories to a grants_* paper directory in QuantumDI (see QuantumDI/docs/plans/grants-conversion.md)"
+      "notes": "grant proposals (Dueñez-Iovino); bibliography only: the master references.bib vendored at the root, scripts-only toolkit in _scripts/, no shared .sty. Migrated from the legacy biblioteca.bib / iovino.bib on 2026-11-18. PLANNED (deferred): convert each subdirectory to a grants_* paper directory (see docs/plans/grants-conversion.md in this repository)",
+      "tool": "_scripts/update_shared.py (no Makefile)"
     },
     {
       "name": "research",
