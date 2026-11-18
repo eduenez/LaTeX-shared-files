@@ -26,6 +26,7 @@ $_repo_root = abs_path(dirname(__FILE__)) unless defined $_repo_root;
 # Vendored shared packages (di-base-*, …) and the shared bibliography.
 ensure_path('TEXINPUTS', "$_repo_root/_packages//");
 ensure_path('BIBINPUTS', $_repo_root);
+ensure_path('BSTINPUTS', "$_repo_root/_packages//");   # di-amsalpha.bst
 
 $aux_dir = '_build';
 $out_dir = '.';
