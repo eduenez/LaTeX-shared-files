@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-18 20:11 UTC",
+ "generated": "2026-11-18 20:16 UTC",
  "mode": "push",
  "only": null,
  "skip": null,
@@ -11,7 +11,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "c07d782",
+   "head": "14cf558",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -21,7 +21,7 @@
      "name": "LaTeX-shared-files",
      "phase": "commit",
      "status": "done",
-     "detail": "committed c07d782, pushed"
+     "detail": "committed 14cf558, pushed"
     }
    ]
   },
@@ -30,7 +30,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "e18e51f",
+   "head": "27bc31a",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -40,7 +40,7 @@
      "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed e18e51f, pushed"
+     "detail": "committed 27bc31a, pushed"
     }
    ]
   },
@@ -49,12 +49,24 @@
    "model": "vendored-json",
    "exists": true,
    "branch": "main",
-   "head": "340508b",
+   "head": "bf4fbbe",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "info",
+   "outcome": "done",
    "steps": [
+    {
+     "name": "no-free-lunch",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography 1 commit(s)"
+    },
+    {
+     "name": "no-free-lunch",
+     "phase": "push",
+     "status": "done",
+     "detail": "pushed"
+    },
     {
      "name": "no-free-lunch",
      "phase": "project-sty",
@@ -80,7 +92,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "04dc345",
+   "head": "347a6c0",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -90,13 +102,13 @@
      "name": "LaTeX-codespace-template",
      "phase": "propagate",
      "status": "done",
-     "detail": "1 style file(s)"
+     "detail": "toolkit 1 updated/0 new"
     },
     {
      "name": "LaTeX-codespace-template",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 04dc345, pushed"
+     "detail": "committed 347a6c0, pushed"
     }
    ]
   },
@@ -105,7 +117,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "ae0ac4d",
+   "head": "7c9f10e",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -115,13 +127,13 @@
      "name": "QuantumDI",
      "phase": "propagate",
      "status": "done",
-     "detail": "1 style file(s)"
+     "detail": "toolkit 1 updated/0 new"
     },
     {
      "name": "QuantumDI",
      "phase": "commit",
      "status": "done",
-     "detail": "committed ae0ac4d, pushed"
+     "detail": "committed 7c9f10e, pushed"
     }
    ]
   },
@@ -130,7 +142,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "5648890",
+   "head": "0f89b77",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -140,13 +152,13 @@
      "name": "QuantumTeam",
      "phase": "propagate",
      "status": "done",
-     "detail": "1 style file(s)"
+     "detail": "toolkit 1 updated/0 new"
     },
     {
      "name": "QuantumTeam",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 5648890, pushed"
+     "detail": "committed 0f89b77, pushed"
     }
    ]
   },
@@ -159,21 +171,8 @@
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "ProbabilityModels",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "1 style file(s)"
-    },
-    {
-     "name": "ProbabilityModels",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed 1280685, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "RealRandom",
@@ -184,21 +183,8 @@
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "RealRandom",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "1 style file(s)"
-    },
-    {
-     "name": "RealRandom",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed 5db8f0f, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "RealStructures",
@@ -209,64 +195,90 @@
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "RealStructures",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "1 style file(s)"
-    },
-    {
-     "name": "RealStructures",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed e7f59ec, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "DImanuscripts",
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "d4a5dc0",
+   "head": "b096a79",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "DImanuscripts",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved bib"
+    },
+    {
+     "name": "DImanuscripts",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b096a79, pushed"
+    }
+   ]
   },
   {
    "name": "eduenez.github.io",
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "5a3e0d4",
+   "head": "b89b663",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "eduenez.github.io",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved math-bibliography"
+    },
+    {
+     "name": "eduenez.github.io",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b89b663, pushed"
+    }
+   ]
   },
   {
    "name": "talks",
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "f42bf38",
+   "head": "6d0484f",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "talks",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved math-bibliography"
+    },
+    {
+     "name": "talks",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 6d0484f, pushed"
+    }
+   ]
   },
   {
    "name": "grants",
    "model": "vendored-simple",
    "exists": true,
    "branch": "master",
-   "head": "1b96489",
+   "head": "cb23542",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -278,7 +290,7 @@
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "70e1095",
+   "head": "2231798",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -288,13 +300,13 @@
      "name": "research",
      "phase": "propagate",
      "status": "done",
-     "detail": "moved _packages"
+     "detail": "moved _packages, math-bibliography"
     },
     {
      "name": "research",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 70e1095, pushed"
+     "detail": "committed 2231798, pushed"
     }
    ]
   }
