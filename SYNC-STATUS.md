@@ -2,7 +2,7 @@
 
 *Written by `vendor.py sync-all` at the end of every `--apply`/`--push` run (also an interrupted one). Do not edit. Machine-readable: `sync-status.json`.*
 
-**Last run:** 2026-11-18 20:19 UTC, `--push`, completed.
+**Last run:** 2026-11-18 20:21 UTC, `--push`, completed.
 
 **Open issues: 0** — every repository looked at is current, clean and published.
 
@@ -11,7 +11,7 @@
 
 | Repository | Model | Branch | HEAD | vs origin | Last run |
 |---|---|---|---|---|---|
-| `LaTeX-shared-files` | master | main | `fdfe44c` | in sync | ok |
+| `LaTeX-shared-files` | master | main | `4107c1e` | in sync | ok |
 | `math-bibliography` | master | main | `8a629d5` | in sync | ok |
 | `no-free-lunch` | vendored-json | main | `bf4fbbe` | in sync | info |
 | `topos-logic` | vendored-simple | main | `bf908b4` | in sync | nothing |
@@ -22,9 +22,9 @@
 | `RealRandom` | vendored-simple | main | `e85ca7b` | in sync | nothing |
 | `RealStructures` | vendored-simple | main | `17c58f1` | in sync | nothing |
 | `DImanuscripts` | submodule | master | `b096a79` | in sync | nothing |
-| `eduenez.github.io` | submodule | main | `b89b663` | in sync | nothing |
+| `eduenez.github.io` | submodule | main | `298c0a4` | in sync | nothing |
 | `talks` | submodule | main | `6d0484f` | in sync | nothing |
-| `grants` | vendored-simple | master | `bb53e94` | in sync | nothing |
+| `grants` | vendored-simple | master | `fe87a1d` | in sync | nothing |
 | `research` | submodule | master | `eb773ca` | in sync | nothing |
 
 ## Citations of retired keys left as they are
