@@ -487,6 +487,32 @@ def _merge_source(reg: Registry, name: str, tidy: list[str]) -> tuple[str, str, 
     return baseline, bibtex_tidy((repo / reg.bib_name()).read_bytes(), tidy).decode(), pin
 
 
+def retire_new(new: dict, master_text: str, master_dir: Path) -> tuple[dict, list[str], dict[str, str]]:
+    """Split a consumer's NEW entries -> (still new, retired keys skipped, {key: master key} same-work duplicates).
+    A retired key (an old name in a rekey*.json) is never re-imported; an entry that is the same work as a master entry
+    (same arXiv id/DOI and title) is not imported either: its key is retired in favour of the master's (rekey-dedup.json)."""
+    import bibkeys
+    mmap = key_map(master_text)
+    retired = bibkeys.aliases(master_dir, mmap)
+    index = {}
+    for k, raw in mmap.items():
+        for i in bibkeys.identifiers(raw):
+            index.setdefault((i, bibkeys.title_of(raw)), k)
+    keep, skipped, dup_of = {}, [], {}
+    for k, raw in new.items():
+        if k in mmap:
+            keep[k] = raw
+        elif k in retired:
+            skipped.append(k)
+        else:
+            hit = next((index[(i, bibkeys.title_of(raw))] for i in bibkeys.identifiers(raw) if (i, bibkeys.title_of(raw)) in index), None)
+            if hit:
+                dup_of[k] = hit
+            else:
+                keep[k] = raw
+    return keep, sorted(skipped), dup_of
+
+
 def cmd_bib_merge(reg: Registry, args) -> int:
     tidy = reg.tidy_args()
     baseline, working_tidied, source_commit = _merge_source(reg, args.child, tidy)
@@ -504,6 +530,16 @@ def cmd_bib_merge(reg: Registry, args) -> int:
     master_text = master_path.read_text()
     master_map = key_map(master_text)
     modified = edits_not_upstream(modified, master_map)
+    new, retired, dup_of = retire_new(new, master_text, master_dir)
+    if retired:
+        print(f"  retired keys, not re-imported: {', '.join(retired)}")
+    for k, m in sorted(dup_of.items()):
+        print(f"  {k}: same work as {m} upstream -> retired in favour of {m} (its citations get renamed)")
+    if dup_of and args.apply:
+        import bibkeys
+        bibkeys.record_dedup(master_dir, dup_of)
+        _commit(master_dir, [bibkeys.DEDUP_MAP], f"bib-dedup: retire {', '.join(sorted(dup_of))} from {args.child} "
+                f"(same work as {', '.join(dup_of[k] for k in sorted(dup_of))})")
     if not new and not modified:
         print(f"{_c(args.child, C_GRN)}: nothing to merge (its edits are already upstream)")
         return 0
@@ -567,6 +603,47 @@ def cmd_bib_merge(reg: Registry, args) -> int:
 
 
 # ── bib-propagate: master bib -> children (refresh baseline; re-base working) ─────
+
+def dedup_plan(master_text: str) -> tuple[list[list[str]], list[tuple[str, str, str]]]:
+    """(duplicate groups survivor-first, suspect pairs) of the master (bibkeys.py)."""
+    import bibkeys
+    kmap = key_map(master_text)
+    return bibkeys.duplicate_groups(kmap), bibkeys.suspect_pairs(kmap)
+
+
+def cmd_bib_dedup(reg: Registry, args) -> int:
+    """Merge entries of the master that are the same work (same arXiv id or DOI, same title): the survivor takes the others'
+    missing fields, the others' keys are retired in rekey-dedup.json (sync-all then renames their citations everywhere)."""
+    import bibkeys
+    master_dir = reg.bib_master()
+    master_path = master_dir / reg.bib_name()
+    text = master_path.read_text()
+    groups, suspects = dedup_plan(text)
+    for a, b, i in suspects:
+        print(_c(f"  {a} and {b} share {i} but not the title: check them by hand (not merged)", C_YEL))
+    if not groups:
+        print(_c("master: no duplicate entries", C_GRN))
+        return 0
+    kmap = key_map(text)
+    renames = {}
+    for g in groups:
+        keep, drop = g[0], g[1:]
+        print(f"  {_c(keep, C_GRN)} <- {', '.join(drop)}")
+        text = text.replace(kmap[keep], bibkeys.merge_entry(kmap[keep], [kmap[k] for k in drop]), 1)
+        for k in drop:
+            text = text.replace(kmap[k], "", 1)
+            renames[k] = keep
+    if not args.apply:
+        print(_c("  (dry run — pass --apply to merge & commit math-bibliography)", C_DIM))
+        return 0
+    master_path.write_text(bibtex_tidy(text.encode(), reg.tidy_args(), ["--sort"]).decode())
+    bibkeys.record_dedup(master_dir, renames)
+    _commit(master_dir, [reg.bib_name(), bibkeys.DEDUP_MAP],
+            f"bib-dedup: merge {len(renames)} duplicate entr{'y' if len(renames) == 1 else 'ies'} ("
+            + ", ".join(f"{o} -> {n}" for o, n in sorted(renames.items())) + ")")
+    print(_c(f"  committed math-bibliography @ {git(master_dir, 'rev-parse', '--short', 'HEAD')}; retired keys in {bibkeys.DEDUP_MAP}", C_GRN))
+    return 0
+
 
 def cmd_bib_propagate(reg: Registry, args) -> int:
     names = [args.child] if getattr(args, "child", None) else list(reg.children)
@@ -820,6 +897,8 @@ def main() -> int:
     sp.add_argument("child")
     sp.add_argument("--apply", action="store_true", help="write & commit math-bibliography (default: dry run)")
 
+    sp = sub.add_parser("bib-dedup", help="merge duplicate entries of the master (same arXiv id/DOI and title); retired keys -> rekey-dedup.json")
+    sp.add_argument("--apply", action="store_true")
     sp = sub.add_parser("bib-propagate", help="push the master bib down to children (refresh baseline + working)")
     sp.add_argument("child", nargs="?", help="child name (default: all)")
     sp.add_argument("--apply", action="store_true", help="write & commit each child (default: dry run)")
@@ -856,7 +935,7 @@ def main() -> int:
         import sync_all
         return sync_all.run(reg, args)
     return {"init": cmd_init, "status": cmd_status, "diff": cmd_diff,
-            "validate": cmd_validate, "bib-merge": cmd_bib_merge,
+            "validate": cmd_validate, "bib-merge": cmd_bib_merge, "bib-dedup": cmd_bib_dedup,
             "bib-propagate": cmd_bib_propagate, "sty-snapshot": cmd_sty_snapshot,
             "sty-propagate": cmd_sty_propagate}[args.cmd](reg, args)
 

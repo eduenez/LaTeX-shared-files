@@ -267,6 +267,7 @@ python3 _scripts/vendor.py sync-all                  # dry run: fetches, writes 
 python3 _scripts/vendor.py sync-all --apply          # does it, committing locally (never pushes)
 python3 _scripts/vendor.py sync-all --apply --push   # ... and pushes: the master first, then every consumer
 #   --only NAME ...   --skip NAME ...   --no-harvest   --submodules-of MASTER   --build CONSUMER/PAPER ...   --json   -v
+python3 _scripts/vendor.py bib-dedup [--apply]     # only merge the master's duplicate entries
 ```
 
 `--submodules-of math-bibliography` (or `LaTeX-shared-files`) moves only that master's submodules in submodule consumers (`research` keeps
@@ -274,11 +275,21 @@ its `_packages` where it is); `repos --bib-submodules` (site-tools) uses it. A n
 
 Steps: preflight (masters and consumers reachable, no tracked changes, fast-forwarded; a consumer with unpushed commits of its own is skipped) ->
 harvest (`bib-merge` for every vendored consumer: new entries into the master, edited ones to quarantine; a malformed key skips that consumer and
-shows the fix) -> publish the master (`update_shared.py` reads the master from GitHub, so without `--push` the run stops before propagating) ->
-propagate (vendored-simple: `update_shared.py`, looked at before it is applied; vendored-json: `bib-propagate`; submodule consumers: move the pointers,
+shows the fix; a new entry that is the same work as a master entry is not imported, its key is retired) -> dedup the master
+(`bib-dedup`, below) -> publish the master (`update_shared.py` reads the master from GitHub, so without `--push` the run stops before propagating) ->
+rename retired citation keys in every consumer (below) -> propagate (vendored-simple: `update_shared.py`, looked at before it is applied; vendored-json: `bib-propagate`; submodule consumers: move the pointers,
 ignoring documentation-only upstream commits) -> one commit per consumer, explicit paths only -> regenerate `CONSUMERS.md`.
 A rejected push is reported and the commit stays local. Anything a person must decide (renamed key still cited, entry edited here and
 upstream, malformed key, dirty consumer) is listed in red, exit status 1, and the other consumers go on. Safe to re-run; a second run does nothing.
+**Duplicates and retired keys.** Two entries of the master are the *same work* when they share an identifier (arXiv id — from `eprint`, an
+arxiv.org URL, a `10.48550/arXiv` DOI or an `arXiv:NNNN.NNNNN` note — or a DOI) **and** the title. `vendor.py bib-dedup [--apply]` (also run
+by `sync-all`) merges each group into one entry: the survivor is the house-style key whose year matches the entry's year, then the entry with
+more fields; it takes the fields only the others have, and the other keys are retired in `math-bibliography/rekey-dedup.json`. A shared
+identifier with *different* titles is a metadata error and is only reported. Every retired key (all `rekey*.json`, chains followed; an alias
+counts only while its old key is gone from the master and its new key is in it) is then renamed in the consumers' `\cite` commands: in tracked
+`.tex` files that use `references.bib` or declare no bibliography (fragments), never in a `.tex` with its own `thebibliography`, a tracked
+`.bbl` beside it (a frozen submitted version) or only other databases, and never a key another tracked `.bib` of that repository defines. The
+renames are committed on their own; `update_shared.py` then drops the consumer's leftover copy of the retired entry.
 **Style files of the old-model children (`--sty`, opt-in).** Bibliography changes only add data; a style change is code and can alter the printed
 output, so it is never applied by default. The dry run lists newer shared `di-*.sty` files as "optional"; to apply them:
 `vendor.py sync-all --apply --sty --build no-free-lunch` (`--build NAME[/dir]` is required: the files are copied in, the child's paper is

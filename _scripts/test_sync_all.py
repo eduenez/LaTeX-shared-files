@@ -21,6 +21,7 @@ REAL = HERE.parent
 sys.path.insert(0, str(HERE))
 import sync_all  # noqa: E402
 import vendor  # noqa: E402
+import bibkeys  # noqa: E402
 
 PEERS = REAL.parent
 IDENT = dict(GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@e.x", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@e.x")
@@ -212,6 +213,44 @@ class SyncAll(unittest.TestCase):
         rc, rows = self.run_sync(push=True)                                   # and then there is nothing left to offer
         self.assertNotIn(("childX", "style"), rows)
 
+    def test_7_duplicates_merged_and_citations_renamed_everywhere(self):
+        mb = self.t / "math-bibliography"
+        bib = mb / "references.bib"
+        bib.write_text(bib.read_text().rstrip("\n") + "\n\n"
+                       "@unpublished{Dup-Test:2026,\n  author = {Doe, J.},\n  title = {Duplicated work},\n  year = 2026,\n"
+                       "  note = {Preprint, arXiv:2699.00001},\n}\n\n"
+                       "@unpublished{Dup-Test:2026a,\n  author = {Doe, J.},\n  title = {Duplicated work},\n  year = 2026,\n"
+                       "  eprint = {2699.00001},\n  archiveprefix = {arXiv},\n}\n")
+        sh(mb, "commit", "-qam", "a duplicate pair")
+        sh(mb, "push", "-q")
+        a = self.t / "consA"
+        for d, body in (("paper", "\\bibliography{../references}\nsee \\cite{Dup-Test:2026}\n"),
+                        ("frozen", "\\bibliography{f}\n\\cite{Dup-Test:2026}\n"),
+                        ("legacy", "\\bibliography{../old}\n\\cite{Dup-Test:2026}\n")):
+            (a / d).mkdir(exist_ok=True)
+            (a / d / f"{d}.tex").write_text(body)
+        (a / "frozen" / "frozen.bbl").write_text("% the submitted version's bibliography\n")
+        sh(a, "add", "paper", "frozen", "legacy")
+        sh(a, "commit", "-qm", "papers citing the duplicate")
+        sh(a, "push", "-q")
+        rc, rows = self.run_sync(push=True)
+        self.assertEqual(rows[("math-bibliography", "dedup")]["status"], "done")
+        master = self.remote_bib("math-bibliography")
+        self.assertIn("Dup-Test:2026a,", master)
+        self.assertNotIn("Dup-Test:2026,", master)
+        self.assertIn("Preprint, arXiv:2699.00001", master)                   # the dropped entry's extra field was kept
+        rk = json.loads(sh(self.t / "remotes" / "eduenez" / "math-bibliography.git", "show", "HEAD:rekey-dedup.json"))
+        self.assertEqual(rk.get("Dup-Test:2026"), "Dup-Test:2026a")
+        self.assertEqual(rows[("consA", "cites")]["status"], "done")
+        remote = lambda f: sh(self.t / "remotes" / "eduenez" / "consA.git", "show", f"HEAD:{f}")
+        self.assertIn("\\cite{Dup-Test:2026a}", remote("paper/paper.tex"))
+        self.assertIn("\\cite{Dup-Test:2026}", remote("frozen/frozen.tex"))     # a submitted version is never rewritten
+        self.assertIn("\\cite{Dup-Test:2026}", remote("legacy/legacy.tex"))     # nor a paper on another database
+        self.assertNotIn("Dup-Test:2026,", remote("references.bib"))            # its copy of the retired entry was dropped
+        before = {n: self.remote_head(n) for n in ("math-bibliography", "consA")}
+        self.run_sync(push=True)
+        self.assertEqual(before, {n: self.remote_head(n) for n in before})     # and a rerun has nothing more to do
+
 
 class Timeouts(unittest.TestCase):
     """A git command whose own child outlives it (git push -> ssh waiting for the agent's approval): on timeout the whole process
@@ -274,6 +313,68 @@ class Timeouts(unittest.TestCase):
             sh(t, "init", "-q")
             rc, out, _ = sync_all.g(t, "rev-parse", "--is-inside-work-tree")
             self.assertEqual((rc, out), (0, "true"))
+
+
+class BibKeys(unittest.TestCase):
+    """Duplicate detection, merging, retired-key aliases and citation renaming (bibkeys.py)."""
+
+    A = "@unpublished{Doe:2026,\n  author = {Doe, J.},\n  title = {A {T}heorem},\n  year = 2026,\n  note = {Preprint, arXiv:2610.11002},\n}"
+    B = ("@unpublished{Doe:2026a,\n  author = {Doe, J.},\n  title = {A Theorem},\n  year = 2026,\n  eprint = {2610.11002v2},\n"
+         "  archiveprefix = {arXiv},\n  journal = {X},\n}")
+
+    def test_identifiers_from_every_place(self):
+        self.assertEqual(bibkeys.identifiers(self.A), {"arxiv:2610.11002"})
+        self.assertEqual(bibkeys.identifiers(self.B), {"arxiv:2610.11002"})
+        c = "@article{C:2017,\n  title = {T},\n  doi = {https://doi.org/10.1/ABC},\n  url = {https://arxiv.org/abs/0908.0367v3},\n}"
+        self.assertEqual(bibkeys.identifiers(c), {"doi:10.1/abc", "arxiv:0908.0367"})
+
+    def test_same_identifier_and_title_is_a_duplicate_survivor_has_more_fields(self):
+        kmap = {"Doe:2026": self.A, "Doe:2026a": self.B}
+        self.assertEqual(bibkeys.duplicate_groups(kmap), [["Doe:2026a", "Doe:2026"]])
+        merged = bibkeys.merge_entry(self.B, [self.A])
+        self.assertIn("note", bibkeys.fields(merged))
+        self.assertEqual(bibkeys.fields(merged)["title"], "{A Theorem}")
+
+    def test_key_matching_the_year_survives(self):
+        old = "@article{Oz:2009,\n  title = {Q},\n  year = 2017,\n  doi = {10.1/q},\n  note = {extra},\n}"
+        new = "@article{Oz:2017,\n  title = {Q},\n  year = 2017,\n  doi = {10.1/q},\n}"
+        self.assertEqual(bibkeys.duplicate_groups({"Oz:2009": old, "Oz:2017": new}), [["Oz:2017", "Oz:2009"]])
+
+    def test_same_identifier_other_title_is_only_suspect(self):
+        other = self.B.replace("A Theorem", "Another Theorem")
+        kmap = {"Doe:2026": self.A, "Doe:2026a": other}
+        self.assertEqual(bibkeys.duplicate_groups(kmap), [])
+        self.assertEqual(bibkeys.suspect_pairs(kmap), [("Doe:2026", "Doe:2026a", "arxiv:2610.11002")])
+
+    def test_aliases_follow_chains_and_ignore_live_or_dangling(self):
+        with tempfile.TemporaryDirectory() as t:
+            Path(t, "rekey-a.json").write_text(json.dumps({"Old": "Mid", "Live:2020": "X:2020", "Gone": "Nowhere"}))
+            Path(t, "rekey-dedup.json").write_text(json.dumps({"Mid": "New:2020"}))
+            got = bibkeys.aliases(t, {"New:2020", "Live:2020", "X:2020"})
+            self.assertEqual(got, {"Old": "New:2020", "Mid": "New:2020"})
+
+    def test_rename_cites_outside_comments_with_options(self):
+        text = "see \\cite[Thm.~2]{Old, Keep} and \\citet{Old}% \\cite{Old}\n\\nocite{Old}"
+        out, done = bibkeys.rename_cites_in(text, {"Old": "New:2020"})
+        self.assertEqual(out, "see \\cite[Thm.~2]{New:2020, Keep} and \\citet{New:2020}% \\cite{Old}\n\\nocite{New:2020}")
+        self.assertEqual(done, {"Old"})
+
+    def test_only_files_that_use_the_master(self):
+        self.assertTrue(bibkeys.uses_master("\\bibliography{../references}"))
+        self.assertTrue(bibkeys.uses_master("a fragment, \\cite{X}"))
+        self.assertFalse(bibkeys.uses_master("\\bibliography{../iovino,../biblioteca}"))
+        self.assertFalse(bibkeys.uses_master("\\begin{thebibliography}{9}\\bibitem{X} x\\end{thebibliography}"))
+        self.assertTrue(bibkeys.uses_master("%\\bibliography{old}\n\\addbibresource{references.bib}"))
+
+    def test_harvest_retires_known_and_duplicate_keys(self):
+        with tempfile.TemporaryDirectory() as t:
+            Path(t, "rekey-x.json").write_text(json.dumps({"Doe2026": "Doe:2026a"}))
+            new = {"Doe2026": self.A.replace("Doe:2026", "Doe2026"), "Doe:2026": self.A,
+                   "Fresh:2026": "@misc{Fresh:2026,\n  title = {F},\n}"}
+            keep, retired, dup_of = vendor.retire_new(new, self.B, Path(t))
+            self.assertEqual(sorted(keep), ["Fresh:2026"])
+            self.assertEqual(retired, ["Doe2026"])
+            self.assertEqual(dup_of, {"Doe:2026": "Doe:2026a"})
 
 
 class EditsAlreadyUpstream(unittest.TestCase):

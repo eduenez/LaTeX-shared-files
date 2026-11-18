@@ -10,9 +10,14 @@ Phases (each consumer is independent: one that needs a person is skipped and lis
   0 preflight   the ssh agent (one connection to the remotes, AGENT_WAIT to approve), then masters and consumers: reachable, no tracked changes, on their tracking branch, fast-forwarded when behind;
                 a consumer with unpushed commits of its own is skipped (a push would publish them too)
   1 harvest     entries a consumer added or edited -> math-bibliography (vendor.py bib-merge): new entries merged and sorted,
-                edited ones quarantined; a consumer with a malformed key is skipped and the key to fix is shown
+                edited ones quarantined; a consumer with a malformed key is skipped and the key to fix is shown. A new entry that
+                is the same work as a master entry (arXiv id/DOI and title) is not imported: its key is retired (rekey-dedup.json)
+  1b dedup      entries of the master that are the same work are merged (vendor.py bib-dedup): the survivor takes the others'
+                missing fields, the other keys are retired (rekey-dedup.json). Same identifier, different title: reported only
   2 publish     push math-bibliography (--push). update_shared.py clones the master FROM GITHUB, so without --push the run stops
                 before propagating whatever the master has not published
+  2b cites      every consumer: \\cite keys retired in the master (rekey*.json) renamed to the current ones in the tracked .tex
+                files (not in a frozen version: a .tex with a tracked .bbl beside it), committed on their own
   3 propagate   vendored-simple: update_shared.py --apply (style files, toolkit, bibliography); vendored-json: bib-propagate;
                 submodule consumers: move the submodule pointers; legacy-bib: reported only
   4 commit      one commit per consumer, explicit paths only (never `git add -A`); push with --push (a rejected push is reported,
@@ -207,10 +212,19 @@ def harvest(reg, c, apply, rows):
     skip = set(c.get("bib_merge_ignore", []))
     new = {k: v for k, v in new.items() if k not in skip}
     modified = {k: v for k, v in modified.items() if k not in skip}
-    master_map = vendor.key_map((reg.bib_master() / reg.bib_name()).read_text())
+    master_text = (reg.bib_master() / reg.bib_name()).read_text()
+    master_map = vendor.key_map(master_text)
     modified = vendor.edits_not_upstream(modified, master_map)
+    new, retired, dup_of = vendor.retire_new(new, master_text, reg.bib_master())
+    if dup_of:
+        rows.append(Row(name, "harvest", "done" if apply else "planned", "same work as upstream, key retired: "
+                        + ", ".join(f"{k} -> {m}" for k, m in sorted(dup_of.items()))))
     if not new and not modified:
-        rows.append(Row(name, "harvest", "nothing"))
+        if dup_of and apply:
+            with contextlib.redirect_stdout(io.StringIO()):
+                vendor.cmd_bib_merge(reg, NS(child=name, apply=True))      # records the retirements
+        if not dup_of:
+            rows.append(Row(name, "harvest", "nothing"))
         return
     bad = sorted(k for k in new if not vendor.KEY_RE.match(k))
     if bad:
@@ -231,6 +245,94 @@ def harvest(reg, c, apply, rows):
     with contextlib.redirect_stdout(buf):
         rc = vendor.cmd_bib_merge(reg, NS(child=name, apply=True))
     rows.append(Row(name, "harvest", "done" if rc == 0 else "error", summary if rc == 0 else buf.getvalue().strip()[-300:]))
+
+
+# ── phase 1b: dedup the master ───────────────────────────────────────────────────
+
+def dedup(reg, apply, rows):
+    """-> {retired key: survivor} merged (or, in a dry run, that would be merged)."""
+    text = (reg.bib_master() / reg.bib_name()).read_text()
+    groups, suspects = vendor.dedup_plan(text)
+    for a, b, i in suspects:
+        rows.append(Row("math-bibliography", "dedup", "needs-you", f"{a} and {b} share {i} but not the title: fix the wrong one by hand"))
+    renames = {k: g[0] for g in groups for k in g[1:]}
+    if not renames:
+        return {}
+    detail = "merge " + ", ".join(f"{o} -> {n}" for o, n in sorted(renames.items()))
+    if not apply:
+        rows.append(Row("math-bibliography", "dedup", "planned", detail))
+        return renames
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = vendor.cmd_bib_dedup(reg, NS(apply=True))
+    rows.append(Row("math-bibliography", "dedup", "done" if rc == 0 else "error", detail if rc == 0 else buf.getvalue()[-300:]))
+    return renames
+
+
+# ── phase 2b: citations of retired keys ──────────────────────────────────────────
+
+def current_aliases(reg, planned):
+    """{retired key: current key}: the master's rekey*.json, plus (dry run) the merges dedup only planned."""
+    import bibkeys
+    keys = set(vendor.key_map((reg.bib_master() / reg.bib_name()).read_text())) - set(planned)
+    out = bibkeys.aliases(reg.bib_master(), keys)
+    out.update({o: out.get(n, n) for o, n in planned.items()})
+    return out
+
+
+def fix_cites(reg, c, path, aliases, apply, push, rows):
+    """Rename the \\cite keys a consumer still uses for retired entries, in tracked .tex files that draw on references.bib (or
+    declare no bibliography: fragments). Left alone: a .tex with a tracked .bbl beside it (a frozen submitted version), a
+    .tex whose bibliographies are all other databases, and keys that another tracked .bib of the repository defines. A
+    retired key that the consumer's own references.bib defines as a DIFFERENT work (another title) is left for a person."""
+    import bibkeys
+    name = c["name"]
+    if not aliases:
+        return
+    tracked = set(g(path, "ls-files")[1].splitlines())
+    own = path / reg.bib_name()
+    own_map = vendor.key_map(own.read_text(errors="replace")) if own.exists() and str(reg.bib_name()) in tracked else {}
+    # keys defined by the repository's OTHER databases (legacy .bib files a paper may still use): never renamed
+    other = set()
+    for b in (t for t in tracked if t.endswith(".bib") and t != str(reg.bib_name())):
+        if (path / b).is_file():
+            other |= set(vendor.key_map((path / b).read_text(errors="replace")))
+    master_map = vendor.key_map((reg.bib_master() / reg.bib_name()).read_text())
+    mapping, clash = {}, []
+    for old, new in aliases.items():
+        if old in other:
+            continue
+        if old in own_map and new in master_map and bibkeys.title_of(own_map[old]) != bibkeys.title_of(master_map[new]):
+            clash.append(old)
+        else:
+            mapping[old] = new
+    changed, renamed = [], set()
+    for f in sorted(t for t in tracked if t.endswith(".tex")):
+        p = path / f
+        if not p.is_file() or bibkeys.frozen(p, tracked, path):
+            continue
+        text = p.read_text(errors="surrogateescape")
+        if not bibkeys.uses_master(text):
+            continue
+        out, done = bibkeys.rename_cites_in(text, mapping)
+        hit = {k for k in clash if re.search(r"\\[A-Za-z]*cite[^{]*\{[^}]*\b" + re.escape(k) + r"\b", text)}
+        if hit:
+            rows.append(Row(name, "cites", "needs-you", f"{f} cites {', '.join(sorted(hit))}: retired upstream, but this repository's "
+                            f"references.bib has a different work under that key"))
+        if done:
+            renamed |= done
+            changed.append(f)
+            if apply:
+                p.write_text(out, errors="surrogateescape")
+    if not changed:
+        return
+    detail = f"{len(changed)} file(s): " + ", ".join(f"{k} -> {mapping[k]}" for k in sorted(renamed))
+    if not apply:
+        rows.append(Row(name, "cites", "planned", detail))
+        return
+    rows.append(Row(name, "cites", "done", detail))
+    commit_and_push(path, changed, "Cite the current keys of math-bibliography (" + ", ".join(f"{k} -> {mapping[k]}" for k in sorted(renamed)) + ")",
+                    apply, push, rows, name)
 
 
 # ── phase 3: propagate ───────────────────────────────────────────────────────────
@@ -439,6 +541,9 @@ def run(reg, args):
             if c["model"] in ("vendored-simple", "vendored-json") and "bib" in c["vendors"]:
                 harvest(reg, c, apply, rows)
 
+    # 1b. dedup the master
+    planned = dedup(reg, apply, rows)
+
     # 2. publish
     ahead = int(g(bib_master, "rev-list", "--count", "@{u}..HEAD")[1] or 0)
     if ahead:
@@ -455,10 +560,13 @@ def run(reg, args):
         else:
             rows.append(Row("math-bibliography", "publish", "planned", f"would push {ahead} commit(s)"))
 
-    # 3-4. propagate, commit, push
+    # 2b-4. citations of retired keys, propagate, commit, push
+    aliases = current_aliases(reg, {} if apply else planned)
     for c, path in usable:
         m = c["model"]
         try:
+            if m != "legacy-bib":
+                fix_cites(reg, c, path, aliases, apply, push, rows)
             if m == "vendored-simple":
                 propagate_simple(reg, c, path, apply, push, rows)
             elif m == "vendored-json":
