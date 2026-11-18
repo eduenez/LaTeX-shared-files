@@ -25,6 +25,10 @@ repos = {}
 for m in re.finditer(r'^(\S+)\s+(\S+/\S+)\s+(\S+)', text, re.M):
     if not m.group(1).startswith('#'):
         repos.setdefault(m.group(2), []).append((m.group(1), m.group(3)))
+# the toolkit's scripts (_scripts/vendor.lock) come from LaTeX-shared-files even when no style file does (a repository that vendors
+# only the bibliography)
+if os.path.exists(os.path.join(root, '_scripts', 'vendor.lock')):
+    repos.setdefault(toolkit_lock.REPO, [])
 tmp = tempfile.mkdtemp()
 new = text
 try:
@@ -55,7 +59,7 @@ try:
             toolkit_lock.sync(d, head, root, apply_, add_new)
         listed = {f for f, _ in files}
         fresh = sorted(x for x in os.listdir(d) if re.match(r'^di-.*\.(sty|bst)$', x) and x not in listed)
-        if fresh:
+        if fresh and listed:                        # a repository that vendors no style file is not offered them
             print(f'  NOT vendored here (available upstream): {", ".join(fresh)}' + ('' if add_new else '   (add them with --add-new --apply)'))
             if apply_ and add_new:
                 for x in fresh:
