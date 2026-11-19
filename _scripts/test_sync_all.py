@@ -233,6 +233,8 @@ class SyncAll(unittest.TestCase):
         sh(a, "add", "paper", "frozen", "legacy")
         sh(a, "commit", "-qm", "papers citing the duplicate")
         sh(a, "push", "-q")
+        _, dry = self.run_sync()                     # a dry run must not flag what the real run resolves by itself
+        self.assertNotEqual(dry.get(("consA", "propagate"), {}).get("status"), "needs-you", dry.get(("consA", "propagate")))
         rc, rows = self.run_sync(push=True)
         self.assertEqual(rows[("math-bibliography", "dedup")]["status"], "done")
         master = self.remote_bib("math-bibliography")

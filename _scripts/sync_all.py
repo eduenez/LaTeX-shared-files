@@ -407,6 +407,15 @@ def propagate_simple(reg, c, path, apply, push, rows):
     r = run_group([sys.executable, str(script)], cwd=path, env=env(), timeout=NET_STEP)
     out = r.stdout + r.stderr
     changes, blocked, summary = parse_update_shared(out)
+    if blocked and not apply and not r.returncode and "would be overwritten" not in out:
+        # Dry run only: the `cites` step has not rewritten the papers yet, so update_shared still sees the retired keys as
+        # cited. If every such key is covered by this consumer's planned cites rewrite, the real run will not hit this.
+        cited = re.findall(r"^\s+(\S+) is the same work as upstream \S+ but is still cited here", out, re.M)
+        planned = " ".join(x.detail for x in rows if x.name == name and x.phase == "cites" and x.status == "planned")
+        if cited and all(re.search(re.escape(k) + r" -> ", planned) for k in cited):
+            blocked = False
+            summary = (summary + "; " if summary else "") + "retired key(s) " + ", ".join(cited) + " dropped after the planned cites rewrite"
+            changes = True
     if blocked or r.returncode:
         why = next((l.strip() for l in out.splitlines() if "would be overwritten" in l or "still cited here" in l), out.strip()[-200:])
         rows.append(Row(name, "propagate", "needs-you", why[:300]))
