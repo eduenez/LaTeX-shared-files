@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-18 22:40 UTC",
- "mode": "push",
+ "generated": "2026-11-19 04:50 UTC",
+ "mode": "apply",
  "only": null,
  "skip": null,
  "aborted": null,
@@ -11,7 +11,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "765020c",
+   "head": "ef47d37",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -23,12 +23,19 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "8a629d5",
-   "ahead": 0,
+   "head": "0403b8d",
+   "ahead": 1,
    "behind": 0,
    "dirty": 0,
-   "outcome": "ok",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "math-bibliography",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 0403b8d"
+    }
+   ]
   },
   {
    "name": "no-free-lunch",
@@ -77,13 +84,44 @@
    "name": "QuantumDI",
    "model": "vendored-simple",
    "exists": true,
-   "branch": "main",
-   "head": "62c5e6d",
-   "ahead": 0,
+   "branch": "eduardo/Banach",
+   "head": "c0d784e",
+   "ahead": 2,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumDI",
+     "phase": "harvest",
+     "status": "done",
+     "detail": "0 new entries"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "cites",
+     "status": "done",
+     "detail": "1 file(s): Zilber:2016b -> Zilber:2016a"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 25faaaf"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "1 style file(s), toolkit 3 updated/0 new, bibliography +39 new/10 corrected, drops superseded Duenez-Iovino:2026, Ozawa:2009, Zilber:2016b, ZorinKranich:2016b"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed c0d784e"
+    }
+   ]
   },
   {
    "name": "QuantumTeam",
