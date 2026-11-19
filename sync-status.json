@@ -1,22 +1,36 @@
 {
- "generated": "2026-11-19 04:50 UTC",
- "mode": "apply",
+ "generated": "2026-11-19 04:55 UTC",
+ "mode": "push",
  "only": null,
  "skip": null,
  "aborted": null,
- "issues": [],
+ "issues": [
+  {
+   "name": "QuantumDI",
+   "phase": "preflight",
+   "status": "needs-you",
+   "detail": "2 unpushed commit(s) of its own"
+  }
+ ],
  "repositories": [
   {
    "name": "LaTeX-shared-files",
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "ef47d37",
-   "ahead": 0,
+   "head": "e2b4aa5",
+   "ahead": 2,
    "behind": 0,
    "dirty": 0,
    "outcome": "ok",
-   "steps": []
+   "steps": [
+    {
+     "name": "LaTeX-shared-files",
+     "phase": "preflight",
+     "status": "ok",
+     "detail": "2 unpublished commit(s)"
+    }
+   ]
   },
   {
    "name": "math-bibliography",
@@ -24,16 +38,22 @@
    "exists": true,
    "branch": "main",
    "head": "0403b8d",
-   "ahead": 1,
+   "ahead": 0,
    "behind": 0,
    "dirty": 0,
    "outcome": "done",
    "steps": [
     {
      "name": "math-bibliography",
-     "phase": "commit",
+     "phase": "preflight",
+     "status": "ok",
+     "detail": "1 unpublished commit(s)"
+    },
+    {
+     "name": "math-bibliography",
+     "phase": "publish",
      "status": "done",
-     "detail": "committed 0403b8d"
+     "detail": "pushed 1 commit(s)"
     }
    ]
   },
@@ -89,37 +109,13 @@
    "ahead": 2,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
+   "outcome": "needs-you",
    "steps": [
     {
      "name": "QuantumDI",
-     "phase": "harvest",
-     "status": "done",
-     "detail": "0 new entries"
-    },
-    {
-     "name": "QuantumDI",
-     "phase": "cites",
-     "status": "done",
-     "detail": "1 file(s): Zilber:2016b -> Zilber:2016a"
-    },
-    {
-     "name": "QuantumDI",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed 25faaaf"
-    },
-    {
-     "name": "QuantumDI",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "1 style file(s), toolkit 3 updated/0 new, bibliography +39 new/10 corrected, drops superseded Duenez-Iovino:2026, Ozawa:2009, Zilber:2016b, ZorinKranich:2016b"
-    },
-    {
-     "name": "QuantumDI",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed c0d784e"
+     "phase": "preflight",
+     "status": "needs-you",
+     "detail": "2 unpushed commit(s) of its own"
     }
    ]
   },
