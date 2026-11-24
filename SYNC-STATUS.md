@@ -2,32 +2,30 @@
 
 *Written by `vendor.py sync-all` at the end of every `--apply`/`--push` run (also an interrupted one). Do not edit. Machine-readable: `sync-status.json`.*
 
-**Last run:** 2026-11-24 00:33 UTC, `--push`, completed.
+**Last run:** 2026-11-24 00:38 UTC, `--push`, completed.
 
-**Open issues: 2**
+**Open issues: 0** — every repository looked at is current, clean and published.
 
-- `topos-logic` (preflight): branch tracks nothing
-- `talks` (preflight): 2 tracked file(s) modified
 
 ## Repositories
 
 | Repository | Model | Branch | HEAD | vs origin | Last run |
 |---|---|---|---|---|---|
-| `LaTeX-shared-files` | master | main | `ad6fe46` | in sync | done |
-| `math-bibliography` | master | main | `01b0a3f` | in sync | done |
-| `no-free-lunch` | vendored-json | main | `e9386b8` | in sync | done |
-| `topos-logic` | vendored-simple | chore/update-shared-bib | `53ea874` | no upstream | needs-you |
-| `LaTeX-codespace-template` | vendored-simple | main | `b6666ac` | in sync | done |
-| `QuantumDI` | vendored-simple | main | `cf32d27` | in sync | done |
+| `LaTeX-shared-files` | master | main | `6f58cde` | in sync | done |
+| `math-bibliography` | master | main | `1543985` | in sync | done |
+| `no-free-lunch` | vendored-json | main | `e9386b8` | in sync | info |
+| `topos-logic` | vendored-simple | main | `35dae7e` | in sync | done |
+| `LaTeX-codespace-template` | vendored-simple | main | `b6666ac` | in sync | nothing |
+| `QuantumDI` | vendored-simple | main | `cf32d27` | in sync | nothing |
 | `QuantumTeam` | vendored-simple | main | `3504ce4` | in sync | done |
-| `ProbabilityModels` | vendored-simple | main | `3921ecf` | in sync | done |
-| `RealRandom` | vendored-simple | main | `b4e8d8c` | in sync | done |
-| `RealStructures` | vendored-simple | main | `99efd82` | in sync | done |
-| `DImanuscripts` | submodule | master | `f017987` | in sync | done |
-| `eduenez.github.io` | submodule | main | `b8e0318` | in sync | done |
-| `talks` | submodule | main | `3d7954e` | dirty | needs-you |
-| `grants` | vendored-simple | master | `1d32acb` | in sync | done |
-| `research` | submodule | master | `f5097ad` | in sync | done |
+| `ProbabilityModels` | vendored-simple | main | `3921ecf` | in sync | nothing |
+| `RealRandom` | vendored-simple | main | `b4e8d8c` | in sync | nothing |
+| `RealStructures` | vendored-simple | main | `99efd82` | in sync | nothing |
+| `DImanuscripts` | submodule | master | `f017987` | in sync | nothing |
+| `eduenez.github.io` | submodule | main | `b8e0318` | in sync | nothing |
+| `talks` | submodule | main | `bab064d` | in sync | done |
+| `grants` | vendored-simple | master | `1d32acb` | in sync | nothing |
+| `research` | submodule | master | `f5097ad` | in sync | nothing |
 
 ## Citations of retired keys left as they are
 
