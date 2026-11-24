@@ -1,31 +1,49 @@
 {
- "generated": "2026-11-19 04:58 UTC",
+ "generated": "2026-11-24 00:33 UTC",
  "mode": "push",
- "only": [
-  "QuantumDI"
- ],
+ "only": null,
  "skip": null,
  "aborted": null,
- "issues": [],
+ "issues": [
+  {
+   "name": "topos-logic",
+   "phase": "preflight",
+   "status": "needs-you",
+   "detail": "branch tracks nothing"
+  },
+  {
+   "name": "talks",
+   "phase": "preflight",
+   "status": "needs-you",
+   "detail": "2 tracked file(s) modified"
+  }
+ ],
  "repositories": [
   {
    "name": "LaTeX-shared-files",
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "aef7c38",
+   "head": "ad6fe46",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "ok",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-shared-files",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed ad6fe46, pushed"
+    }
+   ]
   },
   {
    "name": "math-bibliography",
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "79eb360",
+   "head": "01b0a3f",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -33,9 +51,15 @@
    "steps": [
     {
      "name": "math-bibliography",
+     "phase": "publish",
+     "status": "done",
+     "detail": "pushed 1 commit(s)"
+    },
+    {
+     "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 79eb360, pushed"
+     "detail": "committed 01b0a3f, pushed"
     }
    ]
   },
@@ -44,158 +68,654 @@
    "model": "vendored-json",
    "exists": true,
    "branch": "main",
-   "head": "bf4fbbe",
+   "head": "e9386b8",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "no-free-lunch",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography 1 commit(s)"
+    },
+    {
+     "name": "no-free-lunch",
+     "phase": "push",
+     "status": "done",
+     "detail": "pushed"
+    },
+    {
+     "name": "no-free-lunch",
+     "phase": "project-sty",
+     "status": "info",
+     "detail": "NFL.sty changed since its snapshot in LaTeX-shared-files (python3 _scripts/vendor.py sty-snapshot no-free-lunch); never automated: it is your coauthors' file"
+    }
+   ]
   },
   {
    "name": "topos-logic",
    "model": "vendored-simple",
    "exists": true,
-   "branch": "main",
-   "head": "bf908b4",
-   "ahead": 0,
-   "behind": 0,
+   "branch": "chore/update-shared-bib",
+   "head": "53ea874",
+   "ahead": null,
+   "behind": null,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "needs-you",
+   "steps": [
+    {
+     "name": "topos-logic",
+     "phase": "preflight",
+     "status": "needs-you",
+     "detail": "branch tracks nothing"
+    }
+   ]
   },
   {
    "name": "LaTeX-codespace-template",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "4bac2b3",
+   "head": "b6666ac",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography +4 new/0 corrected"
+    },
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b6666ac, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumDI",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "62c5e6d",
+   "head": "cf32d27",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumDI",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography +4 new/0 corrected"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed cf32d27, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumTeam",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "e4b712e",
+   "head": "3504ce4",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumTeam",
+     "phase": "harvest",
+     "status": "done",
+     "detail": "4 new entries"
+    }
+   ]
   },
   {
    "name": "ProbabilityModels",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "40b28d3",
+   "head": "3921ecf",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "ProbabilityModels",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography +4 new/0 corrected"
+    },
+    {
+     "name": "ProbabilityModels",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 3921ecf, pushed"
+    }
+   ]
   },
   {
    "name": "RealRandom",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "e85ca7b",
+   "head": "b4e8d8c",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "RealRandom",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography +4 new/0 corrected"
+    },
+    {
+     "name": "RealRandom",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b4e8d8c, pushed"
+    }
+   ]
   },
   {
    "name": "RealStructures",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "17c58f1",
+   "head": "99efd82",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "RealStructures",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography +4 new/0 corrected"
+    },
+    {
+     "name": "RealStructures",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 99efd82, pushed"
+    }
+   ]
   },
   {
    "name": "DImanuscripts",
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "b096a79",
+   "head": "f017987",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "DImanuscripts",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved bib"
+    },
+    {
+     "name": "DImanuscripts",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed f017987, pushed"
+    }
+   ]
   },
   {
    "name": "eduenez.github.io",
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "298c0a4",
+   "head": "b8e0318",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "eduenez.github.io",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved math-bibliography"
+    },
+    {
+     "name": "eduenez.github.io",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b8e0318, pushed"
+    }
+   ]
   },
   {
    "name": "talks",
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "6d0484f",
+   "head": "3d7954e",
    "ahead": 0,
    "behind": 0,
-   "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "dirty": 2,
+   "outcome": "needs-you",
+   "steps": [
+    {
+     "name": "talks",
+     "phase": "preflight",
+     "status": "needs-you",
+     "detail": "2 tracked file(s) modified"
+    }
+   ]
   },
   {
    "name": "grants",
    "model": "vendored-simple",
    "exists": true,
    "branch": "master",
-   "head": "fe87a1d",
+   "head": "1d32acb",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "grants",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "bibliography +4 new/0 corrected"
+    },
+    {
+     "name": "grants",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 1d32acb, pushed"
+    }
+   ]
   },
   {
    "name": "research",
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "eb773ca",
+   "head": "f5097ad",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "not looked at",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "research",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved math-bibliography"
+    },
+    {
+     "name": "research",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed f5097ad, pushed"
+    }
+   ]
   }
  ],
  "retired_keys": 448,
- "not_renamed": {}
+ "not_renamed": {
+  "DImanuscripts": [
+   {
+    "file": "Casazza/ExplicitDefinability.tex",
+    "keys": [
+     "Ben-Yaacov-Iovino:2009",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Shelah:1975",
+     "Shelah:1990",
+     "Young:1971"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "Casazza/NondefTsirelson.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "BenYaacov2014",
+     "Duenez-Iovino",
+     "James1964",
+     "Keisler2023",
+     "Shelah:1990"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "CompactnessPrinciples/AppsCompact.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Cutland:1980",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Kohlenbach:2008",
+     "Shelah:1971",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "CompactnessPrinciples/DuenezIovinoMTMC1v1.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Cutland:1980",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Shelah:1971",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "CompactnessPrinciples/DuenezIovinoMTMC1v2.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Cutland:1980",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Shelah:1971",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "CompactnessPrinciples/DuenezIovinoMTMC1v4.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Cutland:1980",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Shelah:1971",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "CompactnessPrinciples/DuenezIovinoMTMC1v5.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Cutland:1980",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Kohlenbach:2005",
+     "Kohlenbach:2008",
+     "Shelah:1971",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "CompactnessPrinciples/DuenezIovinoMTMC1v6.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Cutland:1980",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Kohlenbach:2008",
+     "Shelah:1971",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "MeasurableFnsStab/struct_meas_fns.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "BenYaacov2014"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "NormDefinability/ExplicitDefinability.tex",
+    "keys": [
+     "Ben-Yaacov-Iovino:2009",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Chang-Keisler:1961",
+     "Shelah:1975",
+     "Shelah:1990",
+     "Young:1971"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/AbelianHilbertPET.tex",
+    "keys": [
+     "BellSlomson2006",
+     "BergelsonLeibman2004",
+     "Birkhoff1931",
+     "Duenez-Iovino:2017",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Neumann1932",
+     "Szemeredi1975",
+     "Tao2012",
+     "Tao:2008",
+     "Walsh:2012",
+     "ZorinKr:2016"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/DuenezIovinoMTMC2revised.tex",
+    "keys": [
+     "BellSlomson2006",
+     "BergelsonLeibman2004",
+     "Birkhoff1931",
+     "Duenez-Iovino:2017",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Neumann1932",
+     "Szemeredi1975",
+     "Tao2012",
+     "Tao:2008",
+     "Walsh:2012",
+     "ZorinKr:2016"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/MTMC2v2.tex",
+    "keys": [
+     "BellSlomson2006",
+     "BergelsonLeibman2004",
+     "Birkhoff1931",
+     "Duenez-Iovino:2017",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Neumann1932",
+     "Szemeredi1975",
+     "Tao2012",
+     "Tao:2008",
+     "Walsh:2012",
+     "ZorinKr:2016"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/MTMC2v2arxiv.tex",
+    "keys": [
+     "BellSlomson2006",
+     "BergelsonLeibman2004",
+     "Birkhoff1931",
+     "Duenez-Iovino:2017",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Neumann1932",
+     "Szemeredi1975",
+     "Tao2012",
+     "Tao:2008",
+     "Walsh:2012",
+     "ZorinKr:2016"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/MTMC2versionConMath.tex",
+    "keys": [
+     "BellSlomson2006",
+     "BergelsonLeibman2004",
+     "Birkhoff1931",
+     "Duenez-Iovino:2017",
+     "Henson-Iovino:2002",
+     "Iovino:2014",
+     "Neumann1932",
+     "Szemeredi1975",
+     "Tao2012",
+     "Tao:2008",
+     "Walsh:2012",
+     "ZorinKr:2016"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/PolyDescDim1.tex",
+    "keys": [
+     "DuenezIoMTMC1",
+     "Henson-Iovino:2002",
+     "Iovino:2014"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "PolynomialDescent/polydescent.tex",
+    "keys": [
+     "DuenezIoMTMC1",
+     "Neumann1932",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "RMproblems/RMproblemas.tex",
+    "keys": [
+     "AndersonGuZe2009",
+     "Flanders1989",
+     "Forrester2010a",
+     "Mehta2004",
+     "MezzadriSn2005",
+     "Spivak1965"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "SecondOrderDef/SecondOrderDefinability.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "DuenezIoMTMC1",
+     "HensonIo2002"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "ergodic/von-Neumann-arXivV1.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Henson-Iovino:2002",
+     "Iovino2014",
+     "Neumann1932",
+     "Pier1984",
+     "Riesz1941",
+     "Robinson1974",
+     "Shelah:1971",
+     "Tao2012",
+     "Walsh2012",
+     "Wiener1939",
+     "ZorinKr2011"
+    ],
+    "why": "frozen version (.bbl beside it)"
+   },
+   {
+    "file": "ergodic/von-Neumann.tex",
+    "keys": [
+     "Ben-Yaacov-Berenstein-Henson-Usvyatsov:2008",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Henson-Iovino:2002",
+     "Iovino2014",
+     "Neumann1932",
+     "Pier1984",
+     "Riesz1941",
+     "Robinson1974",
+     "Shelah:1971",
+     "Tao2012",
+     "Walsh2012",
+     "Wiener1939",
+     "ZorinKr2011"
+    ],
+    "why": "own thebibliography or other databases"
+   },
+   {
+    "file": "noncompactness/metastabilitycompactness.tex",
+    "keys": [
+     "Ben-Yaacov-Iovino:2009",
+     "Ben-Yaacov-Usvyatsov:2010",
+     "Duenez-Iovino:2017",
+     "Kohlenbach:2008",
+     "Munkres2000",
+     "Pavelka:1979I",
+     "Pavelka:1979II",
+     "Pavelka:1979III",
+     "Shelah-Vaananen",
+     "Shelah:1972",
+     "Shelah:1975",
+     "Shelah:Compact",
+     "Tao:2008",
+     "Tao:Metastability",
+     "Walsh:2012"
+    ],
+    "why": "own thebibliography or other databases"
+   }
+  ]
+ }
 }
