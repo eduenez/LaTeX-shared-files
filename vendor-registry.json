@@ -26,13 +26,13 @@
       "name": "no-free-lunch",
       "repo": "eduenez/no-free-lunch",
       "path": "../no-free-lunch",
-      "model": "vendored-json",
+      "model": "vendored-simple",
       "vendors": [
         "sty",
         "bib"
       ],
-      "tool": "vendor.py + vendor_sty.py",
-      "notes": "project .sty NFL.sty snapshot in children/"
+      "tool": "make update-shared (python3 _scripts/update_shared.py); toolkit profile: scripts only (_scripts/vendor.lock)",
+      "notes": "flat single-paper thesis with a collaborator (Kimberly Roe; own project .sty NFL.sty, own Makefile and formatters in _scripts/); converted 2026-11-26 from the old vendor.lock.json model (vendored-json) to the simple model: PDF identical before and after; the children/no-free-lunch snapshot of the project .sty was dropped"
     },
     {
       "name": "topos-logic",

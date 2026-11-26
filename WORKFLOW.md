@@ -23,8 +23,9 @@ and how you (the maintainer) drive it with `_scripts/vendor.py`.
   `di-base-article.sty`, `di-base-monograph.sty`, `di-structures.sty`, …).
 - `math-bibliography` — the master `references.bib`.
 
-**Children** (the old-model paper/book repos that consume them, with `vendor.lock.json`): `no-free-lunch`. (`topos-logic` was converted to the
-simple model, `make update-shared`, on 2026-10-25; `QuantumStructures` is retired into QuantumTeam. `vendor-registry.json` and `CONSUMERS.md` are authoritative.)
+**Children** (the old-model paper/book repos that consume them, with `vendor.lock.json`): none remain. (`topos-logic` was converted to the
+simple model, `make update-shared`, on 2026-10-25, and `no-free-lunch` on 2026-11-26; `QuantumStructures` is retired into QuantumTeam. The
+`no-free-lunch` examples below show the old-model commands as they were. `vendor-registry.json` and `CONSUMERS.md` are authoritative.)
 
 Instead of submodules, each child carries **vendored** copies — real, committed
 files — so a collaborator clones and builds with zero submodule steps. The
