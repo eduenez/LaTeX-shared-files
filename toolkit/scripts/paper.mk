@@ -22,6 +22,8 @@ PAPER   := $(notdir $(CURDIR))
 MASTERS := $(filter-out $(EXCLUDE),$(shell grep -l '^[^%]*\\documentclass' *.tex 2>/dev/null | xargs grep -L '^[^%]*\\documentclass.*{standalone}' 2>/dev/null))
 # A paper without its own latexmkrc still gets the shared configuration.
 LATEXMK := latexmk $(if $(wildcard latexmkrc),,-r ../latexmkrc)
+# Every build makes sure this clone has the house commit checks (advisory; once per clone; `git config house.hooks off` opts out).
+ENSURE_HOOKS := bash $(HERE)setup-hooks.sh --ensure 2>/dev/null || true
 
 .DEFAULT_GOAL := pdf
 .PHONY: pdf PDF compile article all watch clean distclean help FORCE \
@@ -29,17 +31,20 @@ LATEXMK := latexmk $(if $(wildcard latexmkrc),,-r ../latexmkrc)
 
 ## pdf: build the default document of this directory (synonyms: PDF, compile, article)
 pdf PDF compile article:
+	@$(ENSURE_HOOKS)
 	@$(LATEXMK)
 
 ## all: build every master document of this directory
 all:
 	@test -n "$(MASTERS)" || { echo "No master .tex (with \\documentclass) in $(PAPER)/"; exit 1; }
+	@$(ENSURE_HOOKS)
 	@fail=""; for m in $(MASTERS); do echo "── $(PAPER)/$$m ──"; $(LATEXMK) $$m || fail="$$fail $$m"; done; \
 	if [ -n "$$fail" ]; then echo "BUILD FAILED for:$$fail"; exit 1; fi
 
 # make NAME.pdf — build one master
 %.pdf: FORCE
 	@test -f $*.tex || { echo "no $*.tex in $(PAPER)/"; exit 1; }
+	@$(ENSURE_HOOKS)
 	@$(LATEXMK) $*.tex
 FORCE:
 

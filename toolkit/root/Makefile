@@ -61,6 +61,7 @@ ifeq ($(MODE),vendored)
 	@python3 $(SCRIPTS)/vendor_check.py
 else
 	@echo "vendor-check: nothing is vendored here (_packages/ and math-bibliography/ are git submodules)."
+	@python3 $(SCRIPTS)/agents_blocks.py check
 endif
 
 bib-diff:
@@ -84,7 +85,8 @@ else
 	@git submodule update --init --remote --merge
 	@git status --short _packages math-bibliography
 	@python3 $(SCRIPTS)/toolkit_lock.py seeds
-	@echo "If the pointers changed: build a paper or two, then  git add _packages math-bibliography && git commit -m 'Update shared files and bibliography'"
+	@python3 $(SCRIPTS)/agents_blocks.py --apply
+	@echo "If the pointers changed: build a paper or two, then  git add _packages math-bibliography AGENTS.md && git commit -m 'Update shared files and bibliography'"
 endif
 
 update-submodules: update-shared

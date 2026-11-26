@@ -537,7 +537,15 @@ def propagate_submodules(reg, c, path, apply, push, rows, only_of=None):
         rows.append(Row(name, "propagate", "error", err.splitlines()[-1] if err else "submodule update failed"))
         return
     rows.append(Row(name, "propagate", "done", "moved " + ", ".join(moved)))
-    commit_and_push(path, moved, "Update shared submodules to their newest upstream commits", apply, push, rows, name)
+    paths = list(moved)
+    # the shared blocks of AGENTS.md (the house rules) follow the toolkit the new pointer brings
+    blocks = path / "_packages" / "toolkit" / "scripts" / "agents_blocks.py"
+    if "_packages" in moved and blocks.exists():
+        r = run_group([sys.executable, str(blocks), "--apply"], cwd=path, env=env(), timeout=120)
+        if "UPDATED" in r.stdout:
+            paths.append("AGENTS.md")
+            rows.append(Row(name, "propagate", "done", "AGENTS.md shared block(s) refreshed"))
+    commit_and_push(path, paths, "Update shared submodules to their newest upstream commits", apply, push, rows, name)
 
 
 # ── leftovers, state, the status record ───────────────────────────────────────────

@@ -139,7 +139,33 @@ def sync(upstream, head, root, apply_, add_new=False, log=print):
                 shutil.copy2(up, loc)
         if apply_ or state == 'same':
             new_lock[dest] = (head if (apply_ or dest not in lock) else lock[dest][0], sha(loc) if os.path.exists(loc) else '')
-    gone = sorted(set(lock) - {d for m, s, d in rows if m == 'managed'})
+    # the SHARED BLOCKS of AGENTS.md (agents_blocks.py): the house rules, refreshed in place, pinned as AGENTS.md#<name>
+    if profile != 'scripts':
+        # this repository's copy first; on the very first update it is not here yet: use the upstream one
+        sys.path[:0] = [p for p in (os.path.dirname(os.path.abspath(__file__)),) if p not in sys.path]
+        sys.path.append(os.path.join(upstream, 'toolkit', 'scripts'))
+        import agents_blocks as ab
+        ap = os.path.join(root, ab.FILE)
+        if os.path.exists(ap):
+            text = open(ap, encoding='utf-8').read()
+            new_text, states = ab.refresh(text, ab.read_sources(os.path.join(upstream, 'toolkit', 'docs', 'agents')))
+            if not ab.blocks(text):
+                log(f'  toolkit {ab.FILE}: no shared blocks (the house rules are not kept current here; see toolkit/docs/AGENTS.md)')
+            for name, st in states.items():
+                dest = f'{ab.FILE}#{name}'
+                if st == 'same' and dest not in lock:
+                    st = 'NEW'                     # first pin of an unchanged block: still worth recording
+                if st == 'same':
+                    n_same += 1
+                else:
+                    n_up += st == 'UPDATED'
+                    n_new += st == 'NEW'
+                    log(f'  toolkit {dest}: {"UPDATED upstream" if st == "UPDATED" else "pinned (first time)"}')
+                if apply_ or st == 'same':
+                    new_lock[dest] = (head if (apply_ or dest not in lock) else lock[dest][0], ab.sha(ab.body(new_text, name)))
+            if apply_ and new_text != text:
+                open(ap, 'w', encoding='utf-8').write(new_text)
+    gone = sorted(set(lock) - {d for m, s, d in rows if m == 'managed'} - {d for d in new_lock if '#' in d})
     for g in gone:
         log(f'  toolkit {g}: no longer in the manifest (left in place; delete it if obsolete)')
     log(f'  toolkit: {n_same} identical, {n_up} updated, {n_new} new, {len(gone)} dropped upstream')
@@ -155,6 +181,18 @@ def check(root):
         return None
     bad = []
     for dest, (commit, h) in lock.items():
+        if '#' in dest:                            # a shared block of AGENTS.md
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import agents_blocks as ab
+            f, name = dest.split('#', 1)
+            p = os.path.join(root, f)
+            b = ab.body(open(p, encoding='utf-8').read(), name) if os.path.exists(p) else None
+            if b is None:
+                bad.append(f'{dest}: shared block missing (its markers were removed)')
+            elif ab.sha(b) != h:
+                bad.append(f'{dest}: MODIFIED — the shared block of {f} is maintained in LaTeX-shared-files (toolkit/docs/agents/{name}.md); '
+                           f'put local additions outside the block, or restore it with `make update-shared APPLY=1`')
+            continue
         p = os.path.join(root, dest)
         if not os.path.exists(p):
             bad.append(f'{dest}: listed but missing')

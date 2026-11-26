@@ -31,7 +31,10 @@ git config user.name  >/dev/null && ok "user.name = $(git config user.name)"  ||
 git config user.email >/dev/null && ok "user.email = $(git config user.email)" || bad "git user.email" 'git config --global user.email "you@example.edu"'
 if [ -d .git ] || git rev-parse --git-dir >/dev/null 2>&1; then
   hooks="$(git rev-parse --git-path hooks/pre-commit)"
-  [ -f "$hooks" ] && ok "pre-commit hook installed (advisory)" || note "pre-commit hook not installed" "make install-hooks   (advisory reminders; never blocks a commit)"
+  if [ "$(git config --get house.hooks 2>/dev/null)" = "off" ]; then ok "house commit checks: opted out in this clone (git config --unset house.hooks to opt back in)"
+  elif [ -f "$hooks" ] && grep -q 'house-hook v1' "$hooks"; then ok "house commit checks installed (advisory pre-commit hook)"
+  elif [ -f "$hooks" ]; then note "pre-commit hook is an old or foreign one" "make install-hooks   (installs the current house checks; a foreign hook is kept as pre-commit.local)"
+  else note "house commit checks not installed" "make install-hooks   (advisory reminders; never blocks a commit; any build also installs them)"; fi
 fi
 echo "Git behaviour"
 if [ -z "$(git config pull.rebase)" ] && [ -z "$(git config pull.ff)" ]; then note "git pull is not configured" "git config --global pull.rebase false   (plain merge; avoids the 'divergent branches' error)"; else ok "git pull behaviour configured"; fi

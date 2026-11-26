@@ -1,3 +1,4 @@
+<!-- BEGIN SHARED BLOCK house: maintained in LaTeX-shared-files (toolkit/docs/agents/house.md) and rewritten by `make update-shared`; do not edit between these markers -->
 # AGENTS.md — instructions for AI coding assistants
 
 These instructions are for **any** assistant working in this repository (GitHub Copilot, Claude Code, Codex,
@@ -54,6 +55,11 @@ there"), not a lesson.
 
 1. Run `make doctor` (read-only; checks tools, Git identity, hooks). If something is missing, follow the
    coaching protocol's *tool setup* step before doing anything else that needs it.
+   **The commit checks (pre-commit hook).** Every build (`make`, or `latexmk` through the shared `latexmkrc`, which is what
+   VS Code uses) installs them once per clone and says so in one line. If `make doctor` still reports them missing or outdated,
+   install them yourself: `make install-hooks`. They are advisory and never block a commit, so this needs no lesson; at most a
+   one-line yes/no ("Install the house commit checks? They only print reminders."). If the person says no, record it with
+   `git config house.hooks off` (nothing installs them again in this clone) and do not ask again.
 2. Run `git status` and `git log --oneline -5` so you know what state the work is in.
 3. Run `make vendor-check` (vendored mode) and, in the paper you will work on, `make check` (it reports package loads in the
    main file as well as formatting drift). Repair what they report as described above before you start the task.
@@ -141,7 +147,10 @@ copies of them, and so does every repository created from it. Therefore:
   (tests, commit, push), and only then delivered here with `make update-shared` (dry run) and
   `python3 _scripts/update_shared.py --apply`. If you are not the maintainer, describe the problem to Eduardo instead of patching
   around it.
-* What *is* edited here: the papers, `references.bib` (additions; see rule 5), this file, `README.md`, `.gitignore` and `.mailmap`.
+* What *is* edited here: the papers, `references.bib` (additions; see rule 5), the sections of this file *outside* its shared
+  blocks, `README.md`, `.gitignore` and `.mailmap`. The text between `<!-- BEGIN SHARED BLOCK … -->` and `<!-- END SHARED BLOCK … -->`
+  in this file is maintained in `LaTeX-shared-files` (`toolkit/docs/agents/<name>.md`) and rewritten by `make update-shared`:
+  never edit it here; add what is specific to this repository below the blocks.
   A per-repository tweak of a managed file is not allowed: if the behaviour must differ, it needs a switch upstream.
 
 ## 3. Rules for editing
@@ -232,8 +241,7 @@ answer was `declined`, do not offer again unless the person asks or keeps hittin
 Git identity), explain in one or two sentences what each is for, give the OS-appropriate commands from `README.md`
 ("Local setup"), offer to run them (installing software needs the person's approval; mention download sizes such as
 TeX Live), and re-run `make doctor` to confirm. On Windows recommend the dev container / GitHub Codespace or WSL rather
-than native installs. Offer to install the pre-commit hook (`make install-hooks`) and explain what it does (advisory
-only). Check `.vscode/settings.json` is in effect (soft-wrap on, LaTeX Workshop recommended).
+than native installs. The commit checks (`make install-hooks`) are installed by the first build; check that `make doctor` reports them (advisory only). Check `.vscode/settings.json` is in effect (soft-wrap on, LaTeX Workshop recommended).
 
 **4. Teach at the moment of need.** When you see or are about to write an old habit — bare `\ref`, `Theorem~\ref`,
 `$$`, `eqnarray`, `\bibitem` lists, a second macro for the same symbol, a hard-wrapped paragraph, an unbraced
@@ -251,3 +259,8 @@ summary, and explain what changed in one line. After a successful commit/push, a
 
 **7. Stay current.** If an instruction here conflicts with `STYLE.md`/`README.md`, those win; tell the maintainer
 (Eduardo) so this file can be fixed.
+<!-- END SHARED BLOCK house -->
+
+<!-- Sections specific to this repository go below, outside the shared blocks. Another shared block (for example `iovino`,
+     toolkit/docs/agents/iovino.md, in José Iovino's repositories) is added as an empty pair of its markers, filled by
+     `make update-shared APPLY=1`. -->

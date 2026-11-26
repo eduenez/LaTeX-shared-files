@@ -414,6 +414,66 @@ with tempfile.TemporaryDirectory() as _t:
     with contextlib.redirect_stdout(io.StringIO()):
         check("a master without its own .sty is skipped", pc.main([str(_fig)]), 0)
 
+# ---------------------------------------------------------------------------
+# agents_blocks + toolkit_lock — the shared blocks of AGENTS.md stay current, local sections untouched
+# ---------------------------------------------------------------------------
+print("agents_blocks:")
+import agents_blocks as agb  # noqa: E402
+import shutil as _sh  # noqa: E402
+import subprocess as _sp  # noqa: E402
+
+_doc = agb.render("house", "old rules\n") + "\n\n## This repository\nlocal text\n\n" + agb.render("iovino", "") + "\n"
+_new, _st = agb.refresh(_doc, {"house": "new rules\n", "iovino": "José's rules\n", "other": "x"})
+check("blocks found", sorted(agb.blocks(_doc)), ["house", "iovino"])
+check("block refreshed, empty block filled", (agb.body(_new, "house"), agb.body(_new, "iovino")), ("new rules\n", "José's rules\n"))
+check("local section untouched", "## This repository\nlocal text\n" in _new, True)
+check("states", _st, {"house": "UPDATED", "iovino": "UPDATED"})
+check("idempotent", agb.refresh(_new, {"house": "new rules\n", "iovino": "José's rules\n"})[0], _new)
+_seed = (Path(__file__).resolve().parent.parent / "docs" / "AGENTS.md").read_text(encoding="utf-8")
+_house = (Path(__file__).resolve().parent.parent / "docs" / "agents" / "house.md").read_text(encoding="utf-8")
+check("seed AGENTS.md carries docs/agents/house.md (run gen_manifest.py)", agb.body(_seed, "house"), agb.norm(_house))
+
+with tempfile.TemporaryDirectory() as _t:
+    _up, _cons = Path(_t) / "up", Path(_t) / "cons"
+    (_up / "toolkit" / "docs" / "agents").mkdir(parents=True)
+    (_up / "toolkit" / "MANIFEST.tsv").write_text("")
+    (_up / "toolkit" / "docs" / "agents" / "house.md").write_text("rules v2\n")
+    (_cons / "_scripts").mkdir(parents=True)
+    (_cons / "AGENTS.md").write_text(agb.render("house", "rules v1") + "\n\n## Local\nmine\n")
+    with contextlib.redirect_stdout(io.StringIO()):
+        tlk.sync(str(_up), "abc1234", str(_cons), True)
+    _a = (_cons / "AGENTS.md").read_text()
+    check("toolkit sync refreshes the block", (agb.body(_a, "house"), "## Local\nmine" in _a), ("rules v2\n", True))
+    check("block pinned in the lock", "AGENTS.md#house" in tlk.read_lock(str(_cons)), True)
+    check("pristine block passes check", tlk.check(str(_cons)), [])
+    (_cons / "AGENTS.md").write_text(_a.replace("## Local\nmine", "## Local\nmine, edited"))
+    check("editing a local section is fine", tlk.check(str(_cons)), [])
+    (_cons / "AGENTS.md").write_text(_a.replace("rules v2", "rules v2, edited here"))
+    check("editing the shared block is reported", len(tlk.check(str(_cons))), 1)
+
+# ---------------------------------------------------------------------------
+# setup-hooks.sh — the house commit checks install themselves, keep a foreign hook, respect the opt-out
+# ---------------------------------------------------------------------------
+print("setup-hooks:")
+_setup = str(Path(__file__).resolve().parent / "setup-hooks.sh")
+if _sh.which("git") and _sh.which("bash"):
+    with tempfile.TemporaryDirectory() as _t:
+        _r = Path(_t)
+        _sp.run(["git", "init", "-q", str(_r)], check=True)
+        _hook = _r / ".git" / "hooks" / "pre-commit"
+        _hook.parent.mkdir(parents=True, exist_ok=True)
+        _hook.write_text("#!/bin/sh\necho foreign\n")
+        _o1 = _sp.run(["bash", _setup, "--ensure"], cwd=_r, capture_output=True, text=True).stdout
+        check("installs the wrapper", "house-hook v1" in _hook.read_text(), True)
+        check("a foreign hook is kept as pre-commit.local", (_r / ".git" / "hooks" / "pre-commit.local").read_text(), "#!/bin/sh\necho foreign\n")
+        check("says so in one line", "installed the house commit checks" in _o1, True)
+        _o2 = _sp.run(["bash", _setup, "--ensure"], cwd=_r, capture_output=True, text=True).stdout
+        check("--ensure is silent when current", _o2, "")
+        _hook.unlink()
+        _sp.run(["git", "config", "house.hooks", "off"], cwd=_r, check=True)
+        _sp.run(["bash", _setup, "--ensure"], cwd=_r, capture_output=True, text=True)
+        check("opt-out respected", _hook.exists(), False)
+
 
 print()
 if FAILURES:

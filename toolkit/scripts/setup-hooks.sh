@@ -1,126 +1,59 @@
 #!/usr/bin/env bash
-# setup-hooks.sh — Install git hooks for the LaTeX project.
+# setup-hooks.sh — install the house commit checks (an ADVISORY git pre-commit hook: it prints reminders, never blocks).
 #
-# Run once after cloning, or let the devcontainer postCreateCommand handle it.
-# This script is idempotent.
+#   bash setup-hooks.sh            install or refresh the hook, and say so   (`make install-hooks`)
+#   bash setup-hooks.sh --ensure   the same, silently when nothing is to do; run by every build (`make`, and `latexmk`
+#                                  through the shared latexmkrc), so a clone gets the checks without anyone asking for them
+#
+# The hook installed in .git/hooks/pre-commit is a small wrapper that runs the vendored pre-commit.sh (in _scripts/, or in
+# _packages/toolkit/scripts/ where LaTeX-shared-files is a submodule): the checks themselves arrive and stay current with
+# `make update-shared`, and the wrapper never needs reinstalling. A pre-commit hook that is not ours is kept as
+# pre-commit.local and still runs after the house checks.
+#
+# Opting out (per clone): `git config house.hooks off` — then --ensure does nothing and the hook is not reinstalled.
+# Idempotent.
 
 set -euo pipefail
 
-REPO_ROOT="$(python3 "$(dirname "$0")/houseroot.py")"
-SCRIPTS_REL="$(python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$(cd "$(dirname "$0")" && pwd)" "$REPO_ROOT")"   # _scripts or _packages/toolkit/scripts
-HOOKS_DIR="$REPO_ROOT/.git/hooks"
+ENSURE=0
+[ "${1:-}" = "--ensure" ] && ENSURE=1
 
-# Ensure we are in a git repository
-if [ ! -d "$REPO_ROOT/.git" ]; then
-  echo "setup-hooks: not a git repository — skipping hook installation"
+git rev-parse --git-dir >/dev/null 2>&1 || { [ $ENSURE = 1 ] || echo "setup-hooks: not a git repository — skipping"; exit 0; }
+if [ "$(git config --get house.hooks 2>/dev/null || true)" = "off" ]; then
+  [ $ENSURE = 1 ] || echo "setup-hooks: this clone opted out (git config house.hooks off); run 'git config --unset house.hooks' to opt back in"
   exit 0
 fi
 
-mkdir -p "$HOOKS_DIR"
+HOOK="$(git rev-parse --git-path hooks/pre-commit)"
+mkdir -p "$(dirname "$HOOK")"
+MARK="house-hook v1"
 
-# ── pre-commit hook ──────────────────────────────────────────────────────────
-# ADVISORY hook: it prints reminders but NEVER aborts a commit (always exits 0).
-# This keeps collaborators from being blocked by pre-existing formatting debt.
-# The style checks still exist as gentle nudges; the banned-pattern checks
-# ($$, \eqnarray) also warn here and are hard-gated by CI on push/PR.
-cat > "$HOOKS_DIR/pre-commit" << 'HOOK'
-#!/usr/bin/env bash
-# pre-commit hook — ADVISORY formatting checks for staged .tex files.
-#
-# This hook NEVER blocks a commit; it prints reminders and exits 0.
-#
-# The project's line convention is *semantic wrapping*: one sentence or
-# semicolon/colon-delimited clause per source line, produced by `make wrap`.
-# It keeps git diffs small and reviewable. The width (--cols) only governs the
-# last-resort hard-break of an over-long single sentence; see texwrap.py
-# for the full rule set; see README.md and STYLE.md for conventions.
-#
-# Checks (all advisory):
-#   1. Semantic wrapping (texwrap.py --check)
-#   2. Trailing whitespace
-#   3. $$ ... $$ display math   (also HARD-gated by CI)
-#   4. \eqnarray                (also HARD-gated by CI)
-#   5. package loads / macros in a main .tex (preamble_check.py)
-#   and a warning when vendored files were edited (vendor_check.py)
+WRAPPER='#!/usr/bin/env bash
+# house-hook v1 — installed by setup-hooks.sh (LaTeX-shared-files toolkit); do not edit, it is rewritten.
+# Runs the house commit checks: ADVISORY, they print reminders and never block a commit.
+# Opt out in this clone: git config house.hooks off   (and delete this file)
+ROOT="$(git rev-parse --show-toplevel)"
+for s in "$ROOT/_scripts/pre-commit.sh" "$ROOT/_packages/toolkit/scripts/pre-commit.sh"; do
+  if [ -f "$s" ]; then bash "$s" || true; break; fi
+done
+LOCAL="$(dirname "$0")/pre-commit.local"
+if [ -x "$LOCAL" ]; then exec "$LOCAL" "$@"; fi
+exit 0'
 
-set -uo pipefail
-
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-
-# Advisory: citation keys added to references.bib that break the letter convention for our own papers (ownkeys.py)
-if git diff --cached --name-only | grep -qx 'references.bib'; then
-  python3 "$REPO_ROOT/@SCRIPTS@/ownkeys.py" staged 2>/dev/null || true
-fi
-
-# Vendored files (shared packages, toolkit scripts and templates, house documents) are never edited in a consuming repository.
-VENDORED=$(python3 "$REPO_ROOT/@SCRIPTS@/vendor_check.py" 2>/dev/null | grep -E 'MODIFIED|MISSING' || true)
-if [ -n "$VENDORED" ]; then
-  echo "pre-commit [WARNING]: vendored files were edited here. They are pristine copies from LaTeX-shared-files:"
-  echo "$VENDORED" | sed 's/^/            /'
-  echo "            Undo with 'git checkout HEAD -- <file>' (or 'make update-shared APPLY=1'); the change belongs upstream."
-fi
-
-# Collect staged .tex files
-STAGED_TEX=$(git diff --cached --name-only --diff-filter=ACM | grep '\.tex$' || true)
-
-if [ -z "$STAGED_TEX" ]; then
+if [ -f "$HOOK" ] && [ "$(cat "$HOOK")" = "$WRAPPER" ]; then
+  [ $ENSURE = 1 ] || echo "setup-hooks: the house commit checks are installed and current"
   exit 0
 fi
-
-WARN=0
-note() { WARN=1; echo "$@"; }
-
-# ── Check 1: Semantic wrapping via texwrap.py ────────────────────────────────
-if [ -f "$REPO_ROOT/@SCRIPTS@/texwrap.py" ]; then
-  # shellcheck disable=SC2086
-  if ! python3 "$REPO_ROOT/@SCRIPTS@/texwrap.py" --check --cols 256 $STAGED_TEX >/dev/null 2>&1; then
-    note "pre-commit [advisory]: staged .tex is not semantically wrapped."
-    note "            Run 'make wrap' to normalize (one sentence/clause per line)."
+if [ -f "$HOOK" ] && ! grep -q -e "$MARK" -e 'ADVISORY formatting checks for staged .tex files' "$HOOK"; then
+  # somebody else's hook: keep it, chained after ours
+  if [ ! -e "$(dirname "$HOOK")/pre-commit.local" ]; then
+    mv "$HOOK" "$(dirname "$HOOK")/pre-commit.local"
+    echo "setup-hooks: your existing pre-commit hook is kept as pre-commit.local and still runs"
+  else
+    mv "$HOOK" "$HOOK.saved-$(date +%Y%m%d%H%M%S)"
+    echo "setup-hooks: your existing pre-commit hook was saved as $(basename "$HOOK").saved-… (pre-commit.local already exists)"
   fi
 fi
-
-# ── Check 2: Trailing whitespace ─────────────────────────────────────────────
-for f in $STAGED_TEX; do
-  if grep -Pn '\s+$' "$f" > /dev/null 2>&1; then
-    note "pre-commit [advisory]: trailing whitespace in $f ('make wrap' strips it)."
-  fi
-done
-
-# ── Check 3: No $$ ... $$ display math ───────────────────────────────────────
-for f in $STAGED_TEX; do
-  if grep -n '\$\$' "$f" > /dev/null 2>&1; then
-    note "pre-commit [advisory]: double-dollar display math (\$\$) in $f — CI REJECTS this."
-    note "            Use \\[...\\] or equation* instead."
-  fi
-done
-
-# ── Check 4: No \eqnarray ────────────────────────────────────────────────────
-for f in $STAGED_TEX; do
-  if grep -n '\\begin{eqnarray' "$f" > /dev/null 2>&1; then
-    note "pre-commit [advisory]: \\eqnarray in $f — CI REJECTS this. Use align/align*."
-  fi
-done
-
-# ── Check 5: Nothing but metadata in a main .tex (packages, macros → <paper>.sty) ──
-# shellcheck disable=SC2086
-PREAMBLE=$(python3 "$REPO_ROOT/@SCRIPTS@/preamble_check.py" $STAGED_TEX 2>/dev/null | grep -v "^preamble: packages" || true)
-if [ -n "$PREAMBLE" ]; then
-  note "pre-commit [advisory]: package loads or macros in a main .tex (they belong in <paper>.sty):"
-  note "$(echo "$PREAMBLE" | sed 's/^/            /')"
-  note "            'make format' (or 'make preamble') moves them for you."
-fi
-
-if [ "$WARN" -ne 0 ]; then
-  echo ""
-  echo "pre-commit: the above are ADVISORY only — your commit will proceed."
-  echo "            This hook never blocks. See README.md for context."
-  echo "            Tip: 'make format' fixes most of this; ONBOARDING.md explains the house practices"
-  echo "            (ask your AI assistant for 'the onboarding tour')."
-fi
-
-exit 0
-HOOK
-
-sed -i.bak "s#@SCRIPTS@#$SCRIPTS_REL#g" "$HOOKS_DIR/pre-commit" && rm -f "$HOOKS_DIR/pre-commit.bak"
-chmod +x "$HOOKS_DIR/pre-commit"
-echo "setup-hooks: installed pre-commit hook (advisory — never blocks)"
+printf '%s\n' "$WRAPPER" > "$HOOK"
+chmod +x "$HOOK"
+echo "setup-hooks: installed the house commit checks (advisory: they print reminders, never block a commit; opt out: git config house.hooks off)"

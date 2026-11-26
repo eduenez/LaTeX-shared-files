@@ -66,3 +66,17 @@ unless (@default_files) {
 # the file and line attribution of errors and warnings in editors (AUCTeX),
 # agents and CI. The variable reaches the engine through the environment.
 $ENV{'max_print_line'} = 10000;
+
+# The house commit checks (an advisory git pre-commit hook: reminders only, never blocks a commit) are installed once per
+# clone by the first build, so nobody has to remember `make install-hooks`. Fast path: the hook is there and is ours.
+# Opt out per clone with `git config house.hooks off`. Not attempted on native Windows (no bash; use the dev container).
+unless ($^O eq 'MSWin32') {
+  my $hook = -d "$_repo_root/.git" ? "$_repo_root/.git/hooks/pre-commit" : '';
+  my $ours = 0;
+  if ($hook && open(my $h, '<', $hook)) { local $/; $ours = (<$h> =~ /house-hook v1/); close($h); }
+  unless ($ours) {
+    foreach my $s ("$_repo_root/_scripts/setup-hooks.sh", "$_repo_root/_packages/toolkit/scripts/setup-hooks.sh") {
+      if (-f $s) { system("cd '$_repo_root' && bash '$s' --ensure 2>/dev/null"); last; }
+    }
+  }
+}
