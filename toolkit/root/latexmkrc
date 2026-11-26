@@ -46,7 +46,11 @@ $bibtex_fudge = 0;
 # this file. If it does not (or there is none), build every master of the current directory: each .tex that has an
 # uncommented \documentclass (standalone figure documents excepted). So a directory with several masters, or one
 # whose master was added later, needs no configuration; \include'd children are never built directly.
-unless (@default_files) {
+# latexmk's own default is ('*.tex'), not empty, so that value also counts as "not named". A master without a
+# \documentclass of its own (a wrapper that \inputs another) is not found; name it in @default_files. If no master is
+# found, latexmk's default stays.
+if (!@default_files || "@default_files" eq '*.tex') {
+  @default_files = ();
   if (opendir(my $dh, '.')) {
     foreach my $f (sort grep { /\.tex$/ } readdir($dh)) {
       open(my $fh, '<', $f) or next;
@@ -60,6 +64,7 @@ unless (@default_files) {
     }
     closedir($dh);
   }
+  @default_files = ('*.tex') unless @default_files;
 }
 
 # Unwrapped log lines: TeX wraps its log at 79 columns by default, which breaks
