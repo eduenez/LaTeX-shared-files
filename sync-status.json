@@ -1,8 +1,11 @@
 {
- "generated": "2026-11-26 17:08 UTC",
+ "generated": "2026-11-26 17:33 UTC",
  "mode": "push",
  "only": null,
- "skip": null,
+ "skip": [
+  "topos-logic",
+  "talks"
+ ],
  "aborted": null,
  "issues": [],
  "repositories": [
@@ -11,7 +14,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "d314c7c",
+   "head": "6be1d76",
    "ahead": 0,
    "behind": 0,
    "dirty": 4,
@@ -21,7 +24,7 @@
      "name": "LaTeX-shared-files",
      "phase": "commit",
      "status": "done",
-     "detail": "committed d314c7c, pushed"
+     "detail": "committed 6be1d76, pushed"
     }
    ]
   },
@@ -30,7 +33,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "e0c4d44",
+   "head": "d57e585",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -40,7 +43,7 @@
      "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed e0c4d44, pushed"
+     "detail": "committed d57e585, pushed"
     }
    ]
   },
@@ -71,8 +74,8 @@
    "head": "f88ef9b",
    "ahead": 0,
    "behind": 0,
-   "dirty": 0,
-   "outcome": "nothing",
+   "dirty": 1,
+   "outcome": "not looked at",
    "steps": []
   },
   {
@@ -80,31 +83,57 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "646aa57",
+   "head": "f1d49c0",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 5 updated/1 new"
+    },
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed f1d49c0, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumDI",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "e427379",
+   "head": "4612b40",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumDI",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 5 updated/1 new"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 4612b40, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumTeam",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "b39f78e",
+   "head": "2f92f63",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -112,21 +141,15 @@
    "steps": [
     {
      "name": "QuantumTeam",
-     "phase": "harvest",
-     "status": "done",
-     "detail": "0 new entries"
-    },
-    {
-     "name": "QuantumTeam",
      "phase": "propagate",
      "status": "done",
-     "detail": "toolkit 4 updated/0 new"
+     "detail": "toolkit 5 updated/1 new"
     },
     {
      "name": "QuantumTeam",
      "phase": "commit",
      "status": "done",
-     "detail": "committed b39f78e, pushed"
+     "detail": "committed 2f92f63, pushed"
     }
    ]
   },
@@ -198,8 +221,8 @@
    "head": "15a1b9e",
    "ahead": 0,
    "behind": 0,
-   "dirty": 0,
-   "outcome": "nothing",
+   "dirty": 1,
+   "outcome": "not looked at",
    "steps": []
   },
   {
@@ -219,7 +242,7 @@
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "b9bfa4a",
+   "head": "f15e8b1",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -235,7 +258,7 @@
      "name": "research",
      "phase": "commit",
      "status": "done",
-     "detail": "committed b9bfa4a, pushed"
+     "detail": "committed f15e8b1, pushed"
     }
    ]
   }
