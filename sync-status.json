@@ -1,11 +1,8 @@
 {
- "generated": "2026-11-26 17:33 UTC",
+ "generated": "2026-11-26 18:12 UTC",
  "mode": "push",
  "only": null,
- "skip": [
-  "topos-logic",
-  "talks"
- ],
+ "skip": null,
  "aborted": null,
  "issues": [],
  "repositories": [
@@ -14,7 +11,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "6be1d76",
+   "head": "4eb7737",
    "ahead": 0,
    "behind": 0,
    "dirty": 4,
@@ -24,7 +21,7 @@
      "name": "LaTeX-shared-files",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 6be1d76, pushed"
+     "detail": "committed 4eb7737, pushed"
     }
    ]
   },
@@ -33,7 +30,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "d57e585",
+   "head": "90eecf8",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -43,7 +40,7 @@
      "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed d57e585, pushed"
+     "detail": "committed 90eecf8, pushed"
     }
    ]
   },
@@ -71,19 +68,32 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "f88ef9b",
+   "head": "a1418c1",
    "ahead": 0,
    "behind": 0,
-   "dirty": 1,
-   "outcome": "not looked at",
-   "steps": []
+   "dirty": 0,
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "topos-logic",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "topos-logic",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed a1418c1, pushed"
+    }
+   ]
   },
   {
    "name": "LaTeX-codespace-template",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "f1d49c0",
+   "head": "bc6b4cd",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -93,13 +103,13 @@
      "name": "LaTeX-codespace-template",
      "phase": "propagate",
      "status": "done",
-     "detail": "toolkit 5 updated/1 new"
+     "detail": "toolkit 7 updated/2 new"
     },
     {
      "name": "LaTeX-codespace-template",
      "phase": "commit",
      "status": "done",
-     "detail": "committed f1d49c0, pushed"
+     "detail": "committed bc6b4cd, pushed"
     }
    ]
   },
@@ -108,7 +118,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "4612b40",
+   "head": "3916feb",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -118,13 +128,13 @@
      "name": "QuantumDI",
      "phase": "propagate",
      "status": "done",
-     "detail": "toolkit 5 updated/1 new"
+     "detail": "toolkit 7 updated/2 new"
     },
     {
      "name": "QuantumDI",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 4612b40, pushed"
+     "detail": "committed 3916feb, pushed"
     }
    ]
   },
@@ -133,7 +143,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "2f92f63",
+   "head": "fe0bddd",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -143,13 +153,13 @@
      "name": "QuantumTeam",
      "phase": "propagate",
      "status": "done",
-     "detail": "toolkit 5 updated/1 new"
+     "detail": "toolkit 7 updated/2 new"
     },
     {
      "name": "QuantumTeam",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 2f92f63, pushed"
+     "detail": "committed fe0bddd, pushed"
     }
    ]
   },
@@ -158,36 +168,75 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "146e67b",
+   "head": "d27524f",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "ProbabilityModels",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "ProbabilityModels",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed d27524f, pushed"
+    }
+   ]
   },
   {
    "name": "RealRandom",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "e7410c9",
+   "head": "ff0c505",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "RealRandom",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "RealRandom",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed ff0c505, pushed"
+    }
+   ]
   },
   {
    "name": "RealStructures",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "836327d",
+   "head": "395e013",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "RealStructures",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "RealStructures",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 395e013, pushed"
+    }
+   ]
   },
   {
    "name": "DImanuscripts",
@@ -218,19 +267,7 @@
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "15a1b9e",
-   "ahead": 0,
-   "behind": 0,
-   "dirty": 1,
-   "outcome": "not looked at",
-   "steps": []
-  },
-  {
-   "name": "grants",
-   "model": "vendored-simple",
-   "exists": true,
-   "branch": "master",
-   "head": "b50ad31",
+   "head": "6e9bbb1",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -238,11 +275,36 @@
    "steps": []
   },
   {
+   "name": "grants",
+   "model": "vendored-simple",
+   "exists": true,
+   "branch": "master",
+   "head": "2299257",
+   "ahead": 0,
+   "behind": 0,
+   "dirty": 0,
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "grants",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "grants",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 2299257, pushed"
+    }
+   ]
+  },
+  {
    "name": "research",
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "f15e8b1",
+   "head": "80e8e94",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -258,7 +320,7 @@
      "name": "research",
      "phase": "commit",
      "status": "done",
-     "detail": "committed f15e8b1, pushed"
+     "detail": "committed 80e8e94, pushed"
     }
    ]
   }
