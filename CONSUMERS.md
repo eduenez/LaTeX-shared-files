@@ -7,7 +7,7 @@ the repositories to update (`python3 _scripts/consumers.py` shows who is behind)
 
 | Repository | Model | Pinned | Notes |
 |---|---|---|---|
-| [`eduenez/no-free-lunch`](https://github.com/eduenez/no-free-lunch) | vendored-json | `af98e4f` | project .sty NFL.sty snapshot in children/ |
+| [`eduenez/no-free-lunch`](https://github.com/eduenez/no-free-lunch) | vendored-simple | `af98e4f` | flat single-paper thesis with a collaborator (Kimberly Roe; own project .sty NFL.sty, own Makefile and formatters in _scripts/); converted 2026-11-26 from the old vendor.lock.json model (vendored-json) to the simple model: PDF identical before and after; the children/no-free-lunch snapshot of the project .sty was dropped |
 | [`eduenez/topos-logic`](https://github.com/eduenez/topos-logic) | vendored-simple | `af98e4f` | flat single-paper monograph with collaborators (own project .sty, own Makefile and formatters in _scripts/); converted 2026-10-25 from the old vendor.lock.json model (vendored-json) to the simple model: PDF identical before and after; the children/topos-logic snapshot of the project .sty was dropped |
 | [`eduenez/LaTeX-codespace-template`](https://github.com/eduenez/LaTeX-codespace-template) | vendored-simple | `dfca875` | template for new multi-paper repositories; ships the full set of di-* packages Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock. |
 | [`eduenez/QuantumDI`](https://github.com/eduenez/QuantumDI) | vendored-simple | `dfca875` | multi-paper repository (Dueñez-Iovino); private Toolkit (scripts, templates, shared root files) vendored from toolkit/, pinned in _scripts/vendor.lock. |
