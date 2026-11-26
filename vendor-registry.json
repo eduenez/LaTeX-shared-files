@@ -15,12 +15,7 @@
       "quarantine": "_quarantined_references.bib"
     }
   },
-  "children": {
-    "no-free-lunch": {
-      "path": "../no-free-lunch",
-      "project_sty": "NFL.sty"
-    }
-  },
+  "children": {},
   "consumers": [
     {
       "name": "no-free-lunch",

@@ -72,9 +72,13 @@ class SyncAll(unittest.TestCase):
         bare("childX", PEERS / "no-free-lunch")                              # an old-model (vendored-json) child
         for n in ("LaTeX-shared-files", "math-bibliography", "consA", "consB", "consC", "childX"):
             work(n)
+        # no-free-lunch left the old model on 2026-11-26: the fixture is its last vendored-json commit
+        gone = sh(t / "childX", "rev-list", "-1", "HEAD", "--", "_packages/vendor.lock.json")
+        if gone and sh(t / "childX", "ls-tree", "HEAD", "_packages/vendor.lock.json") == "":
+            sh(t / "childX", "reset", "-q", "--hard", gone + "^")
         (t / "childX" / "Makefile").write_text("all:\n\t@true\n")          # the real one runs a whole TeX build
         sh(t / "childX", "commit", "-qam", "trivial Makefile for the test")
-        sh(t / "childX", "push", "-q")
+        sh(t / "childX", "push", "-q", "-f")
         real_reg = json.loads((REAL / "vendor-registry.json").read_text())
         ignore = ["example2024", "placeholder2025"]
         reg = dict(real_reg)
