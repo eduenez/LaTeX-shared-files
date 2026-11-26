@@ -2,7 +2,7 @@
 
 *Written by `vendor.py sync-all` at the end of every `--apply`/`--push` run (also an interrupted one). Do not edit. Machine-readable: `sync-status.json`.*
 
-**Last run:** 2026-11-26 18:12 UTC, `--push`, completed.
+**Last run:** 2026-11-26 18:14 UTC, `--push`, completed.
 
 **Open issues: 0** — every repository looked at is current, clean and published.
 
@@ -11,21 +11,21 @@
 
 | Repository | Model | Branch | HEAD | vs origin | Last run |
 |---|---|---|---|---|---|
-| `LaTeX-shared-files` | master | main | `4eb7737` | dirty | done |
-| `math-bibliography` | master | main | `90eecf8` | in sync | done |
+| `LaTeX-shared-files` | master | main | `4857d85` | dirty | ok |
+| `math-bibliography` | master | main | `98536af` | in sync | done |
 | `no-free-lunch` | vendored-json | main | `4599342` | in sync | info |
-| `topos-logic` | vendored-simple | main | `a1418c1` | in sync | done |
-| `LaTeX-codespace-template` | vendored-simple | main | `bc6b4cd` | in sync | done |
-| `QuantumDI` | vendored-simple | main | `3916feb` | in sync | done |
-| `QuantumTeam` | vendored-simple | main | `fe0bddd` | in sync | done |
-| `ProbabilityModels` | vendored-simple | main | `d27524f` | in sync | done |
-| `RealRandom` | vendored-simple | main | `ff0c505` | in sync | done |
-| `RealStructures` | vendored-simple | main | `395e013` | in sync | done |
+| `topos-logic` | vendored-simple | main | `a1418c1` | in sync | nothing |
+| `LaTeX-codespace-template` | vendored-simple | main | `e06367f` | in sync | done |
+| `QuantumDI` | vendored-simple | main | `a2d45a1` | in sync | done |
+| `QuantumTeam` | vendored-simple | main | `b3e00bd` | in sync | done |
+| `ProbabilityModels` | vendored-simple | main | `d27524f` | in sync | nothing |
+| `RealRandom` | vendored-simple | main | `ff0c505` | in sync | nothing |
+| `RealStructures` | vendored-simple | main | `395e013` | in sync | nothing |
 | `DImanuscripts` | submodule | master | `f017987` | in sync | nothing |
 | `eduenez.github.io` | submodule | main | `b8e0318` | in sync | nothing |
 | `talks` | submodule | main | `6e9bbb1` | in sync | nothing |
-| `grants` | vendored-simple | master | `2299257` | in sync | done |
-| `research` | submodule | master | `80e8e94` | in sync | done |
+| `grants` | vendored-simple | master | `2299257` | in sync | nothing |
+| `research` | submodule | master | `80e8e94` | in sync | nothing |
 
 ## Citations of retired keys left as they are
 
