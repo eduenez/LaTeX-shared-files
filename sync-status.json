@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-26 18:32 UTC",
+ "generated": "2026-11-26 18:56 UTC",
  "mode": "push",
  "only": null,
  "skip": null,
@@ -11,7 +11,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "ed083c0",
+   "head": "36d0f01",
    "ahead": 0,
    "behind": 0,
    "dirty": 4,
@@ -21,7 +21,7 @@
      "name": "LaTeX-shared-files",
      "phase": "commit",
      "status": "done",
-     "detail": "committed ed083c0, pushed"
+     "detail": "committed 36d0f01, pushed"
     }
    ]
   },
@@ -30,7 +30,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "e44b1ab",
+   "head": "6db13fe",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -40,7 +40,7 @@
      "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed e44b1ab, pushed"
+     "detail": "committed 6db13fe, pushed"
     }
    ]
   },
@@ -73,36 +73,75 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "e06367f",
+   "head": "31d097a",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "LaTeX-codespace-template",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 31d097a, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumDI",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "a2d45a1",
+   "head": "ca775ec",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumDI",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "QuantumDI",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed ca775ec, pushed"
+    }
+   ]
   },
   {
    "name": "QuantumTeam",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "b3e00bd",
+   "head": "ec01fc5",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "QuantumTeam",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 1 updated/0 new"
+    },
+    {
+     "name": "QuantumTeam",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed ec01fc5, pushed"
+    }
+   ]
   },
   {
    "name": "ProbabilityModels",
@@ -169,7 +208,7 @@
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "6e9bbb1",
+   "head": "e05a2d8",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -181,7 +220,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "master",
-   "head": "2299257",
+   "head": "0a8e96b",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -193,12 +232,25 @@
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "80e8e94",
+   "head": "3668841",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "research",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved _packages"
+    },
+    {
+     "name": "research",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed 3668841, pushed"
+    }
+   ]
   }
  ],
  "retired_keys": 448,
