@@ -370,6 +370,50 @@ check("first key of a year", ownkeys.next_key("Aubone-Iovino", 2027, ["Aubone-Io
 check("an unlettered key counts as a", ownkeys.next_key("Aubone-Duenez-Iovino", 2026, ["Aubone-Duenez-Iovino:2026"]), "Aubone-Duenez-Iovino:2026b")
 check("keys_of ignores @comment and @string", ownkeys.keys_of("@comment{x}\n@article{A:2020,\n}\n@string{s = {x}}"), ["A:2020"])
 
+# ---------------------------------------------------------------------------
+# preamble_check — nothing but metadata in the main file (the euscript-in-main-file incident, 2026-11-24)
+# ---------------------------------------------------------------------------
+print("preamble_check:")
+import contextlib  # noqa: E402
+import io  # noqa: E402
+import preamble_check as pc  # noqa: E402
+
+with tempfile.TemporaryDirectory() as _t:
+    _d = Path(_t) / "paper"
+    _d.mkdir()
+    _sty, _tex = _d / "paper.sty", _d / "paper.tex"
+    _sty.write_text("\\ProvidesPackage{paper}\n\\usepackage{amsmath}\n\\endinput\n")
+    _tex.write_text(
+        "\\documentclass{amsart}\n"
+        "\\makeatletter\\def\\input@path{{../_packages/}{_packages/}}\\makeatother\n"
+        "\\usepackage{paper}\n"
+        "\\usepackage[mathcal]{euscript} % Euler Script\n"
+        "\\usepackage{amsmath}\n"
+        "\\newcommand{\\foo}[1]{%\n  \\mathbf{#1}\n}\n"
+        "% \\usepackage{commented}\n"
+        "\\title{T}\n"
+        "\\begin{document}\n"
+        "\\usepackage{late}\n"
+        "\\begin{verbatim}\n\\usepackage{shown}\n\\end{verbatim}\n"
+        "\\end{document}\n"
+    )
+    with contextlib.redirect_stdout(io.StringIO()):
+        check("violations are reported", pc.main([str(_tex)]), 1)
+        check("--fix succeeds", pc.main(["--fix", str(_tex)]), 0)
+        check("clean after --fix", pc.main([str(_tex)]), 0)
+    _t_after, _s_after = _tex.read_text(), _sty.read_text()
+    check("main file keeps metadata, input@path, own package, comments, verbatim",
+          all(x in _t_after for x in ["\\title{T}", "input@path", "\\usepackage{paper}", "% \\usepackage{commented}", "\\usepackage{shown}"]), True)
+    check("main file loses the euscript, \\foo and body loads",
+          any(x in _t_after for x in ["euscript", "\\foo", "{late}"]), False)
+    check("moved block lands before \\endinput, multi-line definition whole",
+          _s_after.index("\\mathbf{#1}\n}") < _s_after.index("\\endinput") and "{late}" in _s_after, True)
+    check("a line already in the .sty is not duplicated", _s_after.count("\\usepackage{amsmath}"), 1)
+    _fig = _d / "figure.tex"
+    _fig.write_text("\\documentclass{standalone}\n\\usepackage{tikz}\n\\begin{document}\n\\end{document}\n")
+    with contextlib.redirect_stdout(io.StringIO()):
+        check("a master without its own .sty is skipped", pc.main([str(_fig)]), 0)
+
 
 print()
 if FAILURES:

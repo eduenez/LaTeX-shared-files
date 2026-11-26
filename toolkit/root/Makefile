@@ -15,6 +15,7 @@
 #   make export P=name   – self-contained copy in _export/<name>/ (for arXiv etc.)
 #   make format          – do it all: fashion + reflow (idempotent)
 #   make reflow | fashion | wrap | indent | sep | check | lint
+#   make preamble        – move packages/macros from a main .tex into its <paper>.sty (also done by format)
 #   make clean           – remove build artifacts
 #   make install-hooks   – install the advisory git pre-commit hook
 #   make help            – show this help
@@ -92,7 +93,7 @@ update-submodules: update-shared
 submodules:
 	@git submodule update --init
 
-.PHONY: test submodules update-submodules vendor-check bib-diff newkey update-shared doctor all help new export build build-all article pdf PDF compile format reflow fashion wrap indent sep check lint clean install-hooks $(PAPERS)
+.PHONY: test submodules update-submodules vendor-check bib-diff newkey update-shared doctor all help new export build build-all article pdf PDF compile format reflow fashion wrap indent sep check lint preamble clean install-hooks $(PAPERS)
 
 all: help
 
@@ -116,13 +117,14 @@ help:
 	@echo "    make export P=name   Self-contained copy in _export/<name>/"
 	@echo ""
 	@echo "  Formatting (inside a paper directory, or P=<paper>; on all papers only with FORCE=1):"
-	@echo "    make format          Do it all: fashion + reflow"
+	@echo "    make format          Do it all: preamble code to <paper>.sty, fashion + reflow"
+	@echo "    make preamble        Move packages/macros from a main .tex into its <paper>.sty"
 	@echo "    make reflow          Re-flow: wrap + indent (idempotent)"
 	@echo "    make fashion         Modernize typography (accents, quotes, tabs)"
 	@echo "    make wrap            Semantic line-wrap only (break positions)"
 	@echo "    make indent          Whitespace/indentation normalization (latexindent)"
 	@echo "    make sep             Normalize sectioning banners (advisory)"
-	@echo "    make check           Dry-run: report .tex needing fashion/wrapping"
+	@echo "    make check           Dry-run: report .tex needing preamble cleanup/fashion/wrapping"
 	@echo ""
 	@echo "  Linting & cleaning:"
 	@echo "    make lint            Run chktex on all paper .tex"
@@ -155,9 +157,10 @@ build-all build article pdf PDF compile:
 $(PAPERS):
 	@$(MAKE) --no-print-directory -C "$@"
 
-## format: Do it all — modernize typography, then reflow
+## format: Do it all — preamble code to <paper>.sty, modernize typography, then reflow
 format:
 	$(need_force)
+	@python3 $(SCRIPTS)/preamble_check.py --fix $(TEX_SRC)
 	@$(MAKE) --no-print-directory fashion
 	@$(MAKE) --no-print-directory reflow
 
@@ -193,9 +196,15 @@ sep:
 	$(need_force)
 	python3 $(SCRIPTS)/texsep.py $(TEX_SRC)
 
-## check: Report .tex needing fashion/wrapping (no changes; latexindent has no dry-run)
+## preamble: move packages/macros written in a main .tex into its <paper>.sty (also part of `make format`)
+preamble:
+	$(need_force)
+	@python3 $(SCRIPTS)/preamble_check.py --fix $(TEX_SRC)
+
+## check: Report .tex needing preamble cleanup/fashion/wrapping (no changes; latexindent has no dry-run)
 check:
 	@rc=0; \
+	python3 $(SCRIPTS)/preamble_check.py $(TEX_SRC) || rc=1; \
 	python3 $(SCRIPTS)/texfashion.py --check $(TEX_SRC) || rc=1; \
 	python3 $(SCRIPTS)/texwrap.py --check --cols $(COLS) $(TEX_SRC) || rc=1; \
 	exit $$rc

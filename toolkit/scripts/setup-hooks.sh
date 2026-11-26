@@ -40,6 +40,8 @@ cat > "$HOOKS_DIR/pre-commit" << 'HOOK'
 #   2. Trailing whitespace
 #   3. $$ ... $$ display math   (also HARD-gated by CI)
 #   4. \eqnarray                (also HARD-gated by CI)
+#   5. package loads / macros in a main .tex (preamble_check.py)
+#   and a warning when vendored files were edited (vendor_check.py)
 
 set -uo pipefail
 
@@ -48,6 +50,14 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 # Advisory: citation keys added to references.bib that break the letter convention for our own papers (ownkeys.py)
 if git diff --cached --name-only | grep -qx 'references.bib'; then
   python3 "$REPO_ROOT/@SCRIPTS@/ownkeys.py" staged 2>/dev/null || true
+fi
+
+# Vendored files (shared packages, toolkit scripts and templates, house documents) are never edited in a consuming repository.
+VENDORED=$(python3 "$REPO_ROOT/@SCRIPTS@/vendor_check.py" 2>/dev/null | grep -E 'MODIFIED|MISSING' || true)
+if [ -n "$VENDORED" ]; then
+  echo "pre-commit [WARNING]: vendored files were edited here. They are pristine copies from LaTeX-shared-files:"
+  echo "$VENDORED" | sed 's/^/            /'
+  echo "            Undo with 'git checkout HEAD -- <file>' (or 'make update-shared APPLY=1'); the change belongs upstream."
 fi
 
 # Collect staged .tex files
@@ -90,6 +100,15 @@ for f in $STAGED_TEX; do
     note "pre-commit [advisory]: \\eqnarray in $f — CI REJECTS this. Use align/align*."
   fi
 done
+
+# ── Check 5: Nothing but metadata in a main .tex (packages, macros → <paper>.sty) ──
+# shellcheck disable=SC2086
+PREAMBLE=$(python3 "$REPO_ROOT/@SCRIPTS@/preamble_check.py" $STAGED_TEX 2>/dev/null | grep -v "^preamble: packages" || true)
+if [ -n "$PREAMBLE" ]; then
+  note "pre-commit [advisory]: package loads or macros in a main .tex (they belong in <paper>.sty):"
+  note "$(echo "$PREAMBLE" | sed 's/^/            /')"
+  note "            'make format' (or 'make preamble') moves them for you."
+fi
 
 if [ "$WARN" -ne 0 ]; then
   echo ""

@@ -25,7 +25,7 @@ LATEXMK := latexmk $(if $(wildcard latexmkrc),,-r ../latexmkrc)
 
 .DEFAULT_GOAL := pdf
 .PHONY: pdf PDF compile article all watch clean distclean help FORCE \
-        arxiv record manifest flat format reflow fashion wrap indent sep check lint export doctor vendor-check bib-diff newkey update-shared install-hooks
+        arxiv record manifest flat format reflow fashion wrap indent sep check lint preamble export doctor vendor-check bib-diff newkey update-shared install-hooks
 
 ## pdf: build the default document of this directory (synonyms: PDF, compile, article)
 pdf PDF compile article:
@@ -74,7 +74,7 @@ distclean: clean
 	@rm -f $(MASTERS:.tex=.pdf)
 
 # Formatting, linting and export act on this paper only; the repository-wide chores run at the root.
-format reflow fashion wrap indent sep check lint export:
+format reflow fashion wrap indent sep check lint preamble export:
 	@$(MAKE) --no-print-directory -C $(ROOT) $@ P=$(PAPER)
 doctor vendor-check bib-diff newkey update-shared install-hooks:
 	@$(MAKE) --no-print-directory -C $(ROOT) $@
@@ -84,7 +84,7 @@ help:
 	@echo "Targets for $(PAPER)/  (masters: $(MASTERS))"
 	@echo "  make            build the default document        make all       build every master here"
 	@echo "  make NAME.pdf   build one master                  make watch     rebuild on save"
-	@echo "  make format     typography + semantic wrapping    make check     dry run of format"
+	@echo "  make format     preamble to .sty, typography, wrapping   make check   dry run of format"
 	@echo "  make lint       chktex                            make export    self-contained copy (arXiv)"
 	@echo "  make flat       single-file view of a multi-file document (_build/NAME-flat.tex)"
 	@echo "  make arxiv      one-file arXiv bundle: next free version, or V=n [FORCE=1]"

@@ -9,12 +9,55 @@ one bibliography, and one toolchain. Your job is twofold: **do the task you were
 house conventions, and help the person you are working with adopt those conventions** (see
 [Coaching protocol](#coaching-protocol) — it is part of the job, not an extra).
 
+## Non-negotiable rules (read these first)
+
+This file is the authority on how an agent works here; it summarises `STYLE.md`, which it never contradicts. Habits from other
+projects, a personal memory, a skill or a "convention" you remember do **not** override it. The rules below admit no exception,
+whoever asks and whatever was done before you arrived. If a request seems to need breaking one, do what the request *means* in
+the way the rules allow, and say in one line what you did.
+
+1. **The main `.tex` of a paper never loads a package and never defines anything.** It holds `\documentclass`, the
+   `\input@path` line, exactly one `\usepackage{<paper>}` and metadata (`\title`, `\author`, `\date`, `\subjclass`, …), nothing
+   else. Every `\usepackage`/`\RequirePackage`, `\newcommand`/`\renewcommand`/`\DeclareMathOperator`/`\def`, `\newtheorem`,
+   `\newenvironment`, colour, length, counter, TikZ library and `\hypersetup` goes in `<paper>.sty`, section "Project-specific
+   additions". Not "just this once", not to try something out, not because the author put one there. (A standalone figure file,
+   `\documentclass{standalone}` with no `<paper>.sty`, keeps its own preamble.)
+2. **Before adding a package, check that the house base does not already load it** (`_packages/di-base-core.sty` and the paper's
+   `.sty`). The base already loads the fonts and the usual packages; for instance `\mathcal` is already Euler Script
+   (`eucal`). A duplicate or near-duplicate (`euscript` on top of `eucal`) breaks the build.
+3. **Never edit a vendored file**: `_packages/`, `_scripts/`, `_templates/`, the root toolkit files, `STYLE.md`, `ONBOARDING.md`,
+   `CONVERTING.md` (see [Where changes belong](#where-changes-belong)). A template is not a place to record a preference.
+4. **Never invent a rule, and never cite one you have not just read.** Cite house rules by their real place (`STYLE.md` §9,
+   `AGENTS.md` rule 3.2) after checking the text. If no rule covers a choice, say it is your choice. A commit message or a
+   comment must not claim an authority that does not exist ("STYLE.md, rule 24" when STYLE.md has no such rule).
+
+## Authors delegate the backend: repair, the right way
+
+Many authors here delegate every "backend" aspect of LaTeX (packages, macros, fonts, build, formatting, Git) to their agent and
+will not read these conventions. That is fine, and it makes the agent the last line of defence. So when you meet something done
+the wrong way, whether the author wrote it, an earlier agent did, or you are asked to add it, you neither refuse nor lecture:
+**you do what the author meant, in the right way, and report it in one line.**
+
+* A `\usepackage` or a definition in the main file: move it to `<paper>.sty` (`make preamble` does this mechanically and
+  `make format` includes it; both leave a marked block at the end of the `.sty`). Then judge the moved block: drop what the house
+  base already provides, use the shared macro name where one exists (rule 3.3), keep the intent (the font, the symbol, the
+  layout the author wanted) and build.
+* An edited vendored file: restore it (`git checkout HEAD -- <file>`, or `make update-shared APPLY=1`) and obtain the intended
+  effect in the paper's `.sty`; if the change is genuinely shared, describe it to Eduardo for `LaTeX-shared-files`.
+* Anything you find that is not about your task: fix it if it is in the paper you are working on and mechanical (the two cases
+  above); otherwise mention it. Do not wander into other papers.
+
+With such an author, coaching is that one line ("moved `\usepackage{xcolor}` from the main file to `paper.sty`: packages live
+there"), not a lesson.
+
 ## 0. At the start of a session
 
 1. Run `make doctor` (read-only; checks tools, Git identity, hooks). If something is missing, follow the
    coaching protocol's *tool setup* step before doing anything else that needs it.
 2. Run `git status` and `git log --oneline -5` so you know what state the work is in.
-3. Check whether this clone has been onboarded: `cat .git/agent-onboarding 2>/dev/null` (a per-clone,
+3. Run `make vendor-check` (vendored mode) and, in the paper you will work on, `make check` (it reports package loads in the
+   main file as well as formatting drift). Repair what they report as described above before you start the task.
+4. Check whether this clone has been onboarded: `cat .git/agent-onboarding 2>/dev/null` (a per-clone,
    untracked note; see below). If it does not exist, make the one-time offer described in the protocol.
 
 ## 1. Layout
@@ -55,8 +98,9 @@ same as `make`. At the repository root the same targets exist with `P=<paper>`; 
 | `make flat` (in `<paper>/`) | single-file view of a multi-file document, `_build/<main>-flat.tex`, for reading, searching, global replace; edit the real files |
 | `make` (in `<paper>/`) or `make <paper>` (root) | build one paper (PDF next to the source, aux files in `_build/`) |
 | `make build-all FORCE=1` | build every paper (guarded; rarely needed) |
-| `make format [P=<paper>]` | typography + semantic line wrapping + indentation (idempotent) |
-| `make check [P=<paper>]` | dry run: report what `make format` would change |
+| `make format [P=<paper>]` | preamble code moved to `<paper>.sty` + typography + semantic line wrapping + indentation (idempotent) |
+| `make preamble [P=<paper>]` | only the first step: move package loads and definitions from a main `.tex` into its `<paper>.sty` |
+| `make check [P=<paper>]` | dry run: report what `make format` would change (including package loads in a main `.tex`) |
 | `make lint [P=<paper>]` | chktex |
 | `make arxiv [V=n] [FORCE=1]` (in `<paper>/`; `V=n`, not `-Vn`) | one-file arXiv bundle `<paper>/arxiv/<main>-arxiv-vN.zip` (.tex + .bbl, packages inlined, comments stripped except `%#` banners, verified); commit it and tag `arxiv-<paper>-vN` only when the user has submitted |
 | `make record ID=<id> [ARXIV=<arXiv id>] [SET='key=value']`, `make manifest` (in `<paper>/`) | add facts (arXiv id, DOI, a pointer to where the paper password is kept: never the password) to a record of `<paper>/manifestations.toml`, written by `make arxiv`; list the records and check tags, checksums and missing ids |
@@ -106,8 +150,9 @@ copies of them, and so does every repository created from it. Therefore:
    `.vscode/`, CI, templates) affects every paper and every repository that vendors it: it is **never changed here** but in
    `LaTeX-shared-files/toolkit/` (see *Where changes belong*), only when asked, backward compatible, and verified with
    `make <paper>` for a few papers (`make build-all FORCE=1` only if asked).
-2. **Preamble discipline.** No `\usepackage`, `\newcommand`, `\newtheorem` in the main `.tex`; they go in
-   `<paper>.sty` ("Project-specific additions"). Keep the `\makeatletter\def\input@path{{../_packages/}{_packages/}}\makeatother`
+2. **Preamble discipline** (non-negotiable rule 1). No `\usepackage`, `\newcommand`, `\newtheorem` or any other definition in
+   the main `.tex`, ever; they go in `<paper>.sty` ("Project-specific additions"). `make check` reports violations, `make preamble`
+   (part of `make format`) moves them. Keep the `\makeatletter\def\input@path{{../_packages/}{_packages/}}\makeatother`
    line and `\bibliography{../references}` intact (the export script rewrites them).
 3. **Macros and notation** (see `STYLE.md` §9). One macro per symbol, shared names: `\NN \ZZ \QQ \RR \CC` (blackboard),
    `\cA` (calligraphic), `\fA` (fraktur), `\scrA` (script). Never define another macro for the same symbol; never
@@ -200,7 +245,8 @@ each habit at most once per session unless asked. The cheat sheet in `ONBOARDING
 convert this file, or just note it?"* Offer the cheat sheet rather than the tour. Expect resistance to be about
 convenience: show that `make format` and `make check` do the work, and that the pre-commit hook only advises.
 
-**6. Reinforce at commit time.** Before a commit, run `make check`; if it reports drift, run `make format`, show the diff
+**6. Reinforce at commit time.** Before a commit, run `make check` (and `make vendor-check`: a commit must never carry an edit
+of a vendored file); if it reports drift, run `make format`, show the diff
 summary, and explain what changed in one line. After a successful commit/push, a short "what we did and why" is enough.
 
 **7. Stay current.** If an instruction here conflicts with `STYLE.md`/`README.md`, those win; tell the maintainer

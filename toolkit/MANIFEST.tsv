@@ -16,6 +16,7 @@ managed	scripts/manifestations.py	_scripts/manifestations.py	use
 managed	scripts/new-paper.sh	_scripts/new-paper.sh	use
 managed	scripts/ownkeys.py	_scripts/ownkeys.py	use
 managed	scripts/paper.mk	_scripts/paper.mk	use
+managed	scripts/preamble_check.py	_scripts/preamble_check.py	use
 managed	scripts/setup-hooks.sh	_scripts/setup-hooks.sh	use
 managed	scripts/test_scripts.py	_scripts/test_scripts.py	use
 managed	scripts/test_texfashion.py	_scripts/test_texfashion.py	use

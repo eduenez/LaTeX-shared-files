@@ -21,6 +21,8 @@ output. Everything else is a norm, not a wall.
 definitions, theorem environments, and (for the monograph) the memoir page
 layout — lives in the matching `<paper>.sty` beside it. Put your project's own
 additions in that file's **"Project-specific additions"** section.
+This rule has no exceptions. `make check` reports a package load or a definition in a main `.tex`, and
+`make format` (or `make preamble` alone) moves it, verbatim, to the end of `<paper>.sty`.
 
 `<paper>.sty` first loads the **shared** packages, which are *vendored* into
 `_packages/`: pristine, byte-for-byte copies of the `di-*.sty` files from the
