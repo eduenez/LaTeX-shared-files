@@ -19,3 +19,8 @@ $pdflatex = 'pdflatex -interaction=nonstopmode -synctex=1 %O %S';
 
 # $biber = 'biber %O %S';   # uncomment if using biblatex/biber
 # $out_dir = 'build';       # uncomment to keep build artifacts separate
+
+# Unwrapped log lines: TeX wraps its log at 79 columns by default, which breaks
+# the file and line attribution of errors and warnings in editors (AUCTeX),
+# agents and CI. The variable reaches the engine through the environment.
+$ENV{'max_print_line'} = 10000;
