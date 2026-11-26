@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-24 00:38 UTC",
+ "generated": "2026-11-26 17:08 UTC",
  "mode": "push",
  "only": null,
  "skip": null,
@@ -11,17 +11,17 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "6f58cde",
+   "head": "d314c7c",
    "ahead": 0,
    "behind": 0,
-   "dirty": 0,
+   "dirty": 4,
    "outcome": "done",
    "steps": [
     {
      "name": "LaTeX-shared-files",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 6f58cde, pushed"
+     "detail": "committed d314c7c, pushed"
     }
    ]
   },
@@ -30,7 +30,7 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "1543985",
+   "head": "e0c4d44",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -40,7 +40,7 @@
      "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 1543985, pushed"
+     "detail": "committed e0c4d44, pushed"
     }
    ]
   },
@@ -49,7 +49,7 @@
    "model": "vendored-json",
    "exists": true,
    "branch": "main",
-   "head": "e9386b8",
+   "head": "4599342",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -68,32 +68,19 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "35dae7e",
+   "head": "f88ef9b",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "topos-logic",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "bibliography +4 new/0 corrected"
-    },
-    {
-     "name": "topos-logic",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed 35dae7e, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "LaTeX-codespace-template",
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "b6666ac",
+   "head": "646aa57",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -105,7 +92,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "cf32d27",
+   "head": "e427379",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -117,7 +104,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "3504ce4",
+   "head": "b39f78e",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -128,6 +115,18 @@
      "phase": "harvest",
      "status": "done",
      "detail": "0 new entries"
+    },
+    {
+     "name": "QuantumTeam",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "toolkit 4 updated/0 new"
+    },
+    {
+     "name": "QuantumTeam",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b39f78e, pushed"
     }
    ]
   },
@@ -136,7 +135,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "3921ecf",
+   "head": "146e67b",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -148,7 +147,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "b4e8d8c",
+   "head": "e7410c9",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -160,7 +159,7 @@
    "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "99efd82",
+   "head": "836327d",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -196,32 +195,19 @@
    "model": "submodule",
    "exists": true,
    "branch": "main",
-   "head": "bab064d",
+   "head": "15a1b9e",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "talks",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "moved math-bibliography"
-    },
-    {
-     "name": "talks",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed bab064d, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "grants",
    "model": "vendored-simple",
    "exists": true,
    "branch": "master",
-   "head": "1d32acb",
+   "head": "b50ad31",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -233,12 +219,25 @@
    "model": "submodule",
    "exists": true,
    "branch": "master",
-   "head": "f5097ad",
+   "head": "b9bfa4a",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "nothing",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "research",
+     "phase": "propagate",
+     "status": "done",
+     "detail": "moved _packages"
+    },
+    {
+     "name": "research",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed b9bfa4a, pushed"
+    }
+   ]
   }
  ],
  "retired_keys": 448,
