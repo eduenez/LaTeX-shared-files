@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-26 18:14 UTC",
+ "generated": "2026-11-26 18:32 UTC",
  "mode": "push",
  "only": null,
  "skip": null,
@@ -11,19 +11,26 @@
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "4857d85",
+   "head": "ed083c0",
    "ahead": 0,
    "behind": 0,
    "dirty": 4,
-   "outcome": "ok",
-   "steps": []
+   "outcome": "done",
+   "steps": [
+    {
+     "name": "LaTeX-shared-files",
+     "phase": "commit",
+     "status": "done",
+     "detail": "committed ed083c0, pushed"
+    }
+   ]
   },
   {
    "name": "math-bibliography",
    "model": "master",
    "exists": true,
    "branch": "main",
-   "head": "98536af",
+   "head": "e44b1ab",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
@@ -33,28 +40,21 @@
      "name": "math-bibliography",
      "phase": "commit",
      "status": "done",
-     "detail": "committed 98536af, pushed"
+     "detail": "committed e44b1ab, pushed"
     }
    ]
   },
   {
    "name": "no-free-lunch",
-   "model": "vendored-json",
+   "model": "vendored-simple",
    "exists": true,
    "branch": "main",
-   "head": "4599342",
+   "head": "b9f579e",
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "info",
-   "steps": [
-    {
-     "name": "no-free-lunch",
-     "phase": "project-sty",
-     "status": "info",
-     "detail": "NFL.sty changed since its snapshot in LaTeX-shared-files (python3 _scripts/vendor.py sty-snapshot no-free-lunch); never automated: it is your coauthors' file"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "topos-logic",
@@ -77,21 +77,8 @@
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "LaTeX-codespace-template",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "toolkit 0 updated/1 new"
-    },
-    {
-     "name": "LaTeX-codespace-template",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed e06367f, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "QuantumDI",
@@ -102,21 +89,8 @@
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "QuantumDI",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "toolkit 0 updated/2 new"
-    },
-    {
-     "name": "QuantumDI",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed a2d45a1, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "QuantumTeam",
@@ -127,21 +101,8 @@
    "ahead": 0,
    "behind": 0,
    "dirty": 0,
-   "outcome": "done",
-   "steps": [
-    {
-     "name": "QuantumTeam",
-     "phase": "propagate",
-     "status": "done",
-     "detail": "toolkit 0 updated/2 new"
-    },
-    {
-     "name": "QuantumTeam",
-     "phase": "commit",
-     "status": "done",
-     "detail": "committed b3e00bd, pushed"
-    }
-   ]
+   "outcome": "nothing",
+   "steps": []
   },
   {
    "name": "ProbabilityModels",

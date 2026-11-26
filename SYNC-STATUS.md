@@ -2,7 +2,7 @@
 
 *Written by `vendor.py sync-all` at the end of every `--apply`/`--push` run (also an interrupted one). Do not edit. Machine-readable: `sync-status.json`.*
 
-**Last run:** 2026-11-26 18:14 UTC, `--push`, completed.
+**Last run:** 2026-11-26 18:32 UTC, `--push`, completed.
 
 **Open issues: 0** — every repository looked at is current, clean and published.
 
@@ -11,13 +11,13 @@
 
 | Repository | Model | Branch | HEAD | vs origin | Last run |
 |---|---|---|---|---|---|
-| `LaTeX-shared-files` | master | main | `4857d85` | dirty | ok |
-| `math-bibliography` | master | main | `98536af` | in sync | done |
-| `no-free-lunch` | vendored-json | main | `4599342` | in sync | info |
+| `LaTeX-shared-files` | master | main | `ed083c0` | dirty | done |
+| `math-bibliography` | master | main | `e44b1ab` | in sync | done |
+| `no-free-lunch` | vendored-simple | main | `b9f579e` | in sync | nothing |
 | `topos-logic` | vendored-simple | main | `a1418c1` | in sync | nothing |
-| `LaTeX-codespace-template` | vendored-simple | main | `e06367f` | in sync | done |
-| `QuantumDI` | vendored-simple | main | `a2d45a1` | in sync | done |
-| `QuantumTeam` | vendored-simple | main | `b3e00bd` | in sync | done |
+| `LaTeX-codespace-template` | vendored-simple | main | `e06367f` | in sync | nothing |
+| `QuantumDI` | vendored-simple | main | `a2d45a1` | in sync | nothing |
+| `QuantumTeam` | vendored-simple | main | `b3e00bd` | in sync | nothing |
 | `ProbabilityModels` | vendored-simple | main | `d27524f` | in sync | nothing |
 | `RealRandom` | vendored-simple | main | `ff0c505` | in sync | nothing |
 | `RealStructures` | vendored-simple | main | `395e013` | in sync | nothing |
